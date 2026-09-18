@@ -3,7 +3,11 @@ import { cookies } from 'next/headers';
 import { getUserById } from './db/users.repo';
 import { NextResponse } from 'next/server';
 
-const secret = new TextEncoder().encode(process.env.AUTH_SECRET || 'fallback-secret-change-in-production');
+if (!process.env.AUTH_SECRET || process.env.AUTH_SECRET.length < 32) {
+  throw new Error('AUTH_SECRET must be set and at least 32 characters long');
+}
+
+const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
 
 export async function createSession(userId, role) {
   const token = await new SignJWT({ userId, role })
@@ -25,7 +29,7 @@ export async function verifySession(token) {
 }
 
 export async function getSession(request) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('session')?.value;
   
   if (!token) {
@@ -51,16 +55,40 @@ export async function getSession(request) {
   };
 }
 
-export async function requireUser(request) {
-  const session = await getSession(request);
+export async function getSessionFromToken(token) {
+  if (!token) {
+    return null;
+  }
+
+  const payload = await verifySession(token);
+  if (!payload) {
+    return null;
+  }
+
+  // Re-read user from database to get current role and isBanned status
+  const user = await getUserById(payload.userId);
+  if (!user || user.isBanned) {
+    return null;
+  }
+
+  return {
+    userId: user.id,
+    role: user.role,
+    email: user.email,
+    name: user.name,
+  };
+}
+
+export async function requireUser() {
+  const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   return session;
 }
 
-export async function requireRole(request, requiredRole) {
-  const session = await getSession(request);
+export async function requireRole(requiredRole) {
+  const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -73,5 +101,32 @@ export async function requireRole(request, requiredRole) {
 }
 
 export async function requireAdmin(request) {
-  return requireRole(request, 'admin');
+  return requireRole('author');
+}
+
+export async function requireSubscription() {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  
+  // Authors are exempt from subscription requirement
+  if (session.role === 'author') {
+    return session;
+  }
+  
+  // Check if user has active subscription
+  const user = await getUserById(session.userId);
+  if (!user) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  }
+  
+  const hasActiveSubscription = user.subscriptionStatus === 'active' && 
+    (!user.subscriptionExpiry || new Date(user.subscriptionExpiry) > new Date());
+  
+  if (!hasActiveSubscription) {
+    return NextResponse.json({ error: 'Active subscription required' }, { status: 403 });
+  }
+  
+  return session;
 }

@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/auth';
 
 // GET /api/questions/user-sandbox?userId=xxx&packageId=xxx - Sandbox progress retrieval (admin only)
 export async function GET(request) {
-  const auth = await requireAdmin(request);
+  const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -43,7 +43,7 @@ export async function PUT(request) {
 
 // DELETE /api/questions/user-sandbox - Sandbox progress reset (admin only)
 export async function DELETE(request) {
-  const auth = await requireAdmin(request);
+  const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
   try {

@@ -3,7 +3,7 @@ import { createNotification, createUserFeedback, getFeedback, getUserById, getUs
 import { requireUser, requireAdmin } from '@/lib/auth';
 
 export async function GET(request) {
-  const auth = await requireAdmin(request);
+  const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -26,7 +26,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const auth = await requireUser(request);
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
 
   try {

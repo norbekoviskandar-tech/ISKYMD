@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getGlobalStats, getEngagementData } from '@/lib/db/products.repo';
 import { queryOne } from '@/lib/pg';
+import { requireSubscription } from '@/lib/auth';
 
 export async function GET(request) {
+  const auth = await requireSubscription();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'dashboard';

@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const secret = new TextEncoder().encode(process.env.AUTH_SECRET || 'fallback-secret-change-in-production');
+if (!process.env.AUTH_SECRET || process.env.AUTH_SECRET.length < 32) {
+  throw new Error('AUTH_SECRET must be set and at least 32 characters long');
+}
+
+const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
 
 async function verifySession(token) {
   try {
@@ -29,9 +33,12 @@ export async function middleware(request) {
   const session = token ? await verifySession(token) : null;
 
   // Protect /author/* pages (except /author/login)
-  if (pathname.startsWith('/author/') && pathname !== '/author/login') {
+  if ((pathname.startsWith('/author/') || pathname === '/author') && pathname !== '/author/login') {
     if (!session) {
       return NextResponse.redirect(new URL('/author/login', request.url));
+    }
+    if (session.role !== 'author') {
+      return NextResponse.redirect(new URL('/student/dashboard', request.url));
     }
   }
 

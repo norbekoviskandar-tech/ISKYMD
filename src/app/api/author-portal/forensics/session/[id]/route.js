@@ -3,7 +3,7 @@ import { getTestById } from "@/lib/db/tests.repo";
 import { requireAdmin } from "@/lib/auth";
 
 export async function GET(req, { params }) {
-    const auth = await requireAdmin(req);
+    const auth = await requireAdmin();
     if (auth instanceof NextResponse) return auth;
 
     const { id: testId } = await params;

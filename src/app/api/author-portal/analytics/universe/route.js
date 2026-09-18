@@ -3,7 +3,7 @@ import { getProductUniverseAnalytics } from '@/lib/db/products.repo';
 import { requireAdmin } from '@/lib/auth';
 
 export async function GET(request) {
-  const auth = await requireAdmin(request);
+  const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
   try {

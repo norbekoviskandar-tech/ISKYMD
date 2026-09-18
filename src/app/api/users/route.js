@@ -4,7 +4,7 @@ import { requireAdmin, requireUser } from '@/lib/auth';
 
 // GET /api/users - Get all users or single user by id (admin only)
 export async function GET(request) {
-  const auth = await requireAdmin(request);
+  const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -36,11 +36,11 @@ export async function PUT(request) {
     return NextResponse.json({ error: 'User id required' }, { status: 400 });
   }
   
-  const auth = await requireUser(request);
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
   
   // Non-admins can only update their own profile
-  if (auth.role !== 'admin' && auth.userId !== updates.id) {
+  if (auth.role !== 'author' && auth.userId !== updates.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   
@@ -51,7 +51,7 @@ export async function PUT(request) {
   }
 
   // Non-admins can only change specific fields
-  if (auth.role !== 'admin') {
+  if (auth.role !== 'author') {
     const allowedFields = ['name', 'profile'];
     const restrictedFields = ['role', 'isBanned', 'passwordHash', 'subscriptionStatus', 'subscriptionExpiry', 'activatedByPurchase', 'stats'];
     
@@ -71,7 +71,7 @@ export async function PUT(request) {
   };
 
   // Detect purchase activation (admin only)
-  if (auth.role === 'admin' && updates.activatedByPurchase && !existingUser.activatedByPurchase) {
+  if (auth.role === 'author' && updates.activatedByPurchase && !existingUser.activatedByPurchase) {
       await createNotification(
           'purchase',
           `Subscription activated: ${existingUser.name} (${existingUser.email})`,
@@ -92,7 +92,7 @@ export async function PUT(request) {
 
 // DELETE /api/users - Delete a user (admin only)
 export async function DELETE(request) {
-  const auth = await requireAdmin(request);
+  const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
   try {

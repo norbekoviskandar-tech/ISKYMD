@@ -2,16 +2,27 @@ import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { getAllQuestions, updateQuestion, createQuestion, deleteQuestion, getQuestionById } from '@/lib/db/questions.repo';
 import { execute } from '@/lib/pg';
+import { requireSubscription } from '@/lib/auth';
 
 // GET /api/questions?packageId=xxx - Get questions
 export async function GET(request) {
+  const auth = await requireSubscription();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get('productId') || searchParams.get('packageId');
     const includeUnpublished = searchParams.get('includeUnpublished') !== 'false';
 
     const questions = await getAllQuestions(productId, includeUnpublished);
-    return NextResponse.json(questions);
+    
+    // Remove correct answers from questions before sending to client
+    const sanitizedQuestions = questions.map(q => {
+      const { correctAnswer, ...sanitized } = q;
+      return sanitized;
+    });
+    
+    return NextResponse.json(sanitizedQuestions);
   } catch (error) {
     console.error('Question GET error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { updateQuestionStats } from '@/lib/db/questions.repo';
 import { query } from '@/lib/pg';
+import { requireSubscription } from '@/lib/auth';
 
 // GET /api/questions/stats?packageId=xxx&ids=... - Return product-scoped per-question stats
 export async function GET(request) {
+  const auth = await requireSubscription();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const packageId = searchParams.get('packageId');

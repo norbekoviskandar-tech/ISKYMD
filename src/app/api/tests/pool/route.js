@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getEligiblePool, getUniverseSize } from '@/lib/db/questions.repo';
+import { requireSubscription } from '@/lib/auth';
 
 /**
  * GET /api/tests/pool?userId=...&packageId=...&filters=...
  * Real-time calculation of eligible question pool before test creation.
  */
 export async function POST(request) {
+  const auth = await requireSubscription();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { userId, packageId, filters } = await request.json();
     

@@ -3,7 +3,7 @@ import { reviseQuestion } from '@/lib/db/questions.repo';
 import { requireAdmin } from '@/lib/auth';
 
 export async function POST(request) {
-  const auth = await requireAdmin(request);
+  const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
   try {

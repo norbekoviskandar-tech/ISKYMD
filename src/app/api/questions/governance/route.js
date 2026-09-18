@@ -13,7 +13,7 @@ import { requireAdmin } from '@/lib/auth';
  * Body: { action, versionId, userId, notes }
  */
 export async function POST(request) {
-    const auth = await requireAdmin(request);
+    const auth = await requireAdmin();
     if (auth instanceof NextResponse) return auth;
 
     // ✅ Define action in outer scope so catch can safely access it
