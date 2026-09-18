@@ -3,7 +3,7 @@ import { updateAttemptAnswer, updateAttemptFlag, snapshotAttempt, finishAttempt,
 import { requireUser } from '@/lib/auth';
 
 export async function PATCH(request, { params }) {
-  const auth = await requireUser(request);
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -24,7 +24,7 @@ export async function PATCH(request, { params }) {
 
     if (type === 'answer') {
       if (!questionId) return NextResponse.json({ error: 'questionId required' }, { status: 400 });
-      await updateAttemptAnswer(id, questionId, selectedOption, secondsToAdd || 0);
+      await updateAttemptAnswer(id, questionId, selectedOption);
       return NextResponse.json({ success: true });
     }
 
@@ -42,7 +42,7 @@ export async function PATCH(request, { params }) {
 }
 
 export async function POST(request, { params }) {
-  const auth = await requireUser(request);
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
 
   try {

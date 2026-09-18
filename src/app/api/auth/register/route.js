@@ -39,13 +39,13 @@ export async function POST(request) {
     }
 
     // Check if user exists
-    const existing = getUserByEmail(email);
+    const existing = await getUserByEmail(email);
     if (existing) {
       return NextResponse.json({ error: 'User already exists' }, { status: 409 });
     }
 
     const passwordHash = hashPassword(password);
-    const user = createUser({
+    const user = await createUser({
       id: crypto.randomUUID(),
       name,
       email,
@@ -61,7 +61,7 @@ export async function POST(request) {
     recordRegisterAttempt(ip);
 
     // Notify administrators
-    createNotification(
+    await createNotification(
       'registration',
       `New student enrollment: ${name} (${email})`,
       user.id,

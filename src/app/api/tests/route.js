@@ -5,7 +5,7 @@ import { requireUser } from '@/lib/auth';
 
 // GET /api/tests?userId=xxx - Get all tests for a user
 export async function GET(request) {
-  const auth = await requireUser(request);
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -37,7 +37,7 @@ export async function GET(request) {
 
 // POST /api/tests - Assemble and Save a test
 export async function POST(request) {
-  const auth = await requireUser(request);
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -106,7 +106,7 @@ export async function POST(request) {
 
 // DELETE /api/tests - Delete a test or clear all user tests
 export async function DELETE(request) {
-  const auth = await requireUser(request);
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
 
   try {

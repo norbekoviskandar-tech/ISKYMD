@@ -4,7 +4,7 @@ import { requireUser } from '@/lib/auth';
 
 // GET /api/student/stats?userId=xxx&packageId=xxx
 export async function GET(request) {
-  const auth = await requireUser(request);
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
 
   try {

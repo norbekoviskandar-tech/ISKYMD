@@ -1,17 +1,29 @@
 import { NextResponse } from 'next/server';
 import { getUserSubscriptions, createUserSubscription, activateSubscription, getActiveSubscriptionByUserAndProduct, extendSubscription } from '@/lib/db/users.repo';
+import { requireUser, requireRole } from '@/lib/auth';
 
 // GET /api/users/subscriptions?userId=xxx
 export async function GET(request) {
+  const auth = await requireUser();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
-    if (!userId) {
+    // Non-authors can only view their own subscriptions
+    if (auth.role !== 'author' && userId !== auth.userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // If userId not provided, use session userId
+    const targetUserId = userId || auth.userId;
+
+    if (!targetUserId) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 });
     }
 
-    const subscriptions = getUserSubscriptions(userId);
+    const subscriptions = await getUserSubscriptions(targetUserId);
     return NextResponse.json(subscriptions);
   } catch (error) {
     console.error('Get subscriptions error:', error);
@@ -19,8 +31,11 @@ export async function GET(request) {
   }
 }
 
-// POST /api/users/subscriptions
+// POST /api/users/subscriptions (authors only for now)
 export async function POST(request) {
+  const auth = await requireRole('author');
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { userId, productId, durationDays, productName, amount, paymentToken } = await request.json();
 
@@ -31,13 +46,13 @@ export async function POST(request) {
     console.log(`[API] Creating/extending subscription for user ${userId}, product ${productId}, amount ${amount}`);
 
     // Check for existing active subscription
-    const existingSubscription = getActiveSubscriptionByUserAndProduct(userId, productId);
+    const existingSubscription = await getActiveSubscriptionByUserAndProduct(userId, productId);
     
     if (existingSubscription) {
       console.log(`[API] Found existing active subscription ${existingSubscription.id}, extending duration by ${durationDays} days`);
       
       // Extend existing subscription
-      const extendedSub = extendSubscription(existingSubscription.id, durationDays);
+      const extendedSub = await extendSubscription(existingSubscription.id, durationDays);
       
       return NextResponse.json({
         ...extendedSub,
@@ -49,7 +64,7 @@ export async function POST(request) {
     // No existing subscription, create new one
     console.log(`[API] No existing subscription found, creating new subscription`);
     
-    const activeSub = createUserSubscription({
+    const activeSub = await createUserSubscription({
       userId,
       packageId: productId,
       durationDays: Number(durationDays),

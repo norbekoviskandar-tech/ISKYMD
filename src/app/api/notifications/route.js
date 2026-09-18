@@ -3,7 +3,7 @@ import { getNotifications, markNotificationRead } from '@/lib/db/users.repo';
 import { requireUser } from '@/lib/auth';
 
 export async function GET(request) {
-  const auth = await requireUser(request);
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -21,7 +21,7 @@ export async function GET(request) {
 }
 
 export async function PUT(request) {
-  const auth = await requireUser(request);
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
 
   try {

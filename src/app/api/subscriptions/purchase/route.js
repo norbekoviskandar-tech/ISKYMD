@@ -5,7 +5,7 @@ import { requireUser } from '@/lib/auth';
 // POST /api/subscriptions/purchase
 // Body: { userId: 'xxx', cart: [{ id: packageId, title: 'Name', duration: 90, ... }] }
 export async function POST(request) {
-  const auth = await requireUser(request);
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
 
   try {
