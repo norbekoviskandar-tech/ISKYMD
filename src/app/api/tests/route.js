@@ -1,19 +1,28 @@
 import { NextResponse } from 'next/server';
 import { getUserTests, saveTest, deleteTest, clearUserTests } from '@/lib/db/tests.repo';
 import { getEligiblePool, getUniverseSize, getQuestionById } from '@/lib/db/questions.repo';
+import { requireUser } from '@/lib/auth';
 
 // GET /api/tests?userId=xxx - Get all tests for a user
 export async function GET(request) {
+  const auth = await requireUser(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const packageId = searchParams.get('packageId');
     
+    // Users can only view their own tests
+    if (userId !== auth.userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    
     if (!userId || !packageId) {
       return NextResponse.json({ error: 'userId and packageId required' }, { status: 400 });
     }
     
-    const tests = getUserTests(userId, packageId);
+    const tests = await getUserTests(userId, packageId);
     return NextResponse.json(tests);
   } catch (error) {
     console.error('Get tests error:', {
@@ -28,8 +37,16 @@ export async function GET(request) {
 
 // POST /api/tests - Assemble and Save a test
 export async function POST(request) {
+  const auth = await requireUser(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const data = await request.json();
+    
+    // Users can only create tests for themselves
+    if (data.userId !== auth.userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
     
     if (!data.userId || !data.packageId) {
       return NextResponse.json({ error: 'userId and packageId required' }, { status: 400 });
@@ -44,8 +61,8 @@ export async function POST(request) {
       // ASSEMBLY ENGINE TRIGGERED
       console.log('Test Assembly Engine: Creating new block...', data.poolLogic);
       
-      universeSize = getUniverseSize(data.packageId);
-      const eligibleIds = getEligiblePool(data.userId, data.packageId, data.poolLogic, data.count);
+      universeSize = await getUniverseSize(data.packageId);
+      const eligibleIds = await getEligiblePool(data.userId, data.packageId, data.poolLogic, data.count);
       eligiblePoolSize = eligibleIds.length;
       
       if (eligiblePoolSize === 0) {
@@ -53,9 +70,11 @@ export async function POST(request) {
       }
 
       // Snapshot the IDs into the question list
-      // For now, we store the full question objects in the 'questions' JSON blob to ensure immutability
-      // even if the question is deleted or changed in the main library (snapshotting).
-      questions = eligibleIds.map(id => getQuestionById(id));
+      questions = [];
+      for (const id of eligibleIds) {
+        const q = await getQuestionById(id);
+        if (q) questions.push(q);
+      }
       
       // Adjust count if universe was smaller than requested
       if (questions.length < data.count) {
@@ -76,7 +95,7 @@ export async function POST(request) {
       createdAt: new Date().toISOString()
     };
     
-    const saved = saveTest(testToSave);
+    const saved = await saveTest(testToSave);
 
     return NextResponse.json(saved);
   } catch (error) {
@@ -87,13 +106,27 @@ export async function POST(request) {
 
 // DELETE /api/tests - Delete a test or clear all user tests
 export async function DELETE(request) {
+  const auth = await requireUser(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { testId, userId, clearAll } = await request.json();
     
+    // Users can only delete their own tests
+    if (userId && userId !== auth.userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    
     if (clearAll && userId) {
-      clearUserTests(userId);
+      await clearUserTests(userId);
     } else if (testId) {
-      deleteTest(testId);
+      // Verify the test belongs to the user
+      const { getTestById } = await import('@/lib/db/tests.repo');
+      const test = await getTestById(testId, 'all');
+      if (test && test.userId !== auth.userId) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      await deleteTest(testId);
     } else {
       return NextResponse.json({ error: 'testId or userId+clearAll required' }, { status: 400 });
     }

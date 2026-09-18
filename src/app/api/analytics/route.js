@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getGlobalStats, getEngagementData } from '@/lib/db/products.repo';
-import { getDb } from '@/lib/db/index';
+import { queryOne } from '@/lib/pg';
 
 export async function GET(request) {
   try {
@@ -14,7 +14,7 @@ export async function GET(request) {
     }
 
     if (type === 'engagement') {
-      const data = getEngagementData(packageId);
+      const data = await getEngagementData(packageId);
       return NextResponse.json(data);
     }
 
@@ -22,15 +22,14 @@ export async function GET(request) {
       const userId = searchParams.get('userId');
       if (!userId || !packageId) return NextResponse.json({ error: 'Missing userId or packageId' }, { status: 400 });
       
-      const db = getDb();
-      const profile = db.prepare('SELECT * FROM student_cognition_profiles WHERE userId = ? AND packageId = ?')
-        .get(userId, packageId.toString());
+      const profile = await queryOne('SELECT * FROM "student_cognition_profiles" WHERE "userId" = $1 AND "packageId" = $2',
+        [userId, packageId.toString()]);
       
       return NextResponse.json(profile || { readinessScore: 0, overthinkingIndex: 0, impulsivityIndex: 0, fatigueFactor: 0 });
     }
 
     // Default to dashboard stats
-    const stats = getGlobalStats(packageId);
+    const stats = await getGlobalStats(packageId);
     return NextResponse.json(stats);
   } catch (error) {
     console.error('Analytics error:', error);

@@ -14,7 +14,7 @@ export async function GET(request) {
     }
     
     // Pass productId to filter questions by product
-    const questions = getUserQuestions(userId, productId);
+    const questions = await getUserQuestions(userId, productId);
     return NextResponse.json(questions);
   } catch (error) {
     console.error('Get user questions error:', error);
@@ -56,7 +56,7 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'userId required' }, { status: 400 });
     }
     
-    resetUserQuestions(userId);
+    await resetUserQuestions(userId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Reset user questions error:', error);

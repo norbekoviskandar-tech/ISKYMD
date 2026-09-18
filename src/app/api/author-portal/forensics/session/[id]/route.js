@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { getTestById } from "@/lib/db/tests.repo";
+import { requireAdmin } from "@/lib/auth";
 
 export async function GET(req, { params }) {
+    const auth = await requireAdmin(req);
+    if (auth instanceof NextResponse) return auth;
+
     const { id: testId } = await params;
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get('productId') || searchParams.get('packageId');
@@ -11,7 +15,7 @@ export async function GET(req, { params }) {
     }
     
     try {
-        const test = getTestById(testId, productId);
+        const test = await getTestById(testId, productId);
         if (!test) return NextResponse.json({ error: "Session not found" }, { status: 404 });
 
         // Forensics Replay requires the sessionState logs

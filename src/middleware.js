@@ -1,0 +1,52 @@
+import { NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
+
+const secret = new TextEncoder().encode(process.env.AUTH_SECRET || 'fallback-secret-change-in-production');
+
+async function verifySession(token) {
+  try {
+    const { payload } = await jwtVerify(token, secret);
+    return payload;
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function middleware(request) {
+  const { pathname } = request.nextUrl;
+
+  // Allow public routes
+  const publicRoutes = ['/', '/auth', '/products', '/solutions', '/contact-us', '/privacy-policy', '/terms-of-use'];
+  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
+
+  // Allow auth API routes
+  if (pathname.startsWith('/api/auth/')) {
+    return NextResponse.next();
+  }
+
+  // Check for session cookie (basic JWT verification without DB access)
+  const token = request.cookies.get('session')?.value;
+  const session = token ? await verifySession(token) : null;
+
+  // Protect /author/* pages (except /author/login)
+  if (pathname.startsWith('/author/') && pathname !== '/author/login') {
+    if (!session) {
+      return NextResponse.redirect(new URL('/author/login', request.url));
+    }
+  }
+
+  // Protect /student/* pages
+  if (pathname.startsWith('/student/')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/auth', request.url));
+    }
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
+};

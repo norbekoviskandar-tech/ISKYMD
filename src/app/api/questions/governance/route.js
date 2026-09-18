@@ -6,12 +6,15 @@ import {
     deprecateQuestion,
     getQuestionById
 } from '@/lib/db/questions.repo';
+import { requireAdmin } from '@/lib/auth';
 
 /**
  * Unified POST endpoint for all question governance state transitions.
  * Body: { action, versionId, userId, notes }
  */
 export async function POST(request) {
+    const auth = await requireAdmin(request);
+    if (auth instanceof NextResponse) return auth;
 
     // ✅ Define action in outer scope so catch can safely access it
     let action = "UNKNOWN";
@@ -37,7 +40,7 @@ export async function POST(request) {
             );
         }
 
-        const question = getQuestionById(versionId);
+        const question = await getQuestionById(versionId);
         if (!question) {
             return NextResponse.json(
                 { error: 'Question version not found' }, 
@@ -49,19 +52,19 @@ export async function POST(request) {
 
         switch (action) {
             case 'submit':
-                result = submitQuestionForReview(versionId, userId, notes);
+                result = await submitQuestionForReview(versionId, userId, notes);
                 break;
 
             case 'approve':
-                result = approveQuestion(versionId, userId, notes);
+                result = await approveQuestion(versionId, userId, notes);
                 break;
 
             case 'publish':
-                result = publishQuestion(versionId, userId, notes);
+                result = await publishQuestion(versionId, userId, notes);
                 break;
 
             case 'deprecate':
-                result = deprecateQuestion(versionId, userId, notes);
+                result = await deprecateQuestion(versionId, userId, notes);
                 break;
 
             case 'archive':

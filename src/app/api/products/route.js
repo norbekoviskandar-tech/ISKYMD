@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import * as db from '@/lib/db/index';
+import { requireAdmin, requireUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
+  const auth = await requireUser(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'all';
@@ -13,37 +17,38 @@ export async function GET(request) {
     const id = searchParams.get('id');
     
     if (id) {
-      const product = includeDeleted ? db.getProductByIdIncludeDeleted(id) : db.getProductById(id);
+      const product = includeDeleted ? await db.getProductByIdIncludeDeleted(id) : await db.getProductById(id);
       if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
       return NextResponse.json(product);
     }
     
     let products;
     if (type === 'published') {
-      products = db.getPublishedProducts();
+      products = await db.getPublishedProducts();
     } else {
-      products = db.getAllProducts();
+      products = await db.getAllProducts();
     }
     
     console.log(`[API Products] Found ${products?.length} products`);
     return NextResponse.json(products);
   } catch (error) {
     console.error('[API Products] GET error:', error);
-    // Try to get path from the module if possible
     return NextResponse.json({ 
       error: 'Failed to fetch products', 
       details: error.message,
-      stack: error.stack,
-      dbPath: db.DB_PATH
+      stack: error.stack
     }, { status: 500 });
   }
 }
 
 export async function POST(request) {
+  const auth = await requireAdmin(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = await request.json();
     console.log('[API Products] POST body:', body);
-    const product = db.createProduct(body);
+    const product = await db.createProduct(body);
     return NextResponse.json(product);
   } catch (error) {
     console.error('[API Products] POST error:', error);
@@ -52,10 +57,13 @@ export async function POST(request) {
 }
 
 export async function PUT(request) {
+  const auth = await requireAdmin(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = await request.json();
     console.log('[API Products] PUT body:', body);
-    const product = db.updateProduct(body);
+    const product = await db.updateProduct(body);
     return NextResponse.json(product);
   } catch (error) {
     console.error('[API Products] PUT error:', error);
@@ -64,10 +72,13 @@ export async function PUT(request) {
 }
 
 export async function DELETE(request) {
+  const auth = await requireAdmin(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id } = await request.json();
     console.log('[API Products] DELETE id:', id);
-    const success = db.deleteProduct(id);
+    const success = await db.deleteProduct(id);
     return NextResponse.json({ success });
   } catch (error) {
     console.error('[API Products] DELETE error:', error);

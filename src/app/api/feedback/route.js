@@ -1,19 +1,23 @@
 import { NextResponse } from 'next/server';
 import { createNotification, createUserFeedback, getFeedback, getUserById, getUserFeedback, getUserUsageSummary } from '@/lib/db/users.repo';
+import { requireUser, requireAdmin } from '@/lib/auth';
 
 export async function GET(request) {
+  const auth = await requireAdmin(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const limit = Number(searchParams.get('limit') || (userId ? 100 : 200));
 
     if (userId) {
-      const feedback = getUserFeedback(userId, limit);
-      const usage = getUserUsageSummary(userId);
+      const feedback = await getUserFeedback(userId, limit);
+      const usage = await getUserUsageSummary(userId);
       return NextResponse.json({ feedback, usage });
     }
 
-    const feedback = getFeedback(limit);
+    const feedback = await getFeedback(limit);
     return NextResponse.json({ feedback });
   } catch (error) {
     console.error('Feedback GET error:', error);
@@ -22,9 +26,17 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const auth = await requireUser(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = await request.json();
     const { userId, message, source = 'portal', questionId = null, testId = null, page = null } = body || {};
+
+    // Users can only submit feedback for themselves
+    if (userId !== auth.userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const cleanMessage = String(message || '').trim();
 
@@ -36,7 +48,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Feedback is limited to 500 characters' }, { status: 400 });
     }
 
-    const feedback = createUserFeedback({
+    const feedback = await createUserFeedback({
       userId,
       message: cleanMessage,
       source,
@@ -45,11 +57,11 @@ export async function POST(request) {
       page
     });
 
-    const user = getUserById(userId);
+    const user = await getUserById(userId);
     const sourceLabel = source === 'test_session' ? 'Test Session' : source === 'create_test' ? 'Create Test' : 'Portal';
     const questionSuffix = questionId ? ` [QID: ${questionId}]` : '';
 
-    createNotification(
+    await createNotification(
       'feedback',
       `New feedback from ${user?.name || 'Student'} (${user?.email || userId}) via ${sourceLabel}${questionSuffix}`,
       userId,

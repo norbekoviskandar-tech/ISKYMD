@@ -4,7 +4,7 @@ import { getQuestionById } from '@/lib/db/questions.repo';
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
-    const question = getQuestionById(id);
+    const question = await getQuestionById(id);
     
     if (!question) {
       return NextResponse.json({ error: 'Question not found' }, { status: 404 });

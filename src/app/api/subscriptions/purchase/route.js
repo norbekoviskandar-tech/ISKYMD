@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
 import { createUserSubscription, activateSubscription, getActiveSubscriptionByUserAndProduct, extendSubscription } from '@/lib/db/users.repo';
+import { requireUser } from '@/lib/auth';
 
 // POST /api/subscriptions/purchase
 // Body: { userId: 'xxx', cart: [{ id: packageId, title: 'Name', duration: 90, ... }] }
 export async function POST(request) {
+  const auth = await requireUser(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { userId, cart } = await request.json();
+
+    // Users can only purchase for themselves
+    if (userId !== auth.userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     if (!userId || !cart || !Array.isArray(cart)) {
       return NextResponse.json({ error: 'userId and cart are required' }, { status: 400 });
@@ -21,13 +30,13 @@ export async function POST(request) {
       console.log(`[Purchase API] Processing item: packageId=${packageId}, duration=${durationDays}`);
 
       // Check for existing active subscription
-      const existingSubscription = getActiveSubscriptionByUserAndProduct(userId, packageId);
+      const existingSubscription = await getActiveSubscriptionByUserAndProduct(userId, packageId);
       
       if (existingSubscription) {
         console.log(`[Purchase API] Found existing active subscription ${existingSubscription.id}, extending`);
         
         // Extend existing subscription
-        const extendedSub = extendSubscription(existingSubscription.id, durationDays);
+        const extendedSub = await extendSubscription(existingSubscription.id, durationDays);
         results.push({
           ...extendedSub,
           action: 'extended',
@@ -37,7 +46,7 @@ export async function POST(request) {
         console.log(`[Purchase API] No existing subscription, creating new one`);
         
         // Create new subscription
-        const sub = createUserSubscription({
+        const sub = await createUserSubscription({
           userId,
           packageId,
           durationDays,
@@ -45,7 +54,7 @@ export async function POST(request) {
         });
 
         // In this sandbox environment, we activate it immediately
-        const activeSub = activateSubscription(sub.id);
+        const activeSub = await activateSubscription(sub.id);
         results.push({
           ...activeSub,
           action: 'created',

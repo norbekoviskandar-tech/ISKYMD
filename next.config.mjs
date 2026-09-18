@@ -1,4 +1,5 @@
 export default {
   compress: true,
-  productionBrowserSourceMaps: false
+  productionBrowserSourceMaps: false,
+  serverExternalPackages: ['better-sqlite3']
 };

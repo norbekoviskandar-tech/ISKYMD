@@ -1,27 +1,36 @@
 import { NextResponse } from 'next/server';
-import { updateAttemptAnswer, updateAttemptFlag, snapshotAttempt, finishAttempt, updateAttemptReviewMetadata } from '@/lib/db/tests.repo';
+import { updateAttemptAnswer, updateAttemptFlag, snapshotAttempt, finishAttempt, updateAttemptReviewMetadata, getTestAttempt } from '@/lib/db/tests.repo';
+import { requireUser } from '@/lib/auth';
 
 export async function PATCH(request, { params }) {
+  const auth = await requireUser(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id } = await params;
     const body = await request.json();
     const { type, questionId, selectedOption, isFlagged, reviewMetadata, secondsToAdd } = body;
 
+    // Verify the attempt belongs to the user
+    const attempt = await getTestAttempt(id);
+    if (attempt && attempt.userId !== auth.userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     if (type === 'review') {
-      updateAttemptReviewMetadata(id, reviewMetadata);
+      await updateAttemptReviewMetadata(id, reviewMetadata);
       return NextResponse.json({ success: true });
     }
 
     if (type === 'answer') {
       if (!questionId) return NextResponse.json({ error: 'questionId required' }, { status: 400 });
-      // We send the 'secondsToAdd' to the DB to be added to the total
-      updateAttemptAnswer(id, questionId, selectedOption, secondsToAdd || 0);
+      await updateAttemptAnswer(id, questionId, selectedOption, secondsToAdd || 0);
       return NextResponse.json({ success: true });
     }
 
     if (type === 'flag') {
       if (!questionId) return NextResponse.json({ error: 'questionId required' }, { status: 400 });
-      updateAttemptFlag(id, questionId, isFlagged);
+      await updateAttemptFlag(id, questionId, isFlagged);
       return NextResponse.json({ success: true });
     }
 
@@ -33,14 +42,23 @@ export async function PATCH(request, { params }) {
 }
 
 export async function POST(request, { params }) {
+  const auth = await requireUser(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id } = await params;
     const body = await request.json();
     const { type, snapshot } = body || {};
 
+    // Verify the attempt belongs to the user
+    const attempt = await getTestAttempt(id);
+    if (attempt && attempt.userId !== auth.userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     if (type === 'snapshot') {
       if (!snapshot) return NextResponse.json({ error: 'snapshot required' }, { status: 400 });
-      snapshotAttempt(id, snapshot);
+      await snapshotAttempt(id, snapshot);
       return NextResponse.json({ success: true });
     }
 
@@ -50,7 +68,7 @@ export async function POST(request, { params }) {
       }
 
       try {
-        snapshotAttempt(id, snapshot);
+        await snapshotAttempt(id, snapshot);
       } catch (error) {
         const message = String(error?.message || '');
         if (!message.toLowerCase().includes('already finished')) {
@@ -59,7 +77,7 @@ export async function POST(request, { params }) {
       }
 
       try {
-        finishAttempt(id);
+        await finishAttempt(id);
       } catch (error) {
         const message = String(error?.message || '');
         if (!message.toLowerCase().includes('already')) {

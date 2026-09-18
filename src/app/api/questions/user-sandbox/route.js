@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getUserQuestions, resetUserQuestions } from '@/lib/db/questions.repo';
+import { requireAdmin } from '@/lib/auth';
 
-// GET /api/questions/user-sandbox?userId=xxx&packageId=xxx - Sandbox progress retrieval
+// GET /api/questions/user-sandbox?userId=xxx&packageId=xxx - Sandbox progress retrieval (admin only)
 export async function GET(request) {
+  const auth = await requireAdmin(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
@@ -12,7 +16,7 @@ export async function GET(request) {
       return NextResponse.json({ error: 'userId and packageId required' }, { status: 400 });
     }
     
-    const questions = getUserQuestions(userId, packageId);
+    const questions = await getUserQuestions(userId, packageId);
     return NextResponse.json(questions);
   } catch (error) {
     console.error('Get sandbox user questions error:', error);
@@ -37,8 +41,11 @@ export async function PUT(request) {
   }
 }
 
-// DELETE /api/questions/user-sandbox - Sandbox progress reset
+// DELETE /api/questions/user-sandbox - Sandbox progress reset (admin only)
 export async function DELETE(request) {
+  const auth = await requireAdmin(request);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { userId } = await request.json();
     
@@ -46,7 +53,7 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'userId required' }, { status: 400 });
     }
     
-    resetUserQuestions(userId);
+    await resetUserQuestions(userId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Reset sandbox user questions error:', error);

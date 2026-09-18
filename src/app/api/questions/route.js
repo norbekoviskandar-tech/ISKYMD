@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
-import { getDb } from '@/lib/db/index';
 import { getAllQuestions, updateQuestion, createQuestion, deleteQuestion, getQuestionById } from '@/lib/db/questions.repo';
+import { execute } from '@/lib/pg';
 
 // GET /api/questions?packageId=xxx - Get questions
 export async function GET(request) {
@@ -10,7 +10,7 @@ export async function GET(request) {
     const productId = searchParams.get('productId') || searchParams.get('packageId');
     const includeUnpublished = searchParams.get('includeUnpublished') !== 'false';
 
-    const questions = getAllQuestions(productId, includeUnpublished);
+    const questions = await getAllQuestions(productId, includeUnpublished);
     return NextResponse.json(questions);
   } catch (error) {
     console.error('Question GET error:', error);
@@ -30,7 +30,6 @@ export async function POST(req) {
   }
 
   try {
-    const db = getDb();
     const { id, stem, choices, system, subject, topic, packageId, productId, status, tags, conceptId } = body;
 
     const effectiveProductId = productId || packageId;
@@ -62,7 +61,7 @@ export async function POST(req) {
     const questionId = id || crypto.randomUUID();
 
     // Check for existing question with the same ID to prevent duplicates
-    const existing = getQuestionById(questionId);
+    const existing = await getQuestionById(questionId);
     if (existing) {
       console.warn(`Question POST: ID ${questionId} already exists`);
       return NextResponse.json(
@@ -79,11 +78,11 @@ export async function POST(req) {
 
     // Ensure concept exists
     try {
-      const conceptSql = `
-        INSERT OR IGNORE INTO question_concepts (id, productId, packageId, system, subject, topic, tags, createdAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      db.prepare(conceptSql).run(
+      await execute(`
+        INSERT INTO "question_concepts" (id, "productId", "packageId", system, subject, topic, tags, "createdAt")
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        ON CONFLICT DO NOTHING
+      `, [
         effectiveConceptId,
         effectiveProductId.toString(),
         effectiveProductId.toString(),
@@ -92,14 +91,14 @@ export async function POST(req) {
         topic || 'Mixed',
         JSON.stringify(tags || []),
         now
-      );
+      ]);
     } catch (conceptErr) {
       console.warn('Concept creation warning:', conceptErr.message);
     }
 
     // Create the question record
     console.log(`DB: Creating question ${questionId} in product ${effectiveProductId}`);
-    createQuestion({
+    await createQuestion({
       ...body,
       id: questionId,
       conceptId: effectiveConceptId,
@@ -111,10 +110,10 @@ export async function POST(req) {
 
     // Log governance
     try {
-      db.prepare(`
-        INSERT INTO governance_history (versionId, conceptId, fromState, toState, performedBy, performedAt, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(
+      await execute(`
+        INSERT INTO "governance_history" ("versionId", "conceptId", "fromState", "toState", "performedBy", "performedAt", notes)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `, [
         questionId,
         effectiveConceptId,
         null,
@@ -122,7 +121,7 @@ export async function POST(req) {
         'author',
         now,
         'Author manual entry'
-      );
+      ]);
     } catch (govErr) {
       console.warn('Governance log warning:', govErr.message);
     }
@@ -160,7 +159,7 @@ export async function PUT(request) {
     if (!body.system) throw new Error("Missing system");
     if (!body.subject) throw new Error("Missing subject");
 
-    const updated = updateQuestion(body.id, body);
+    const updated = await updateQuestion(body.id, body);
     if (!updated) {
       return NextResponse.json({ success: false, error: "Question not found or update failed" }, { status: 404 });
     }
@@ -185,7 +184,7 @@ export async function DELETE(request) {
       return NextResponse.json({ success: false, error: "id required" }, { status: 400 });
     }
 
-    deleteQuestion(id);
+    await deleteQuestion(id);
     return NextResponse.json({ success: true });
 
   } catch (err) {

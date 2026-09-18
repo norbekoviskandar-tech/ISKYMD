@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { updateQuestionStats } from '@/lib/db/questions.repo';
-import { getDb } from '@/lib/db/index';
+import { query } from '@/lib/pg';
 
 // GET /api/questions/stats?packageId=xxx&ids=... - Return product-scoped per-question stats
 export async function GET(request) {
@@ -12,20 +12,19 @@ export async function GET(request) {
       return NextResponse.json({ error: 'packageId and ids required' }, { status: 400 });
     }
 
-    const db = getDb();
-    const placeholders = ids.map(() => '?').join(',');
-    const rows = db.prepare(`
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+    const rows = await query(`
       SELECT 
         q.id,
         COUNT(uq.id) as attempts,
         SUM(CASE WHEN uq.status = 'correct' THEN 1 ELSE 0 END) as correct
-      FROM questions q
-      LEFT JOIN user_questions uq ON q.id = uq.questionId 
-        AND uq.packageId = ? 
-        AND uq.totalAttempts > 0
-      WHERE q.id IN (${placeholders}) AND q.packageId = ?
+      FROM "questions" q
+      LEFT JOIN "user_questions" uq ON q.id = uq."questionId" 
+        AND uq."packageId" = $${ids.length + 1} 
+        AND uq."totalAttempts" > 0
+      WHERE q.id IN (${placeholders}) AND q."packageId" = $${ids.length + 2}
       GROUP BY q.id
-    `).all(packageId.toString(), ...ids, packageId.toString());
+    `, [...ids, packageId.toString(), packageId.toString()]);
 
     const stats = {};
     rows.forEach(row => {
@@ -51,7 +50,7 @@ export async function POST(request) {
     const { versionId, stats } = await request.json();
     if (!versionId) return NextResponse.json({ error: 'versionId required' }, { status: 400 });
 
-    updateQuestionStats(versionId, stats);
+    await updateQuestionStats(versionId, stats);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Update stats error:', error);

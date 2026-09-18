@@ -1,43 +1,36 @@
-import { getDb } from "../server-db";
+import { queryOne, query, execute } from "../pg";
 
-export function getProductUniverseAnalytics(packageId) {
-  const db = getDb();
+export async function getProductUniverseAnalytics(packageId) {
   const pidStr = packageId.toString();
 
-  const totalQuestions = db.prepare("SELECT COUNT(*) as count FROM questions WHERE productId = ? OR packageId = ?").get(pidStr, pidStr).count;
-  const publishedQuestions = db.prepare("SELECT COUNT(*) as count FROM questions WHERE (productId = ? OR packageId = ?) AND status = 'published' AND isLatest = 1").get(pidStr, pidStr).count;
+  const totalQuestions = (await queryOne(`SELECT COUNT(*) as count FROM "questions" WHERE "productId" = $1 OR "packageId" = $2`, [pidStr, pidStr])).count;
+  const publishedQuestions = (await queryOne(`SELECT COUNT(*) as count FROM "questions" WHERE ("productId" = $1 OR "packageId" = $2) AND status = 'published' AND "isLatest" = 1`, [pidStr, pidStr])).count;
 
-  const exposure = db
-    .prepare(`
+  const exposure = await queryOne(`
         SELECT
-            COUNT(DISTINCT userId) as activeStudents,
-            SUM(totalAttempts) as totalProductEngagements,
-            AVG(totalAttempts) as avgExposurePerQuestion
-        FROM user_questions
-        WHERE (productId = ? OR packageId = ?)
-    `)
-    .get(pidStr, pidStr);
+            COUNT(DISTINCT "userId") as "activeStudents",
+            SUM("totalAttempts") as "totalProductEngagements",
+            AVG("totalAttempts") as "avgExposurePerQuestion"
+        FROM "user_questions"
+        WHERE ("productId" = $1 OR "packageId" = $2)
+    `, [pidStr, pidStr]);
 
-  const forensics = db
-    .prepare(`
+  const forensics = await queryOne(`
         SELECT
-            AVG(totalTimeSpent / CAST(NULLIF(globalAttempts, 0) AS REAL)) as avgSecondsPerQuestion,
-            AVG(totalVolatility / CAST(NULLIF(globalAttempts, 0) AS REAL)) as avgVolatility,
-            AVG(totalStrikes / CAST(NULLIF(globalAttempts, 0) AS REAL)) as avgStrikes,
-            SUM(globalCorrect) * 100.0 / SUM(globalAttempts) as aggregateCorrectRate
-        FROM questions
-        WHERE (productId = ? OR packageId = ?) AND status = 'published' AND isLatest = 1
-    `)
-    .get(pidStr, pidStr);
+            AVG("totalTimeSpent" / CAST(NULLIF("globalAttempts", 0) AS NUMERIC)) as "avgSecondsPerQuestion",
+            AVG("totalVolatility" / CAST(NULLIF("globalAttempts", 0) AS NUMERIC)) as "avgVolatility",
+            AVG("totalStrikes" / CAST(NULLIF("globalAttempts", 0) AS NUMERIC)) as "avgStrikes",
+            SUM("globalCorrect") * 100.0 / SUM("globalAttempts") as "aggregateCorrectRate"
+        FROM "questions"
+        WHERE ("productId" = $1 OR "packageId" = $2) AND status = 'published' AND "isLatest" = 1
+    `, [pidStr, pidStr]);
 
-  const systems = db
-    .prepare(`
+  const systems = await query(`
         SELECT system, COUNT(*) as count
-        FROM questions
-        WHERE (productId = ? OR packageId = ?) AND status = 'published' AND isLatest = 1
+        FROM "questions"
+        WHERE ("productId" = $1 OR "packageId" = $2) AND status = 'published' AND "isLatest" = 1
         GROUP BY system
-    `)
-    .all(pidStr, pidStr);
+    `, [pidStr, pidStr]);
 
   return {
     inventory: {
@@ -50,78 +43,77 @@ export function getProductUniverseAnalytics(packageId) {
   };
 }
 
-export function getGlobalStats(packageId) {
-  const db = getDb();
+export async function getGlobalStats(packageId) {
   const pidStr = packageId ? String(packageId) : null;
 
   console.log(`[Summary Engine] Generating global stats (Product: ${pidStr || "Full Platform"})`);
 
-  const totalUsers = db.prepare("SELECT COUNT(*) as count FROM users").get().count;
+  const totalUsers = (await queryOne(`SELECT COUNT(*) as count FROM "users"`)).count;
 
-  let questionsCountQuery = "SELECT COUNT(*) as count FROM questions";
-  let testsCountQuery = "SELECT COUNT(*) as count FROM tests";
-  let timeQuery = "SELECT SUM(elapsedTime) as total FROM tests";
+  let questionsCountQuery = `SELECT COUNT(*) as count FROM "questions"`;
+  let testsCountQuery = `SELECT COUNT(*) as count FROM "tests"`;
+  let timeQuery = `SELECT SUM("elapsedTime") as total FROM "tests"`;
 
   if (pidStr) {
-    questionsCountQuery += " WHERE productId = ? OR packageId = ?";
-    testsCountQuery += " WHERE productId = ? OR packageId = ?";
-    timeQuery += " WHERE productId = ? OR packageId = ?";
+    questionsCountQuery += ` WHERE "productId" = $1 OR "packageId" = $2`;
+    testsCountQuery += ` WHERE "productId" = $1 OR "packageId" = $2`;
+    timeQuery += ` WHERE "productId" = $1 OR "packageId" = $2`;
   }
 
-  const totalQuestions = pidStr ? db.prepare(questionsCountQuery).get(pidStr, pidStr).count : db.prepare(questionsCountQuery).get().count;
-  const totalTests = pidStr ? db.prepare(testsCountQuery).get(pidStr, pidStr).count : db.prepare(testsCountQuery).get().count;
+  const totalQuestions = pidStr ? (await queryOne(questionsCountQuery, [pidStr, pidStr])).count : (await queryOne(questionsCountQuery)).count;
+  const totalTests = pidStr ? (await queryOne(testsCountQuery, [pidStr, pidStr])).count : (await queryOne(testsCountQuery)).count;
 
   const publishedCountQuery = `
     SELECT COUNT(*) as count
-    FROM questions
+    FROM "questions"
     WHERE (status = 'published' OR published = 1)
-    ${pidStr ? "AND (productId = ? OR packageId = ?)" : ""}
+    ${pidStr ? `AND ("productId" = $1 OR "packageId" = $2)` : ""}
   `;
   const publishedCount = pidStr
-    ? db.prepare(publishedCountQuery).get(pidStr, pidStr).count
-    : db.prepare(publishedCountQuery).get().count;
+    ? (await queryOne(publishedCountQuery, [pidStr, pidStr])).count
+    : (await queryOne(publishedCountQuery)).count;
   const draftCount = Math.max(0, totalQuestions - publishedCount);
 
   const topSystemsQuery = `
     SELECT system as name, COUNT(*) as val
-    FROM questions
+    FROM "questions"
     WHERE system IS NOT NULL AND TRIM(system) <> ''
-    ${pidStr ? "AND (productId = ? OR packageId = ?)" : ""}
+    ${pidStr ? `AND ("productId" = $1 OR "packageId" = $2)` : ""}
     GROUP BY system
     ORDER BY val DESC
     LIMIT 5
   `;
   const topSystems = pidStr
-    ? db.prepare(topSystemsQuery).all(pidStr, pidStr)
-    : db.prepare(topSystemsQuery).all();
+    ? await query(topSystemsQuery, [pidStr, pidStr])
+    : await query(topSystemsQuery);
 
   const recentQuestionsQuery = `
-    SELECT id, published, updatedAt, createdAt
-    FROM questions
-    ${pidStr ? "WHERE (productId = ? OR packageId = ?)" : ""}
-    ORDER BY COALESCE(updatedAt, createdAt) DESC
+    SELECT id, published, "updatedAt", "createdAt"
+    FROM "questions"
+    ${pidStr ? `WHERE ("productId" = $1 OR "packageId" = $2)` : ""}
+    ORDER BY COALESCE("updatedAt", "createdAt") DESC
     LIMIT 5
   `;
   const recentQuestions = pidStr
-    ? db.prepare(recentQuestionsQuery).all(pidStr, pidStr)
-    : db.prepare(recentQuestionsQuery).all();
+    ? await query(recentQuestionsQuery, [pidStr, pidStr])
+    : await query(recentQuestionsQuery);
 
   const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const dau = db.prepare("SELECT COUNT(*) as count FROM users WHERE updatedAt > ? OR createdAt > ?").get(last24h, last24h).count;
-  const paidUsersCount = db.prepare("SELECT COUNT(*) as count FROM users WHERE subscriptionStatus = 'active' AND purchased = 1").get().count;
+  const dau = (await queryOne(`SELECT COUNT(*) as count FROM "users" WHERE "updatedAt" > $1 OR "createdAt" > $2`, [last24h, last24h])).count;
+  const paidUsersCount = (await queryOne(`SELECT COUNT(*) as count FROM "users" WHERE "subscriptionStatus" = 'active' AND purchased = 1`)).count;
 
-  const totalTime = (pidStr ? db.prepare(timeQuery).get(pidStr, pidStr).total : db.prepare(timeQuery).get().total) || 0;
+  const totalTime = (pidStr ? (await queryOne(timeQuery, [pidStr, pidStr])).total : (await queryOne(timeQuery)).total) || 0;
   const avgSeconds = totalTests > 0 ? totalTime / totalTests : 0;
 
   const behavioralQuery = `
     SELECT
-        AVG(totalTimeSpent / CAST(NULLIF(globalAttempts, 0) AS REAL)) as avgSeconds,
-        AVG(totalVolatility / CAST(NULLIF(globalAttempts, 0) AS REAL)) as avgVolatility,
-        SUM(globalCorrect) * 100.0 / CAST(NULLIF(SUM(globalAttempts), 0) AS REAL) as avgCorrectRate
-    FROM questions
-    ${pidStr ? "WHERE productId = ? OR packageId = ?" : ""}
+        AVG("totalTimeSpent" / CAST(NULLIF("globalAttempts", 0) AS NUMERIC)) as avgSeconds,
+        AVG("totalVolatility" / CAST(NULLIF("globalAttempts", 0) AS NUMERIC)) as avgVolatility,
+        SUM("globalCorrect") * 100.0 / CAST(NULLIF(SUM("globalAttempts"), 0) AS NUMERIC) as avgCorrectRate
+    FROM "questions"
+    ${pidStr ? `WHERE "productId" = $1 OR "packageId" = $2` : ""}
   `;
-  const behavioral = pidStr ? db.prepare(behavioralQuery).get(pidStr, pidStr) : db.prepare(behavioralQuery).get();
+  const behavioral = pidStr ? await queryOne(behavioralQuery, [pidStr, pidStr]) : await queryOne(behavioralQuery);
 
   return {
     totalUsers,
@@ -138,21 +130,14 @@ export function getGlobalStats(packageId) {
   };
 }
 
-export function getEngagementData(packageId) {
+export async function getEngagementData(packageId) {
   if (!packageId) {
     console.warn("getEngagementData called without packageId - failing closed");
     return [];
   }
-  const db = getDb();
-  let stmt;
   const pidStr = packageId ? packageId.toString() : null;
-  if (pidStr) {
-    stmt = db.prepare("SELECT createdAt FROM tests WHERE productId = ?");
-  } else {
-    stmt = db.prepare("SELECT createdAt FROM tests");
-  }
-
-  const tests = pidStr ? stmt.all(pidStr) : stmt.all();
+  
+  const tests = pidStr ? await query(`SELECT "createdAt" FROM "tests" WHERE "productId" = $1`, [pidStr]) : await query(`SELECT "createdAt" FROM "tests"`);
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const currentMonth = new Date().getMonth();
@@ -173,10 +158,9 @@ export function getEngagementData(packageId) {
   return last7Months;
 }
 
-export function getAllProducts() {
+export async function getAllProducts() {
   try {
-    const db = getDb();
-    const rows = db.prepare("SELECT * FROM products WHERE isDeleted = 0 ORDER BY name ASC").all();
+    const rows = await query(`SELECT * FROM "products" WHERE "isDeleted" = 0 ORDER BY name ASC`);
     return rows.map(mapProductRow);
   } catch (err) {
     console.error("DB: Failed to get all products:", err.message);
@@ -184,10 +168,9 @@ export function getAllProducts() {
   }
 }
 
-export function getPublishedProducts() {
+export async function getPublishedProducts() {
   try {
-    const db = getDb();
-    const rows = db.prepare("SELECT * FROM products WHERE isActive = 1 AND isDeleted = 0 ORDER BY name ASC").all();
+    const rows = await query(`SELECT * FROM "products" WHERE "isActive" = 1 AND "isDeleted" = 0 ORDER BY name ASC`);
     return rows.map(mapProductRow);
   } catch (err) {
     console.error("DB: Failed to get published products:", err.message);
@@ -195,10 +178,9 @@ export function getPublishedProducts() {
   }
 }
 
-export function getProductById(id) {
+export async function getProductById(id) {
   try {
-    const db = getDb();
-    const p = db.prepare("SELECT * FROM products WHERE id = ? AND isDeleted = 0").get(id);
+    const p = await queryOne(`SELECT * FROM "products" WHERE id = $1 AND "isDeleted" = 0`, [id]);
     return mapProductRow(p);
   } catch (err) {
     console.error(`DB: Failed to get product ${id}:`, err.message);
@@ -206,10 +188,9 @@ export function getProductById(id) {
   }
 }
 
-export function getProductByIdIncludeDeleted(id) {
+export async function getProductByIdIncludeDeleted(id) {
   try {
-    const db = getDb();
-    const p = db.prepare("SELECT * FROM products WHERE id = ?").get(id);
+    const p = await queryOne(`SELECT * FROM "products" WHERE id = $1`, [id]);
     return mapProductRow(p);
   } catch (err) {
     console.error(`DB: Failed to get product ${id}:`, err.message);
@@ -217,10 +198,8 @@ export function getProductByIdIncludeDeleted(id) {
   }
 }
 
-export function createProduct(product) {
-  const db = getDb();
-  const stmt = db.prepare("INSERT INTO products (name, slug, duration_days, price, description, templateType, systems, subjects, plans, createdAt, isActive) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-  const info = stmt.run(
+export async function createProduct(product) {
+  const result = await execute(`INSERT INTO "products" (name, slug, "duration_days", price, description, "templateType", systems, subjects, plans, "createdAt", "isActive") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`, [
     product.name,
     product.slug || product.name.toLowerCase().replace(/\s+/g, "-"),
     product.duration_days || 0,
@@ -232,18 +211,16 @@ export function createProduct(product) {
     JSON.stringify(product.plans || []),
     new Date().toISOString(),
     1
-  );
-  return getProductById(info.lastInsertRowid);
+  ]);
+  return getProductById(result.rows[0].id);
 }
 
-export function updateProduct(product) {
-  const db = getDb();
-  const stmt = db.prepare(`
-    UPDATE products SET
-      name = ?, duration_days = ?, price = ?, description = ?, isActive = ?, templateType = ?, systems = ?, subjects = ?, plans = ?, updatedAt = ?
-    WHERE id = ?
-  `);
-  stmt.run(
+export async function updateProduct(product) {
+  await execute(`
+    UPDATE "products" SET
+      name = $1, "duration_days" = $2, price = $3, description = $4, "isActive" = $5, "templateType" = $6, systems = $7, subjects = $8, plans = $9, "updatedAt" = $10
+    WHERE id = $11
+  `, [
     product.name,
     product.duration_days || 0,
     product.price || 0,
@@ -255,22 +232,20 @@ export function updateProduct(product) {
     JSON.stringify(product.plans || []),
     new Date().toISOString(),
     product.id
-  );
+  ]);
   return getProductById(product.id);
 }
 
-export function deleteProduct(id) {
+export async function deleteProduct(id) {
   try {
-    const db = getDb();
-
-    const product = db.prepare("SELECT * FROM products WHERE id = ?").get(id);
+    const product = await queryOne(`SELECT * FROM "products" WHERE id = $1`, [id]);
     if (!product) {
       throw new Error("Product not found");
     }
 
-    const result = db.prepare("DELETE FROM products WHERE id = ?").run(id);
+    const result = await execute(`DELETE FROM "products" WHERE id = $1`, [id]);
 
-    if (result.changes === 0) {
+    if (result.rowCount === 0) {
       throw new Error("Failed to delete product from database");
     }
 

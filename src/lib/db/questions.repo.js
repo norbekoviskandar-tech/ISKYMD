@@ -1,25 +1,23 @@
-import { getDb } from "../server-db";
+import { queryOne, query, execute, transaction } from "../pg";
 
-export function getUserQuestions(userId, productId) {
-  const db = getDb();
-
-  const query = `
+export async function getUserQuestions(userId, productId) {
+  const sql = `
     SELECT
       q.*,
       uq.status as userStatus,
       uq.isMarked,
       uq.userAnswer,
       uq.totalAttempts
-    FROM questions q
-    LEFT JOIN user_questions uq ON q.id = uq.questionId
-      AND uq.userId = ?
-      AND (CAST(uq.productId AS TEXT) = CAST(? AS TEXT) OR CAST(uq.packageId AS TEXT) = CAST(? AS TEXT))
-    WHERE (CAST(q.productId AS TEXT) = CAST(? AS TEXT) OR CAST(q.packageId AS TEXT) = CAST(? AS TEXT))
+    FROM "questions" q
+    LEFT JOIN "user_questions" uq ON q.id = uq."questionId"
+      AND uq."userId" = $1
+      AND (CAST(uq."productId" AS TEXT) = CAST($2 AS TEXT) OR CAST(uq."packageId" AS TEXT) = CAST($3 AS TEXT))
+    WHERE (CAST(q."productId" AS TEXT) = CAST($4 AS TEXT) OR CAST(q."packageId" AS TEXT) = CAST($5 AS TEXT))
     AND (q.status = 'published' OR q.published = 1)
   `;
 
   try {
-    const questions = db.prepare(query).all(userId, productId, productId, productId, productId);
+    const questions = await query(sql, [userId, productId, productId, productId, productId]);
 
     return questions.map((q) => ({
       ...q,
@@ -47,31 +45,27 @@ export function getUserQuestions(userId, productId) {
   }
 }
 
-export function initializeUserQuestions(userId, packageId, questionIds) {
-  const db = getDb();
+export async function initializeUserQuestions(userId, packageId, questionIds) {
   const uidStr = String(userId);
   const pidStr = String(packageId);
   const now = new Date().toISOString();
 
   console.log(`[Content Engine] Initializing ${questionIds.length} questions for user ${uidStr} in product ${pidStr}`);
 
-  const stmt = db.prepare(`
-    INSERT OR IGNORE INTO user_questions (userId, questionId, packageId, productId, status, totalAttempts, updatedAt)
-    VALUES (?, ?, ?, ?, NULL, 0, ?)
-  `);
-
-  const transaction = db.transaction((ids) => {
-    for (const qid of ids) {
-      stmt.run(uidStr, String(qid), pidStr, pidStr, now);
+  await transaction(async (client) => {
+    for (const qid of questionIds) {
+      await client.query(`
+        INSERT INTO "user_questions" ("userId", "questionId", "packageId", "productId", status, "totalAttempts", "updatedAt")
+        VALUES ($1, $2, $3, $4, NULL, 0, $5)
+        ON CONFLICT DO NOTHING
+      `, [uidStr, String(qid), pidStr, pidStr, now]);
     }
   });
 
-  transaction(questionIds);
   return true;
 }
 
-export function updateUserQuestion({ userId, questionId, productId, selectedAnswer = null, newStatus = null, toggleFlag = false, timeSpent = 0 }) {
-  const db = getDb();
+export async function updateUserQuestion({ userId, questionId, productId, selectedAnswer = null, newStatus = null, toggleFlag = false, timeSpent = 0 }) {
   const uidStr = String(userId);
   const qidStr = String(questionId);
   const pidStr = String(productId);
@@ -85,19 +79,20 @@ export function updateUserQuestion({ userId, questionId, productId, selectedAnsw
 
   console.log(`[Content Engine] Updating progress for user ${uidStr}, question ${qidStr}, product ${pidStr}`);
 
-  const existing = db
-    .prepare("SELECT status, isMarked FROM user_questions WHERE userId = ? AND questionId = ? AND (productId = ? OR packageId = ?)")
-    .get(uidStr, qidStr, pidStr, pidStr);
+  const existing = await queryOne(
+    `SELECT status, "isMarked" FROM "user_questions" WHERE "userId" = $1 AND "questionId" = $2 AND ("productId" = $3 OR "packageId" = $4)`,
+    [uidStr, qidStr, pidStr, pidStr]
+  );
 
   if (!existing) {
     console.log("[Content Engine] Progress record missing. Creating record.");
-    db.prepare(`
-      INSERT INTO user_questions (
-        userId, questionId, productId, packageId, status, isMarked, userAnswer,
-        totalAttempts, timeSpent, lastAnswer, lastSeenAt, updatedAt, lastUpdated
+    await execute(`
+      INSERT INTO "user_questions" (
+        "userId", "questionId", "productId", "packageId", status, "isMarked", "userAnswer",
+        "totalAttempts", "timeSpent", "lastAnswer", "lastSeenAt", "updatedAt", "lastUpdated"
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(uidStr, qidStr, pidStr, pidStr, newStatus, toggleFlag ? 1 : 0, selectedAnswer, newStatus ? 1 : 0, timeSpentDelta, selectedAnswer, now, now, now);
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    `, [uidStr, qidStr, pidStr, pidStr, newStatus, toggleFlag ? 1 : 0, selectedAnswer, newStatus ? 1 : 0, timeSpentDelta, selectedAnswer, now, now, now]);
     return true;
   }
 
@@ -108,145 +103,139 @@ export function updateUserQuestion({ userId, questionId, productId, selectedAnsw
     finalStatus = existing.status;
   }
 
-  db.prepare(`
-    UPDATE user_questions SET
-      status = COALESCE(?, status),
-      isMarked = ?,
-      userAnswer = COALESCE(?, userAnswer),
-      lastAnswer = ?,
-      totalAttempts = totalAttempts + ?,
-      timeSpent = timeSpent + ?,
-      lastSeenAt = ?,
-      updatedAt = ?,
-      lastUpdated = ?
-    WHERE userId = ? AND questionId = ? AND (productId = ? OR packageId = ?)
-  `).run(finalStatus, finalMarked, selectedAnswer, selectedAnswer, newStatus ? 1 : 0, timeSpentDelta, now, now, now, uidStr, qidStr, pidStr, pidStr);
+  await execute(`
+    UPDATE "user_questions" SET
+      status = COALESCE($1, status),
+      "isMarked" = $2,
+      "userAnswer" = COALESCE($3, "userAnswer"),
+      "lastAnswer" = $4,
+      "totalAttempts" = "totalAttempts" + $5,
+      "timeSpent" = "timeSpent" + $6,
+      "lastSeenAt" = $7,
+      "updatedAt" = $8,
+      "lastUpdated" = $9
+    WHERE "userId" = $10 AND "questionId" = $11 AND ("productId" = $12 OR "packageId" = $13)
+  `, [finalStatus, finalMarked, selectedAnswer, selectedAnswer, newStatus ? 1 : 0, timeSpentDelta, now, now, now, uidStr, qidStr, pidStr, pidStr]);
 
   return true;
 }
 
-export function getEligiblePool(userId, packageId, filters = {}, limit = null) {
-  const db = getDb();
+export async function getEligiblePool(userId, packageId, filters = {}, limit = null) {
   const uidStr = String(userId);
   const pidStr = String(packageId);
 
   console.log(`[Content Engine] Calculating eligible pool for user ${uidStr} in product ${pidStr}`);
 
-  let query = `
+  let sql = `
     WITH latest AS (
-      SELECT questionId, selectedOption, isCorrect, isFlagged
+      SELECT "questionId", "selectedOption", "isCorrect", "isFlagged"
       FROM (
         SELECT
-          a.questionId as questionId,
-          a.selectedOption as selectedOption,
-          a.isCorrect as isCorrect,
-          a.isFlagged as isFlagged,
-          ta.finishedAt as finishedAt,
-          ROW_NUMBER() OVER (PARTITION BY a.questionId ORDER BY ta.finishedAt DESC) as rn
-        FROM test_attempts ta
-        JOIN test_answers a ON a.testAttemptId = ta.id
-        WHERE ta.userId = ? AND CAST(ta.productId AS TEXT) = CAST(? AS TEXT) AND ta.finishedAt IS NOT NULL
+          a."questionId" as "questionId",
+          a."selectedOption" as "selectedOption",
+          a."isCorrect" as "isCorrect",
+          a."isFlagged" as "isFlagged",
+          ta."finishedAt" as "finishedAt",
+          ROW_NUMBER() OVER (PARTITION BY a."questionId" ORDER BY ta."finishedAt" DESC) as rn
+        FROM "test_attempts" ta
+        JOIN "test_answers" a ON a."testAttemptId" = ta.id
+        WHERE ta."userId" = $1 AND CAST(ta."productId" AS TEXT) = CAST($2 AS TEXT) AND ta."finishedAt" IS NOT NULL
       )
       WHERE rn = 1
     )
     SELECT q.id
-    FROM questions q
-    LEFT JOIN latest l ON l.questionId = q.id
-    WHERE (CAST(q.packageId AS TEXT) = CAST(? AS TEXT) OR CAST(q.productId AS TEXT) = CAST(? AS TEXT))
+    FROM "questions" q
+    LEFT JOIN latest l ON l."questionId" = q.id
+    WHERE (CAST(q."packageId" AS TEXT) = CAST($3 AS TEXT) OR CAST(q."productId" AS TEXT) = CAST($4 AS TEXT))
       AND (q.status = 'published' OR q.published = 1)
   `;
 
   const params = [uidStr, pidStr, pidStr, pidStr];
+  let paramIndex = 5;
 
   if (filters.systems && filters.systems.length > 0) {
-    query += ` AND q.system IN (${filters.systems.map(() => "?").join(",")})`;
+    sql += ` AND q.system IN (${filters.systems.map((_, i) => `$${paramIndex++}`).join(",")})`;
     params.push(...filters.systems);
   }
 
   if (filters.subjects && filters.subjects.length > 0) {
-    query += ` AND q.subject IN (${filters.subjects.map(() => "?").join(",")})`;
+    sql += ` AND q.subject IN (${filters.subjects.map((_, i) => `$${paramIndex++}`).join(",")})`;
     params.push(...filters.subjects);
   }
 
   if (filters.usageState === "unused") {
-    query += " AND l.questionId IS NULL";
+    sql += " AND l.\"questionId\" IS NULL";
   } else if (filters.usageState === "incorrect") {
-    query += " AND l.selectedOption IS NOT NULL AND l.selectedOption != '' AND l.isCorrect = 0";
+    sql += " AND l.\"selectedOption\" IS NOT NULL AND l.\"selectedOption\" != '' AND l.\"isCorrect\" = 0";
   } else if (filters.usageState === "correct") {
-    query += " AND l.selectedOption IS NOT NULL AND l.selectedOption != '' AND l.isCorrect = 1";
+    sql += " AND l.\"selectedOption\" IS NOT NULL AND l.\"selectedOption\" != '' AND l.\"isCorrect\" = 1";
   } else if (filters.usageState === "omitted") {
-    query += " AND l.questionId IS NOT NULL AND (l.selectedOption IS NULL OR l.selectedOption = '')";
+    sql += " AND l.\"questionId\" IS NOT NULL AND (l.\"selectedOption\" IS NULL OR l.\"selectedOption\" = '')";
   } else if (filters.usageState === "marked") {
-    query += " AND l.isFlagged = 1";
+    sql += " AND l.\"isFlagged\" = 1";
   }
 
   if (limit) {
-    query += " ORDER BY RANDOM() LIMIT ?";
+    sql += " ORDER BY RANDOM() LIMIT $1";
     params.push(limit);
   }
 
-  const results = db.prepare(query).all(...params);
+  const results = await query(sql, params);
   console.log(`[Content Engine] Pool size calculated: ${results.length} questions`);
   return results.map((r) => String(r.id));
 }
 
-export function getUniverseSize(packageId) {
-  const db = getDb();
+export async function getUniverseSize(packageId) {
   const pidStr = String(packageId);
-  const res = db
-    .prepare(`
+  const res = await queryOne(`
     SELECT COUNT(*) as count
-    FROM questions
-    WHERE (CAST(packageId AS TEXT) = CAST(? AS TEXT) OR CAST(productId AS TEXT) = CAST(? AS TEXT))
+    FROM "questions"
+    WHERE (CAST("packageId" AS TEXT) = CAST($1 AS TEXT) OR CAST("productId" AS TEXT) = CAST($2 AS TEXT))
     AND (status = 'published' OR published = 1)
-    `)
-    .get(pidStr, pidStr);
+    `, [pidStr, pidStr]);
   return res ? res.count : 0;
 }
 
-export function resetUserQuestions(userId) {
-  const db = getDb();
+export async function resetUserQuestions(userId) {
   const now = new Date().toISOString();
 
-  const transaction = db.transaction(() => {
-    db.prepare(`
-      INSERT INTO user_questions_archive
-      (userId, questionId, status, isMarked, userAnswer, userHistory, archivedAt)
-      SELECT userId, questionId, status, isMarked, userAnswer, userHistory, ?
-      FROM user_questions WHERE userId = ?
-    `).run(now, userId);
+  await transaction(async (client) => {
+    await client.query(`
+      INSERT INTO "user_questions_archive"
+      ("userId", "questionId", status, "isMarked", "userAnswer", "userHistory", "archivedAt")
+      SELECT "userId", "questionId", status, "isMarked", "userAnswer", "userHistory", $1
+      FROM "user_questions" WHERE "userId" = $2
+    `, [now, userId]);
 
-    db.prepare("DELETE FROM user_questions WHERE userId = ?").run(userId);
+    await client.query(`DELETE FROM "user_questions" WHERE "userId" = $1`, [userId]);
 
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    db.prepare("DELETE FROM user_questions_archive WHERE archivedAt < ?").run(thirtyDaysAgo);
+    await client.query(`DELETE FROM "user_questions_archive" WHERE "archivedAt" < $1`, [thirtyDaysAgo]);
   });
 
-  transaction();
   return true;
 }
 
-export function getAllQuestions(productId = null, includeUnpublished = false) {
-  const db = getDb();
-  let query = `
-    SELECT q.*, p.name as productName
-    FROM questions q
-    LEFT JOIN products p ON q.productId = p.id
+export async function getAllQuestions(productId = null, includeUnpublished = false) {
+  let sql = `
+    SELECT q.*, p.name as "productName"
+    FROM "questions" q
+    LEFT JOIN "products" p ON q."productId" = p.id
   `;
   const params = [];
 
   if (productId) {
-    query += " WHERE (CAST(q.productId AS TEXT) = CAST(? AS TEXT) OR CAST(q.packageId AS TEXT) = CAST(? AS TEXT))";
+    sql += " WHERE (CAST(q.\"productId\" AS TEXT) = CAST($1 AS TEXT) OR CAST(q.\"packageId\" AS TEXT) = CAST($2 AS TEXT))";
     params.push(productId, productId);
   }
 
   if (!includeUnpublished) {
-    query += productId ? " AND q.status = 'published' AND q.isLatest = 1" : " WHERE q.status = 'published' AND q.isLatest = 1";
+    sql += productId ? " AND q.status = 'published' AND q.\"isLatest\" = 1" : " WHERE q.status = 'published' AND q.\"isLatest\" = 1";
   }
 
-  query += " ORDER BY q.createdAt DESC";
+  sql += " ORDER BY q.\"createdAt\" DESC";
 
-  const questions = db.prepare(query).all(...params);
+  const questions = await query(sql, params);
   return questions.map((q) => ({
     ...q,
     choices: JSON.parse(q.choices || "[]"),
@@ -265,9 +254,8 @@ export function getAllQuestions(productId = null, includeUnpublished = false) {
   }));
 }
 
-export function getQuestionById(id) {
-  const db = getDb();
-  const q = db.prepare("SELECT * FROM questions WHERE id = ?").get(id);
+export async function getQuestionById(id) {
+  const q = await queryOne(`SELECT * FROM "questions" WHERE id = $1`, [id]);
   if (!q) return null;
 
   return {
@@ -288,22 +276,20 @@ export function getQuestionById(id) {
   };
 }
 
-export function createQuestion(question) {
-  const db = getDb();
+export async function createQuestion(question) {
   const cleanPid = question.productId ? String(question.productId).replace(/\.0$/, '') : null;
   const cleanPkid = question.packageId ? String(question.packageId).replace(/\.0$/, '') : null;
 
-  const stmt = db.prepare(`
-      id, stem, stemImage, choices, correct, explanation, explanationCorrect, explanationCorrectImage,
-      explanationWrong, explanationWrongImage, summary, summaryImage, subject, system, topic,
-      cognitiveLevel, type, published, createdAt, updatedAt, packageId, productId,
-      conceptId, status, versionNumber, isLatest, globalAttempts, globalCorrect,
-      choiceDistribution, totalTimeSpent, totalVolatility, totalStrikes, totalMarks, tags, "references", gallery, matrixColumns, matrixPlacement, hideOptionText
+  await execute(`
+    INSERT INTO "questions" (
+      id, stem, "stemImage", choices, correct, explanation, "explanationCorrect", "explanationCorrectImage",
+      "explanationWrong", "explanationWrongImage", summary, "summaryImage", subject, system, topic,
+      "cognitiveLevel", type, published, "createdAt", "updatedAt", "packageId", "productId",
+      "conceptId", status, "versionNumber", "isLatest", "globalAttempts", "globalCorrect",
+      "choiceDistribution", "totalTimeSpent", "totalVolatility", "totalStrikes", "totalMarks", tags, "references", gallery, "matrixColumns", "matrixPlacement", "hideOptionText"
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  stmt.run(
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37)
+  `, [
     question.id,
     question.stem,
     JSON.stringify(question.stemImage || {}),
@@ -343,63 +329,58 @@ export function createQuestion(question) {
     JSON.stringify(question.matrixColumns || []),
     question.matrixPlacement || "after",
     question.hideOptionText ? 1 : 0
-  );
+  ]);
 
   return question;
 }
 
-export function updateQuestion(id, updates) {
-  const db = getDb();
+export async function updateQuestion(id, updates) {
   const fields = [];
   const params = [];
 
   Object.keys(updates).forEach((key) => {
     if (key === "id") return;
     if (["choices", "stemImage", "explanationCorrectImage", "explanationWrongImage", "summaryImage", "tags", "choiceDistribution", "gallery", "matrixColumns"].includes(key)) {
-      fields.push(`"${key}" = ?`);
+      fields.push(`"${key}" = $${fields.length + 1}`);
       params.push(JSON.stringify(updates[key] || {}));
     } else if (["published", "isLatest", "hideOptionText"].includes(key)) {
-      fields.push(`"${key}" = ?`);
+      fields.push(`"${key}" = $${fields.length + 1}`);
       params.push(updates[key] ? 1 : 0);
     } else if (["productId", "packageId"].includes(key)) {
-      fields.push(`"${key}" = ?`);
+      fields.push(`"${key}" = $${fields.length + 1}`);
       params.push(updates[key] ? String(updates[key]).replace(/\.0$/, '') : null);
     } else {
-      fields.push(`"${key}" = ?`);
+      fields.push(`"${key}" = $${fields.length + 1}`);
       params.push(updates[key]);
     }
   });
 
-  fields.push(`"updatedAt" = ?`);
+  fields.push(`"updatedAt" = $${fields.length + 1}`);
   params.push(new Date().toISOString());
   params.push(id);
 
-  db.prepare(`UPDATE questions SET ${fields.join(", ")} WHERE "id" = ?`).run(...params);
+  await execute(`UPDATE "questions" SET ${fields.join(", ")} WHERE "id" = $${fields.length}`, params);
   return getQuestionById(id);
 }
 
-export function deleteQuestion(id) {
-  const db = getDb();
-  db.prepare("DELETE FROM questions WHERE id = ?").run(id);
+export async function deleteQuestion(id) {
+  await execute(`DELETE FROM "questions" WHERE id = $1`, [id]);
   return true;
 }
 
-export function updateQuestionStats(questionId, stats) {
-  const db = getDb();
-  const stmt = db.prepare(`
-    UPDATE questions SET
-      globalAttempts = COALESCE(globalAttempts, 0) + ?,
-      globalCorrect = COALESCE(globalCorrect, 0) + ?,
-      totalTimeSpent = COALESCE(totalTimeSpent, 0) + ?,
-      totalVolatility = COALESCE(totalVolatility, 0) + ?,
-      totalStrikes = COALESCE(totalStrikes, 0) + ?,
-      totalMarks = COALESCE(totalMarks, 0) + ?,
-      choiceDistribution = ?,
-      updatedAt = ?
-    WHERE id = ?
-  `);
-
-  stmt.run(
+export async function updateQuestionStats(questionId, stats) {
+  await execute(`
+    UPDATE "questions" SET
+      "globalAttempts" = COALESCE("globalAttempts", 0) + $1,
+      "globalCorrect" = COALESCE("globalCorrect", 0) + $2,
+      "totalTimeSpent" = COALESCE("totalTimeSpent", 0) + $3,
+      "totalVolatility" = COALESCE("totalVolatility", 0) + $4,
+      "totalStrikes" = COALESCE("totalStrikes", 0) + $5,
+      "totalMarks" = COALESCE("totalMarks", 0) + $6,
+      "choiceDistribution" = $7,
+      "updatedAt" = $8
+    WHERE id = $9
+  `, [
     stats.globalAttempts || 0,
     stats.globalCorrect || 0,
     stats.totalTimeSpent || 0,
@@ -409,31 +390,28 @@ export function updateQuestionStats(questionId, stats) {
     JSON.stringify(stats.choiceDistribution || {}),
     new Date().toISOString(),
     questionId
-  );
+  ]);
 
   return true;
 }
 
-export function logGovernanceHistory(entry) {
-  const db = getDb();
-  const stmt = db.prepare(`
-    INSERT INTO governance_history (versionId, conceptId, fromState, toState, performedBy, performedAt, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
-  stmt.run(entry.versionId, entry.conceptId, entry.fromState, entry.toState, entry.performedBy, entry.performedAt || new Date().toISOString(), entry.notes || null);
+export async function logGovernanceHistory(entry) {
+  await execute(`
+    INSERT INTO "governance_history" ("versionId", "conceptId", "fromState", "toState", "performedBy", "performedAt", notes)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+  `, [entry.versionId, entry.conceptId, entry.fromState, entry.toState, entry.performedBy, entry.performedAt || new Date().toISOString(), entry.notes || null]);
   return true;
 }
 
-export function logGovernanceAction(entry) {
+export async function logGovernanceAction(entry) {
   let conceptId = entry.conceptId;
 
   if (!conceptId && entry.questionId) {
-    const db = getDb();
-    const q = db.prepare("SELECT conceptId FROM questions WHERE id = ?").get(entry.questionId);
+    const q = await queryOne(`SELECT "conceptId" FROM "questions" WHERE id = $1`, [entry.questionId]);
     if (q) conceptId = q.conceptId;
   }
 
-  logGovernanceHistory({
+  await logGovernanceHistory({
     versionId: entry.questionId,
     conceptId,
     fromState: entry.fromState,
@@ -444,8 +422,8 @@ export function logGovernanceAction(entry) {
   return true;
 }
 
-export function submitQuestionForReview(questionId, userId) {
-  logGovernanceAction({
+export async function submitQuestionForReview(questionId, userId) {
+  await logGovernanceAction({
     questionId,
     conceptId: null,
     fromState: "draft",
@@ -456,8 +434,8 @@ export function submitQuestionForReview(questionId, userId) {
   return updateQuestion(questionId, { status: "review" });
 }
 
-export function approveQuestion(questionId, userId) {
-  logGovernanceAction({
+export async function approveQuestion(questionId, userId) {
+  await logGovernanceAction({
     questionId,
     conceptId: null,
     fromState: "review",
@@ -468,12 +446,12 @@ export function approveQuestion(questionId, userId) {
   return updateQuestion(questionId, { status: "published", published: 1, isLatest: 1 });
 }
 
-export function publishQuestion(questionId, userId) {
+export async function publishQuestion(questionId, userId) {
   return approveQuestion(questionId, userId);
 }
 
-export function deprecateQuestion(questionId, userId) {
-  logGovernanceAction({
+export async function deprecateQuestion(questionId, userId) {
+  await logGovernanceAction({
     questionId,
     conceptId: null,
     fromState: "published",
@@ -484,8 +462,8 @@ export function deprecateQuestion(questionId, userId) {
   return updateQuestion(questionId, { status: "deprecated", published: 0 });
 }
 
-export function reviseQuestion(questionId, updates, userId) {
-  logGovernanceAction({
+export async function reviseQuestion(questionId, updates, userId) {
+  await logGovernanceAction({
     questionId,
     conceptId: null,
     fromState: "published",
@@ -496,21 +474,20 @@ export function reviseQuestion(questionId, updates, userId) {
   return updateQuestion(questionId, { ...updates, status: "draft", published: 0 });
 }
 
-export function getGovernanceHistory(versionId, conceptId) {
-  const db = getDb();
-  let query = "SELECT * FROM governance_history";
+export async function getGovernanceHistory(versionId, conceptId) {
+  let sql = `SELECT * FROM "governance_history"`;
   const params = [];
 
   if (versionId) {
-    query += " WHERE versionId = ?";
+    sql += ` WHERE "versionId" = $1`;
     params.push(versionId);
   } else if (conceptId) {
-    query += " WHERE conceptId = ?";
+    sql += ` WHERE "conceptId" = $1`;
     params.push(conceptId);
   } else {
     return [];
   }
 
-  query += " ORDER BY performedAt DESC";
-  return db.prepare(query).all(...params);
+  sql += ` ORDER BY "performedAt" DESC`;
+  return await query(sql, params);
 }

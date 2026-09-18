@@ -9,14 +9,14 @@ export async function GET(request, { params }) {
 
     // 1. Try to fetch as a Test Attempt first (New behavior)
     const { getTestAttempt } = await import('@/lib/db/tests.repo');
-    const attempt = getTestAttempt(id);
+    const attempt = await getTestAttempt(id);
     if (attempt) {
       console.log(`[API] Returning test attempt ${id}`);
       return NextResponse.json(attempt);
     }
 
     // 2. Fallback to standard test lookup
-    const test = getTestById(id, packageId || 'all');
+    const test = await getTestById(id, packageId || 'all');
     
     if (!test) {
       return NextResponse.json({ error: 'Test or Attempt not found' }, { status: 404 });

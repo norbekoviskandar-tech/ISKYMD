@@ -1,13 +1,11 @@
 import crypto from "crypto";
-import { getDb } from "../server-db";
+import { queryOne, query, execute, transaction } from "../pg";
 
-export function createUser(user) {
-  const db = getDb();
-  const stmt = db.prepare(`
-    INSERT INTO users (id, name, email, passwordHash, role, subscriptionStatus, createdAt, stats, pendingDuration, subscriptionDuration, productName)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-  stmt.run(
+export async function createUser(user) {
+  const result = await execute(`
+    INSERT INTO "users" (id, name, email, "passwordHash", role, "subscriptionStatus", "createdAt", stats, "pendingDuration", "subscriptionDuration", "productName")
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+  `, [
     user.id,
     user.name,
     user.email,
@@ -19,15 +17,13 @@ export function createUser(user) {
     user.pendingDuration || 0,
     user.subscriptionDuration || 0,
     user.productName || null
-  );
+  ]);
   return user;
 }
 
-export function getUserByEmail(email) {
-  const db = getDb();
+export async function getUserByEmail(email) {
   const trimmedEmail = (email || "").trim();
-  const stmt = db.prepare("SELECT * FROM users WHERE LOWER(email) = LOWER(?)");
-  const user = stmt.get(trimmedEmail);
+  const user = await queryOne(`SELECT * FROM "users" WHERE LOWER("email") = LOWER($1)`, [trimmedEmail]);
   if (user) {
     user.stats = JSON.parse(user.stats || "{}");
     user.purchased = !!user.purchased;
@@ -39,10 +35,8 @@ export function getUserByEmail(email) {
   return user;
 }
 
-export function getUserById(id) {
-  const db = getDb();
-  const stmt = db.prepare("SELECT * FROM users WHERE id = ?");
-  const user = stmt.get(id);
+export async function getUserById(id) {
+  const user = await queryOne(`SELECT * FROM "users" WHERE id = $1`, [id]);
   if (user) {
     user.stats = JSON.parse(user.stats || "{}");
     user.purchased = !!user.purchased;
@@ -54,10 +48,9 @@ export function getUserById(id) {
   return user;
 }
 
-export function getAllUsers() {
-  const db = getDb();
-  const stmt = db.prepare("SELECT * FROM users");
-  return stmt.all().map((user) => {
+export async function getAllUsers() {
+  const users = await query(`SELECT * FROM "users"`);
+  return users.map((user) => {
     user.stats = JSON.parse(user.stats || "{}");
     user.purchased = !!user.purchased;
     user.activatedByPurchase = !!user.activatedByPurchase;
@@ -68,8 +61,7 @@ export function getAllUsers() {
   });
 }
 
-export function updateUser(user) {
-  const db = getDb();
+export async function updateUser(user) {
   console.log("DB: Updating user record for ID:", user.id);
 
   if (!user.id) {
@@ -85,17 +77,15 @@ export function updateUser(user) {
     }
   }
 
-  const stmt = db.prepare(`
-    UPDATE users SET
-      name = ?, email = ?, passwordHash = ?, role = ?,
-      subscriptionStatus = ?, purchased = ?, activatedByPurchase = ?,
-      hasPendingPurchase = ?, trialUsed = ?, activatedAt = ?,
-      expiresAt = ?, lastRenewedAt = ?, updatedAt = ?, isBanned = ?, stats = ?,
-      pendingDuration = ?, subscriptionDuration = ?, productName = ?
-    WHERE id = ?
-  `);
-
-  const params = [
+  const result = await execute(`
+    UPDATE "users" SET
+      name = $1, email = $2, "passwordHash" = $3, role = $4,
+      "subscriptionStatus" = $5, purchased = $6, "activatedByPurchase" = $7,
+      "hasPendingPurchase" = $8, "trialUsed" = $9, "activatedAt" = $10,
+      "expiresAt" = $11, "lastRenewedAt" = $12, "updatedAt" = $13, "isBanned" = $14, stats = $15,
+      "pendingDuration" = $16, "subscriptionDuration" = $17, "productName" = $18
+    WHERE id = $19
+  `, [
     user.name || "",
     user.email || "",
     user.passwordHash || "",
@@ -115,58 +105,53 @@ export function updateUser(user) {
     user.subscriptionDuration || 0,
     user.productName || null,
     user.id,
-  ];
+  ]);
 
-  console.log("DB: Executing UPDATE with", params.length, "parameters");
-  const result = stmt.run(...params);
-
-  if (result.changes === 0) {
+  console.log("DB: Executing UPDATE with", 19, "parameters");
+  if (result.rowCount === 0) {
     console.warn("DB: Update completed but 0 rows were affected for ID:", user.id);
   }
 
   return user;
 }
 
-export function deleteUser(id) {
+export async function deleteUser(id) {
   try {
-    const db = getDb();
-
-    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
+    const user = await queryOne(`SELECT * FROM "users" WHERE id = $1`, [id]);
     if (!user) {
       throw new Error("User not found");
     }
 
-    const deleteTx = db.transaction((userId) => {
-      db.prepare("DELETE FROM subscriptions WHERE userId = ?").run(userId);
-      db.prepare("DELETE FROM user_questions WHERE userId = ?").run(userId);
-      db.prepare("DELETE FROM user_feedback WHERE userId = ?").run(userId);
-      db.prepare("DELETE FROM notifications WHERE userId = ?").run(userId);
-      db.prepare("DELETE FROM student_cognition_profiles WHERE userId = ?").run(userId);
-      db.prepare("DELETE FROM planner WHERE userId = ?").run(userId);
-      db.prepare("DELETE FROM user_questions_archive WHERE userId = ?").run(userId);
-      db.prepare("DELETE FROM tests_archive WHERE userId = ?").run(userId);
+    await transaction(async (client) => {
+      await client.query(`DELETE FROM "subscriptions" WHERE "userId" = $1`, [id]);
+      await client.query(`DELETE FROM "user_questions" WHERE "userId" = $1`, [id]);
+      await client.query(`DELETE FROM "user_feedback" WHERE "userId" = $1`, [id]);
+      await client.query(`DELETE FROM "notifications" WHERE "userId" = $1`, [id]);
+      await client.query(`DELETE FROM "student_cognition_profiles" WHERE "userId" = $1`, [id]);
+      await client.query(`DELETE FROM "planner" WHERE "userId" = $1`, [id]);
+      await client.query(`DELETE FROM "user_questions_archive" WHERE "userId" = $1`, [id]);
+      await client.query(`DELETE FROM "tests_archive" WHERE "userId" = $1`, [id]);
 
-      const testIds = db.prepare("SELECT testId FROM tests WHERE userId = ?").all(userId).map((t) => t.testId);
+      const testIds = (await client.query(`SELECT "testId" FROM "tests" WHERE "userId" = $1`, [id])).rows.map((t) => t.testId);
       if (testIds.length > 0) {
-        const placeholders = testIds.map(() => "?").join(",");
-        db.prepare(`DELETE FROM student_answers WHERE testId IN (${placeholders})`).run(...testIds);
-        db.prepare("DELETE FROM tests WHERE userId = ?").run(userId);
+        const placeholders = testIds.map((_, i) => `$${i + 2}`).join(",");
+        await client.query(`DELETE FROM "student_answers" WHERE "testId" IN (${placeholders})`, [id, ...testIds]);
+        await client.query(`DELETE FROM "tests" WHERE "userId" = $1`, [id]);
       }
 
-      const attemptIds = db.prepare("SELECT id FROM test_attempts WHERE userId = ?").all(userId).map((a) => a.id);
+      const attemptIds = (await client.query(`SELECT id FROM "test_attempts" WHERE "userId" = $1`, [id])).rows.map((a) => a.id);
       if (attemptIds.length > 0) {
-        const placeholders = attemptIds.map(() => "?").join(",");
-        db.prepare(`DELETE FROM test_answers WHERE testAttemptId IN (${placeholders})`).run(...attemptIds);
+        const placeholders = attemptIds.map((_, i) => `$${i + 2}`).join(",");
+        await client.query(`DELETE FROM "test_answers" WHERE "testAttemptId" IN (${placeholders})`, [id, ...attemptIds]);
         try {
-          db.prepare(`DELETE FROM test_attempt_answers WHERE attempt_id IN (${placeholders})`).run(...attemptIds);
+          await client.query(`DELETE FROM "test_attempt_answers" WHERE "attempt_id" IN (${placeholders})`, [id, ...attemptIds]);
         } catch (e) {}
-        db.prepare("DELETE FROM test_attempts WHERE userId = ?").run(userId);
+        await client.query(`DELETE FROM "test_attempts" WHERE "userId" = $1`, [id]);
       }
 
-      db.prepare("DELETE FROM users WHERE id = ?").run(userId);
+      await client.query(`DELETE FROM "users" WHERE id = $1`, [id]);
     });
 
-    deleteTx(id);
     console.log(`User ${id} ("${user.name}") PERMANENTLY purged from registry`);
     return true;
   } catch (err) {
@@ -175,29 +160,25 @@ export function deleteUser(id) {
   }
 }
 
-export function createUserSubscription({ userId, packageId, productId, durationDays, amount = 0, status = "pending" }) {
-  const db = getDb();
-
+export async function createUserSubscription({ userId, packageId, productId, durationDays, amount = 0, status = "pending" }) {
   const uidStr = String(userId);
   const pidStr = String(packageId || productId);
 
   console.log(`[Subscription Registry] Processing sub for user ${uidStr}, product ${pidStr}`);
 
-  const product = db.prepare("SELECT isDeleted FROM products WHERE id = ?").get(pidStr);
+  const product = await queryOne(`SELECT "isDeleted" FROM "products" WHERE id = $1`, [pidStr]);
   if (product && product.isDeleted) {
     throw new Error("Cannot create subscription for deleted product");
   }
 
-  const existing = db
-    .prepare(`
-        SELECT * FROM subscriptions
-        WHERE userId = ? AND packageId = ? AND status = 'active'
-        ORDER BY expiresAt DESC LIMIT 1
-    `)
-    .get(uidStr, pidStr);
+  const existing = await queryOne(`
+        SELECT * FROM "subscriptions"
+        WHERE "userId" = $1 AND "packageId" = $2 AND status = 'active'
+        ORDER BY "expiresAt" DESC LIMIT 1
+    `, [uidStr, pidStr]);
 
   if (existing) {
-    const existingProduct = db.prepare("SELECT isDeleted FROM products WHERE id = ?").get(pidStr);
+    const existingProduct = await queryOne(`SELECT "isDeleted" FROM "products" WHERE id = $1`, [pidStr]);
     if (existingProduct && existingProduct.isDeleted) {
       throw new Error("Cannot renew subscription for deleted product");
     }
@@ -206,7 +187,7 @@ export function createUserSubscription({ userId, packageId, productId, durationD
     const currentExpiry = new Date(existing.expiresAt);
     const newExpiry = new Date(currentExpiry.getTime() + Number(durationDays) * 24 * 60 * 60 * 1000);
 
-    db.prepare("UPDATE subscriptions SET expiresAt = ?, durationDays = durationDays + ?, amount = amount + ? WHERE id = ?").run(newExpiry.toISOString(), Number(durationDays), Number(amount), existing.id);
+    await execute(`UPDATE "subscriptions" SET "expiresAt" = $1, "durationDays" = "durationDays" + $2, amount = amount + $3 WHERE id = $4`, [newExpiry.toISOString(), Number(durationDays), Number(amount), existing.id]);
 
     return { ...existing, expiresAt: newExpiry.toISOString(), extended: true };
   }
@@ -221,71 +202,64 @@ export function createUserSubscription({ userId, packageId, productId, durationD
   }
 
   console.log(`[Subscription Registry] Inserting new sub ${id} (Status: ${status})`);
-  db.prepare(`
-        INSERT INTO subscriptions (id, userId, packageId, productId, status, expiresAt, purchaseDate, amount, durationDays)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(id, uidStr, pidStr, pidStr, status, expiresAt, purchaseDate, amount, durationDays);
+  await execute(`
+        INSERT INTO "subscriptions" (id, "userId", "packageId", "productId", status, "expiresAt", "purchaseDate", amount, "durationDays")
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `, [id, uidStr, pidStr, pidStr, status, expiresAt, purchaseDate, amount, durationDays]);
 
   return { id, userId: uidStr, packageId: pidStr, productId: pidStr, durationDays, amount, status, expiresAt, purchaseDate };
 }
 
-export function getUserSubscriptions(userId) {
-  const db = getDb();
+export async function getUserSubscriptions(userId) {
   const uidStr = String(userId);
   console.log(`[Subscription Registry] Fetching subs for user ${uidStr}`);
-  return db
-    .prepare(`
-        SELECT s.*, pr.name as productName, pr.isDeleted as productDeleted
-        FROM subscriptions s
-        LEFT JOIN products pr ON s.packageId = CAST(pr.id AS TEXT) OR s.productId = CAST(pr.id AS TEXT)
-        WHERE s.userId = ?
+  return await query(`
+        SELECT s.*, pr.name as "productName", pr."isDeleted" as "productDeleted"
+        FROM "subscriptions" s
+        LEFT JOIN "products" pr ON s."packageId" = CAST(pr.id AS TEXT) OR s."productId" = CAST(pr.id AS TEXT)
+        WHERE s."userId" = $1
         AND s.id IN (
             SELECT MAX(id)
-            FROM subscriptions
-            WHERE userId = ?
-            GROUP BY packageId
+            FROM "subscriptions"
+            WHERE "userId" = $2
+            GROUP BY "packageId"
         )
-        ORDER BY s.purchaseDate DESC
-    `)
-    .all(uidStr, uidStr);
+        ORDER BY s."purchaseDate" DESC
+    `, [uidStr, uidStr]);
 }
 
-export function getActiveSubscriptionByUserAndProduct(userId, packageId) {
-  const db = getDb();
+export async function getActiveSubscriptionByUserAndProduct(userId, packageId) {
   const pidStr = String(packageId);
   const uidStr = String(userId);
-  return db
-    .prepare(`
-        SELECT * FROM subscriptions
-        WHERE userId = ?
-        AND (packageId = ? OR productId = ?)
+  return await queryOne(`
+        SELECT * FROM "subscriptions"
+        WHERE "userId" = $1
+        AND ("packageId" = $2 OR "productId" = $3)
         AND status = 'active'
-        ORDER BY expiresAt DESC
+        ORDER BY "expiresAt" DESC
         LIMIT 1
-    `)
-    .get(uidStr, pidStr, pidStr);
+    `, [uidStr, pidStr, pidStr]);
 }
 
-export function activateSubscription(subscriptionId) {
-  const db = getDb();
-  const sub = db.prepare("SELECT * FROM subscriptions WHERE id = ?").get(subscriptionId);
+export async function activateSubscription(subscriptionId) {
+  const sub = await queryOne(`SELECT * FROM "subscriptions" WHERE id = $1`, [subscriptionId]);
   if (!sub) throw new Error("Subscription not found");
 
   const now = new Date();
   const startDate = now.toISOString();
   const expiresAt = new Date(now.getTime() + sub.durationDays * 24 * 60 * 60 * 1000).toISOString();
 
-  db.prepare(`
-        UPDATE subscriptions SET
+  await execute(`
+        UPDATE "subscriptions" SET
             status = 'active',
-            expiresAt = ?
-        WHERE id = ?
-    `).run(expiresAt, subscriptionId);
+            "expiresAt" = $1
+        WHERE id = $2
+    `, [expiresAt, subscriptionId]);
 
   const uidStr = String(sub.userId);
   const pidStr = String(sub.packageId);
 
-  const user = db.prepare("SELECT purchasedProducts FROM users WHERE id = ?").get(uidStr);
+  const user = await queryOne(`SELECT "purchasedProducts" FROM "users" WHERE id = $1`, [uidStr]);
   let ids = [];
   try {
     ids = JSON.parse(user?.purchasedProducts || "[]");
@@ -296,15 +270,14 @@ export function activateSubscription(subscriptionId) {
 
   if (!ids.includes(pidStr)) {
     ids.push(pidStr);
-    db.prepare("UPDATE users SET purchasedProducts = ?, purchased = 1, activatedByPurchase = 1 WHERE id = ?").run(JSON.stringify(ids), uidStr);
+    await execute(`UPDATE "users" SET "purchasedProducts" = $1, purchased = 1, "activatedByPurchase" = 1 WHERE id = $2`, [JSON.stringify(ids), uidStr]);
   }
 
   return { ...sub, status: "active", startDate, expiresAt };
 }
 
-export function extendSubscription(subscriptionId, additionalDays) {
-  const db = getDb();
-  const sub = db.prepare("SELECT * FROM subscriptions WHERE id = ?").get(subscriptionId);
+export async function extendSubscription(subscriptionId, additionalDays) {
+  const sub = await queryOne(`SELECT * FROM "subscriptions" WHERE id = $1`, [subscriptionId]);
   if (!sub) throw new Error("Subscription not found");
 
   const now = new Date();
@@ -316,40 +289,45 @@ export function extendSubscription(subscriptionId, additionalDays) {
     newExpiresAt = new Date(now.getTime() + Number(additionalDays) * 24 * 60 * 60 * 1000);
   }
 
-  db.prepare(`
-        UPDATE subscriptions SET
+  await execute(`
+        UPDATE "subscriptions" SET
             status = 'active',
-            expiresAt = ?
-        WHERE id = ?
-    `).run(newExpiresAt.toISOString(), subscriptionId);
+            "expiresAt" = $1
+        WHERE id = $2
+    `, [newExpiresAt.toISOString(), subscriptionId]);
 
   return { ...sub, status: "active", expiresAt: newExpiresAt.toISOString() };
 }
 
-export function createNotification(type, message, userId = null, metadata = null) {
+export async function createNotification(type, message, userId = null, metadata = null) {
   try {
-    const db = getDb();
-    const stmt = db.prepare(`
-      INSERT INTO notifications (type, message, userId, metadata, createdAt)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-    const info = stmt.run(type, message, userId, metadata ? JSON.stringify(metadata) : null, new Date().toISOString());
-    return info.lastInsertRowid;
+    const result = await execute(`
+      INSERT INTO "notifications" (type, message, "userId", metadata, "createdAt")
+      VALUES ($1, $2, $3, $4, $5)
+    `, [type, message, userId, metadata ? JSON.stringify(metadata) : null, new Date().toISOString()]);
+    return result;
   } catch (err) {
     console.error("DB: Failed to create notification:", err.message);
     return null;
   }
 }
 
-export function getNotifications(limit = 50, onlyUnread = false) {
+export async function getNotifications(userId = null, limit = 50, onlyUnread = false) {
   try {
-    const db = getDb();
-    let query = "SELECT * FROM notifications";
-    if (onlyUnread) query += " WHERE isRead = 0";
-    query += " ORDER BY createdAt DESC LIMIT ?";
+    let sql = `SELECT * FROM "notifications"`;
+    const params = [];
+    if (onlyUnread) {
+      sql += ` WHERE "isRead" = 0`;
+    }
+    if (userId) {
+      sql += onlyUnread ? ` AND "userId" = $${params.length + 1}` : ` WHERE "userId" = $${params.length + 1}`;
+      params.push(userId);
+    }
+    sql += ` ORDER BY "createdAt" DESC LIMIT $${params.length + 1}`;
+    params.push(limit);
 
-    const stmt = db.prepare(query);
-    return stmt.all(limit).map((n) => ({
+    const rows = await query(sql, params);
+    return rows.map((n) => ({
       ...n,
       isRead: !!n.isRead,
       metadata: n.metadata ? JSON.parse(n.metadata) : null,
@@ -360,10 +338,9 @@ export function getNotifications(limit = 50, onlyUnread = false) {
   }
 }
 
-export function markNotificationRead(id) {
+export async function markNotificationRead(id) {
   try {
-    const db = getDb();
-    db.prepare("UPDATE notifications SET isRead = 1 WHERE id = ?").run(id);
+    await execute(`UPDATE "notifications" SET "isRead" = 1 WHERE id = $1`, [id]);
     return true;
   } catch (err) {
     console.error("DB: Failed to mark notification as read:", err.message);
@@ -371,15 +348,29 @@ export function markNotificationRead(id) {
   }
 }
 
-export function createUserFeedback({ userId, message, source, questionId = null, testId = null, page = null }) {
-  const db = getDb();
+export async function getNotificationById(id) {
+  try {
+    const row = await queryOne(`SELECT * FROM "notifications" WHERE id = $1`, [id]);
+    if (!row) return null;
+    return {
+      ...row,
+      isRead: !!row.isRead,
+      metadata: row.metadata ? JSON.parse(row.metadata) : null,
+    };
+  } catch (err) {
+    console.error("DB: Failed to fetch notification by id:", err.message);
+    return null;
+  }
+}
+
+export async function createUserFeedback({ userId, message, source, questionId = null, testId = null, page = null }) {
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
 
-  db.prepare(`
-    INSERT INTO user_feedback (id, userId, message, source, questionId, testId, page, createdAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
+  await execute(`
+    INSERT INTO "user_feedback" (id, "userId", message, source, "questionId", "testId", page, "createdAt")
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  `, [
     id,
     String(userId),
     String(message || "").trim(),
@@ -388,48 +379,44 @@ export function createUserFeedback({ userId, message, source, questionId = null,
     testId ? String(testId) : null,
     page ? String(page) : null,
     createdAt
-  );
+  ]);
 
   return { id, userId: String(userId), message: String(message || "").trim(), source, questionId, testId, page, createdAt };
 }
 
-export function getUserFeedback(userId, limit = 100) {
-  const db = getDb();
-  const rows = db.prepare(`
-    SELECT id, userId, message, source, questionId, testId, page, createdAt
-    FROM user_feedback
-    WHERE userId = ?
-    ORDER BY createdAt DESC
-    LIMIT ?
-  `).all(String(userId), Number(limit) || 100);
+export async function getUserFeedback(userId, limit = 100) {
+  const rows = await query(`
+    SELECT id, "userId", message, source, "questionId", "testId", page, "createdAt"
+    FROM "user_feedback"
+    WHERE "userId" = $1
+    ORDER BY "createdAt" DESC
+    LIMIT $2
+  `, [String(userId), Number(limit) || 100]);
 
   return rows;
 }
 
-export function getFeedback(limit = 200) {
-  const db = getDb();
-  const rows = db.prepare(`
-    SELECT f.id, f.userId, f.message, f.source, f.questionId, f.testId, f.page, f.createdAt,
-           u.name as userName, u.email as userEmail
-    FROM user_feedback f
-    LEFT JOIN users u ON u.id = f.userId
-    ORDER BY f.createdAt DESC
-    LIMIT ?
-  `).all(Number(limit) || 200);
+export async function getFeedback(limit = 200) {
+  const rows = await query(`
+    SELECT f.id, f."userId", f.message, f.source, f."questionId", f."testId", f.page, f."createdAt",
+           u.name as "userName", u.email as "userEmail"
+    FROM "user_feedback" f
+    LEFT JOIN "users" u ON u.id = f."userId"
+    ORDER BY f."createdAt" DESC
+    LIMIT $1
+  `, [Number(limit) || 200]);
 
   return rows;
 }
 
-export function getUserUsageSummary(userId) {
-  const db = getDb();
-
-  const usage = db.prepare(`
+export async function getUserUsageSummary(userId) {
+  const usage = await queryOne(`
     SELECT
-      COUNT(DISTINCT questionId) as usedQuestions,
-      SUM(CASE WHEN status = 'correct' OR status = 'incorrect' THEN 1 ELSE 0 END) as doneQuestions
-    FROM user_questions
-    WHERE userId = ?
-  `).get(String(userId));
+      COUNT(DISTINCT "questionId") as "usedQuestions",
+      SUM(CASE WHEN status = 'correct' OR status = 'incorrect' THEN 1 ELSE 0 END) as "doneQuestions"
+    FROM "user_questions"
+    WHERE "userId" = $1
+  `, [String(userId)]);
 
   return {
     usedQuestions: Number(usage?.usedQuestions || 0),
@@ -437,37 +424,32 @@ export function getUserUsageSummary(userId) {
   };
 }
 
-export function getUserProductStats(userId, packageId) {
+export async function getUserProductStats(userId, packageId) {
   if (!userId || !packageId) {
     console.warn("getUserProductStats called without userId or packageId");
     return { accuracy: 0, usage: 0, completedTests: 0, totalQuestions: 0, attemptedQuestions: 0 };
   }
 
-  const db = getDb();
   const pidStr = packageId.toString();
 
-  const productUniverse = db
-    .prepare(`
+  const productUniverse = (await queryOne(`
     SELECT COUNT(*) as count
-    FROM questions
-    WHERE (CAST(productId AS TEXT) = CAST(? AS TEXT) OR CAST(packageId AS TEXT) = CAST(? AS TEXT))
+    FROM "questions"
+    WHERE (CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT))
     AND (status = 'published' OR published = 1)
-  `)
-    .get(pidStr, pidStr).count;
+  `, [pidStr, pidStr])).count;
 
-  const userProgress = db
-    .prepare(`
+  const userProgress = await queryOne(`
     SELECT
       SUM(CASE WHEN status = 'correct' THEN 1 ELSE 0 END) as correct,
       SUM(CASE WHEN status = 'incorrect' THEN 1 ELSE 0 END) as incorrect,
       SUM(CASE WHEN status = 'omitted' THEN 1 ELSE 0 END) as omitted,
-      COUNT(DISTINCT questionId) as uniqueUsed
-    FROM user_questions
-    WHERE userId = ? AND (CAST(productId AS TEXT) = CAST(? AS TEXT) OR CAST(packageId AS TEXT) = CAST(? AS TEXT))
-  `)
-    .get(userId, pidStr, pidStr);
+      COUNT(DISTINCT "questionId") as "uniqueUsed"
+    FROM "user_questions"
+    WHERE "userId" = $1 AND (CAST("productId" AS TEXT) = CAST($2 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($3 AS TEXT))
+  `, [userId, pidStr, pidStr]);
 
-  const completedTests = db.prepare("SELECT COUNT(*) as count FROM tests WHERE userId = ? AND (productId = ? OR packageId = ?) AND isSuspended = 0").get(userId, pidStr, pidStr).count;
+  const completedTests = (await queryOne(`SELECT COUNT(*) as count FROM "tests" WHERE "userId" = $1 AND ("productId" = $2 OR "packageId" = $3) AND "isSuspended" = 0`, [userId, pidStr, pidStr])).count;
 
   const attempted = (userProgress.correct || 0) + (userProgress.incorrect || 0);
   const totalAnswered = attempted + (userProgress.omitted || 0);
