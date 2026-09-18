@@ -203,7 +203,11 @@ function initializeSchema() {
     { name: 'stemImageMode', type: 'TEXT DEFAULT "auto"' },
     { name: 'explanationImageMode', type: 'TEXT DEFAULT "auto"' },
     { name: 'packageId', type: 'TEXT' },
-    { name: 'productId', type: 'TEXT' }
+    { name: 'productId', type: 'TEXT' },
+    { name: 'gallery', type: "TEXT DEFAULT '{}'" },
+    { name: 'matrixColumns', type: "TEXT DEFAULT '[]'" },
+    { name: 'matrixPlacement', type: "TEXT DEFAULT 'after'" },
+    { name: 'hideOptionText', type: "INTEGER DEFAULT 0" }
   ];
 
   const existingCols = database.prepare("PRAGMA table_info(questions)").all().map(c => c.name);

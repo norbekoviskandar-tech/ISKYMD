@@ -139,7 +139,7 @@ export default function AuthorLayout({ children }) {
   }
 
   return (
-    <div className="flex min-h-screen cyber-theme cyber-mesh transition-all duration-500 overflow-hidden">
+    <div className="flex min-h-screen cyber-theme cyber-mesh transition-all duration-500 overflow-auto">
       {/* Mobile Overlay */}
       <div 
         onClick={() => setSidebarCollapsed(true)}

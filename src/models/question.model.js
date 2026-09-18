@@ -32,8 +32,6 @@ export default class Question {
     this.summaryImage = data.summaryImage || { data: "", size: "default", fileName: "" };
     
     this.published = data.published ?? false;
-    this.stemImageMode = data.stemImageMode || "auto";
-    this.explanationImageMode = data.explanationImageMode || "auto";
 
     this.references = data.references || ""; // scientific citations
     this.tags = data.tags || []; // array of strings
@@ -44,6 +42,10 @@ export default class Question {
     this.isLatest = data.isLatest ?? 1;
     this.conceptId = data.conceptId || null;
     this.packageId = data.packageId || null;
+    this.gallery = data.gallery || {};
+    this.matrixColumns = data.matrixColumns || [];
+    this.matrixPlacement = data.matrixPlacement || "after";
+    this.hideOptionText = !!data.hideOptionText;
 
     // Version is a legacy field, versionNumber is the new standard
     this.version = data.version || this.versionNumber;

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
+import crypto from 'node:crypto';
 import { getDb } from '@/lib/db/index';
-import { getAllQuestions, updateQuestion, createQuestion, deleteQuestion } from '@/lib/db/questions.repo';
+import { getAllQuestions, updateQuestion, createQuestion, deleteQuestion, getQuestionById } from '@/lib/db/questions.repo';
 
 // GET /api/questions?packageId=xxx - Get questions
 export async function GET(request) {
@@ -25,7 +26,7 @@ export async function POST(req) {
     body = await req.json();
   } catch (e) {
     console.error('Question POST invalid JSON:', e);
-    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
 
   try {
@@ -33,16 +34,50 @@ export async function POST(req) {
     const { id, stem, choices, system, subject, topic, packageId, productId, status, tags, conceptId } = body;
 
     const effectiveProductId = productId || packageId;
-    if (!effectiveProductId) throw new Error("Missing productId/packageId - questions must belong to a product");
-    if (!stem) throw new Error("Missing stem");
-    if (!Array.isArray(choices)) throw new Error("Choices must be an array");
-    if (!system) throw new Error("Missing system");
-    if (!subject) throw new Error("Missing subject");
+    if (!effectiveProductId) {
+      console.error('Question POST error: Missing productId/packageId');
+      return NextResponse.json({ success: false, error: "Missing productId/packageId - questions must belong to a product" }, { status: 400 });
+    }
+
+    if (!stem) {
+      console.error('Question POST error: Missing stem');
+      return NextResponse.json({ success: false, error: "Missing stem" }, { status: 400 });
+    }
+
+    if (!Array.isArray(choices)) {
+      console.error('Question POST error: Choices not an array');
+      return NextResponse.json({ success: false, error: "Choices must be an array" }, { status: 400 });
+    }
+
+    if (!system) {
+      console.error('Question POST error: Missing system');
+      return NextResponse.json({ success: false, error: "Missing system" }, { status: 400 });
+    }
+
+    if (!subject) {
+      console.error('Question POST error: Missing subject');
+      return NextResponse.json({ success: false, error: "Missing subject" }, { status: 400 });
+    }
 
     const questionId = id || crypto.randomUUID();
+
+    // Check for existing question with the same ID to prevent duplicates
+    const existing = getQuestionById(questionId);
+    if (existing) {
+      console.warn(`Question POST: ID ${questionId} already exists`);
+      return NextResponse.json(
+        {
+          success: false,
+          error: `A question with ID "${questionId}" already exists. Each question must have a unique ID.`
+        },
+        { status: 400 }
+      );
+    }
+
     const now = new Date().toISOString();
     const effectiveConceptId = conceptId || `concept_${questionId}`;
 
+    // Ensure concept exists
     try {
       const conceptSql = `
         INSERT OR IGNORE INTO question_concepts (id, productId, packageId, system, subject, topic, tags, createdAt)
@@ -62,6 +97,8 @@ export async function POST(req) {
       console.warn('Concept creation warning:', conceptErr.message);
     }
 
+    // Create the question record
+    console.log(`DB: Creating question ${questionId} in product ${effectiveProductId}`);
     createQuestion({
       ...body,
       id: questionId,
@@ -72,6 +109,7 @@ export async function POST(req) {
       packageId: effectiveProductId.toString()
     });
 
+    // Log governance
     try {
       db.prepare(`
         INSERT INTO governance_history (versionId, conceptId, fromState, toState, performedBy, performedAt, notes)
@@ -89,16 +127,16 @@ export async function POST(req) {
       console.warn('Governance log warning:', govErr.message);
     }
 
-    return Response.json({ 
+    return NextResponse.json({ 
       success: true, 
       id: questionId,
       conceptId: effectiveConceptId
     }, { status: 201 });
 
   } catch (err) {
-    console.error('Question POST error:', err);
+    console.error('Question POST fatal error:', err);
 
-    return Response.json(
+    return NextResponse.json(
       { success: false, error: err.message },
       { status: 500 }
     );
@@ -123,6 +161,9 @@ export async function PUT(request) {
     if (!body.subject) throw new Error("Missing subject");
 
     const updated = updateQuestion(body.id, body);
+    if (!updated) {
+      return NextResponse.json({ success: false, error: "Question not found or update failed" }, { status: 404 });
+    }
 
     return NextResponse.json({ success: true, ...updated });
 

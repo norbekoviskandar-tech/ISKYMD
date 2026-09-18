@@ -86,14 +86,12 @@ export async function addQuestion(question) {
     });
     if (!res.ok) {
       const text = await res.text();
-      let errMessage = 'Failed to add question';
       try {
-        const parsed = text ? JSON.parse(text) : null;
-        if (parsed?.error) errMessage = parsed.error;
-      } catch (_) {
-        if (text) errMessage = text;
+        const data = JSON.parse(text);
+        throw new Error(`${res.status}: ${data.error || 'Failed to add question'}`);
+      } catch (e) {
+        throw new Error(`${res.status}: ${text}`);
       }
-      throw new Error(errMessage);
     }
     return await res.json();
   } catch (error) {
@@ -115,7 +113,17 @@ export async function updateQuestion(updatedQuestion) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedQuestion)
       });
-      if (!res.ok) throw new Error('Failed to update question');
+      if (!res.ok) {
+        const text = await res.text();
+        let errMessage = 'Failed to update question';
+        try {
+          const parsed = text ? JSON.parse(text) : null;
+          if (parsed?.error) errMessage = parsed.error;
+        } catch (_) {
+          if (text) errMessage = text;
+        }
+        throw new Error(errMessage);
+      }
       return await res.json();
     }
 

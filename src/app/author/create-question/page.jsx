@@ -6,6 +6,7 @@ import MetadataPanel from "@/components/author/question/MetadataPanel";
 import StemEditor from "@/components/author/question/StemEditor";
 import OptionEditor from "@/components/author/question/OptionEditor";
 import ExplanationEditor from "@/components/author/question/ExplanationEditor";
+import GalleryEditor from "@/components/author/question/GalleryEditor";
 
 function CreateQuestionPageInner() {
   const editor = useQuestionEditor();
@@ -16,7 +17,7 @@ function CreateQuestionPageInner() {
   if (loadError) return <div className="p-10 text-center text-xl text-red-600 font-bold">{loadError}</div>;
 
   return (
-    <div className="p-2">
+    <div className="p-2 pb-20">
       <form onSubmit={(e) => e.preventDefault()} className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-4">
         {/* LEFT PANEL: METADATA & ACTIONS */}
         <MetadataPanel editor={editor} />
@@ -26,6 +27,7 @@ function CreateQuestionPageInner() {
           <StemEditor editor={editor} />
           <OptionEditor editor={editor} />
           <ExplanationEditor editor={editor} />
+          <GalleryEditor editor={editor} />
         </fieldset>
       </form>
     </div>

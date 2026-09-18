@@ -70,7 +70,7 @@ export default function ToolsPage() {
     };
 
     return (
-        <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-hidden">
+        <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-auto">
             <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#4F46E5]/5 pointer-events-none" />
             <div className="p-8 max-w-6xl mx-auto space-y-8 relative z-10">
             <header className="flex justify-between items-end">

@@ -7,9 +7,8 @@ export default function MetadataPanel({ editor }) {
     isEditing, lastSaved, questionId, setQuestionId, errors, generateAutoId,
     system, setSystem, availableSystems, subject, setSubject, availableSubjects,
     topic, setTopic, correctIndex, setCorrectIndex, tags, setTags,
-    references, setReferences, stemImageMode, setStemImageMode,
-    explanationImageMode, setExplanationImageMode, saveQuestion, resetForm,
-    status, version
+    references, setReferences, saveQuestion, resetForm,
+    status, version, choices
   } = editor;
 
   return (
@@ -64,7 +63,6 @@ export default function MetadataPanel({ editor }) {
         <div>
           <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5 ml-1">System</label>
           <select 
-            disabled={status !== 'draft'}
             value={system} 
             onChange={(e) => setSystem(e.target.value)} 
             className={`bg-background text-foreground border border-border p-1.5 w-full rounded-lg focus:ring-2 focus:ring-primary/20 outline-none transition-all hover:bg-panel/30 text-xs ${errors.system ? "border-red-500" : ""}`}
@@ -78,7 +76,6 @@ export default function MetadataPanel({ editor }) {
         <div>
           <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5 ml-1">Subject</label>
           <select 
-            disabled={status !== 'draft'}
             value={subject} 
             onChange={(e) => setSubject(e.target.value)} 
             className={`bg-background text-foreground border border-border p-1.5 w-full rounded-lg focus:ring-2 focus:ring-primary/20 outline-none transition-all hover:bg-panel/30 text-xs ${errors.subject ? "border-red-500" : ""}`}
@@ -92,7 +89,6 @@ export default function MetadataPanel({ editor }) {
         <div>
           <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5 ml-1">Topic</label>
           <input 
-            disabled={status !== 'draft'}
             value={topic} 
             onChange={(e) => setTopic(e.target.value)} 
             placeholder="Topic" 
@@ -103,16 +99,13 @@ export default function MetadataPanel({ editor }) {
         <div>
           <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5 ml-1">Correct Answer</label>
           <select 
-            disabled={status !== 'draft'}
             value={correctIndex} 
             onChange={(e) => setCorrectIndex(parseInt(e.target.value))} 
             className="bg-background text-foreground border border-border p-1.5 rounded-lg w-full focus:ring-2 focus:ring-primary/20 outline-none transition-all hover:bg-panel/30 text-xs text-center font-bold"
           >
-            <option value="0">A</option>
-            <option value="1">B</option>
-            <option value="2">C</option>
-            <option value="3">D</option>
-            <option value="4">E</option>
+            {choices.map((_, i) => (
+              <option key={i} value={i}>{String.fromCharCode(65 + i)}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -125,27 +118,6 @@ export default function MetadataPanel({ editor }) {
       <div className="mt-2">
         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-0.5 ml-1">References</label>
         <textarea value={references} onChange={(e) => setReferences(e.target.value)} placeholder="Guidelines, Citations..." className="bg-background border border-border p-1.5 rounded-lg w-full h-14 resize-none focus:ring-2 focus:ring-primary/20 outline-none transition-all text-[10px]" />
-      </div>
-
-      <div className="mt-3 pt-2 border-t border-border/50">
-        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Display Settings</label>
-        <div className="space-y-2">
-          <div>
-            <label className="text-[9px] font-bold text-gray-400 uppercase block">Stem Image</label>
-            <select value={stemImageMode} onChange={(e) => setStemImageMode(e.target.value)} className="bg-background text-foreground border border-border p-1.5 rounded-lg w-full focus:ring-2 focus:ring-primary/20 outline-none transition-all hover:bg-panel/30 text-[10px]">
-              <option value="auto">Show automatically</option>
-              <option value="click">Click word to reveal</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="text-[9px] font-bold text-gray-400 uppercase block">Explanations</label>
-            <select value={explanationImageMode} onChange={(e) => setExplanationImageMode(e.target.value)} className="bg-background text-foreground border border-border p-1.5 rounded-lg w-full focus:ring-2 focus:ring-primary/20 outline-none transition-all hover:bg-panel/30 text-[10px]">
-              <option value="auto">Show automatically</option>
-              <option value="click">Click word to reveal</option>
-            </select>
-          </div>
-        </div>
       </div>
 
       <div className="flex flex-col gap-2 mt-4">

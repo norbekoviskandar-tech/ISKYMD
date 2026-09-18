@@ -25,8 +25,9 @@ export function createUser(user) {
 
 export function getUserByEmail(email) {
   const db = getDb();
+  const trimmedEmail = (email || "").trim();
   const stmt = db.prepare("SELECT * FROM users WHERE LOWER(email) = LOWER(?)");
-  const user = stmt.get(email);
+  const user = stmt.get(trimmedEmail);
   if (user) {
     user.stats = JSON.parse(user.stats || "{}");
     user.purchased = !!user.purchased;

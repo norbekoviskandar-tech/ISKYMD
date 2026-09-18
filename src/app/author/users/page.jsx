@@ -133,7 +133,7 @@ export default function ManageUsersPage() {
     if (!ok) return null;
 
     return (
-        <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-hidden">
+        <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-auto">
             {/* Background Blend Accent */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#0066CC]/5 pointer-events-none" />
             

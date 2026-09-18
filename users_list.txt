@@ -1,0 +1,32 @@
+[
+  {
+    "email": "1norbekoviskandar@gmail.com"
+  },
+  {
+    "email": "admin@medbank.local"
+  },
+  {
+    "email": "dar@gmail.com"
+  },
+  {
+    "email": "e@medbank.local"
+  },
+  {
+    "email": "iskandar@gmail.com"
+  },
+  {
+    "email": "iskanndar@gmail.com"
+  },
+  {
+    "email": "norbekoviskandar@gmail.com"
+  },
+  {
+    "email": "norbekoviskandar@gmail.com1"
+  },
+  {
+    "email": "qweqwewq@gami.com"
+  },
+  {
+    "email": "student@medbank.local"
+  }
+]

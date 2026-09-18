@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useContext } from "react";
+import { useRouter } from "next/navigation";
 import { AppContext } from "@/context/AppContext";
 import { getAllQuestions } from "@/services/question.service";
 import { getProductById } from "@/services/product.service";
@@ -93,6 +94,8 @@ export default function CreateTestPage() {
     initPage();
   }, [selectedStudentProduct, userId]);
 
+  const [tab, setTab] = useState("standard"); // "standard" or "custom"
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -105,19 +108,191 @@ export default function CreateTestPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans select-none overflow-x-hidden">
-      <div className="max-w-[1600px] mx-auto px-4 py-6">
-        {isTemplateB ? (
-          <CreateTestTemplateB
-            questions={questions}
-            userId={userId}
-            productConfig={productConfig}
-          />
+      <div className="max-w-[1600px] mx-auto px-4 py-8">
+
+        {/* Tab Switcher */}
+        <div className="flex items-center gap-1 bg-zinc-900/50 border border-zinc-800 p-1 rounded-2xl w-fit mb-10 mx-auto">
+          <button
+            onClick={() => setTab("standard")}
+            className={`px-10 py-2.5 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all ${tab === 'standard' ? 'bg-[#3b82f6] text-white shadow-xl shadow-blue-500/20' : 'text-zinc-500 hover:text-zinc-300'}`}
+          >
+            Create New Test
+          </button>
+          <button
+            onClick={() => setTab("custom")}
+            className={`px-10 py-2.5 rounded-xl text-[12px] font-black uppercase tracking-widest transition-all ${tab === 'custom' ? 'bg-[#3b82f6] text-white shadow-xl shadow-blue-500/20' : 'text-zinc-500 hover:text-zinc-300'}`}
+          >
+            Custom ID Test
+          </button>
+        </div>
+
+        {tab === 'custom' ? (
+          <CustomIdTest questions={questions} userId={userId} />
         ) : (
-            <CreateTestTemplateA
-              questions={questions}
-              userId={userId}
-            />
+          <>
+            {isTemplateB ? (
+              <CreateTestTemplateB
+                questions={questions}
+                userId={userId}
+                productConfig={productConfig}
+              />
+            ) : (
+              <CreateTestTemplateA
+                questions={questions}
+                userId={userId}
+              />
+            )}
+          </>
         )}
+      </div>
+    </div>
+  );
+}
+
+function CustomIdTest({ questions, userId }) {
+  const [pastedIds, setPastedIds] = useState("");
+  const [mode, setMode] = useState("tutor");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const router = useRouter();
+
+  const handleStartCustomTest = async () => {
+    if (!pastedIds.trim()) return;
+    setIsGenerating(true);
+
+    try {
+      const tokens = pastedIds.split(/[\n, ]+/).map(id => id.trim()).filter(id => id.length > 0);
+      const { getTestById, saveTest } = await import("@/services/test.service");
+      const packageId = localStorage.getItem("medbank_selected_package");
+
+      const questionIdSet = new Set();
+      const questionIdMap = new Map(questions.map(q => [q.id, q]));
+
+      for (const token of tokens) {
+        // 1. Is it a direct question ID?
+        if (questionIdMap.has(token)) {
+          questionIdSet.add(token);
+          continue;
+        }
+
+        // 2. Is it a prefix for question IDs? (Optional but keeps current behavior)
+        const prefixMatches = questions.filter(q => q.id.startsWith(token));
+        if (prefixMatches.length > 0) {
+          prefixMatches.forEach(q => questionIdSet.add(q.id));
+          continue;
+        }
+
+        // 3. Try fetching as a Test ID
+        try {
+          const test = await getTestById(token, packageId);
+          if (test && Array.isArray(test.questions)) {
+            test.questions.forEach(qId => {
+              // Only add if it exists in our current product context
+              if (questionIdMap.has(qId)) {
+                questionIdSet.add(qId);
+              }
+            });
+            continue;
+          }
+        } catch (e) {
+          console.warn(`Token ${token} is not a valid test ID`);
+        }
+      }
+
+      if (questionIdSet.size === 0) {
+        alert("No matching questions or tests found for the provided IDs.");
+        setIsGenerating(false);
+        return;
+      }
+
+      const finalSet = Array.from(questionIdSet);
+
+      // Extract subjects and systems for display in lists
+      const selectedQuestions = finalSet.map(id => questionIdMap.get(id)).filter(Boolean);
+      const customSubjects = [...new Set(selectedQuestions.map(q => q.subject))].filter(Boolean);
+      const customSystems = [...new Set(selectedQuestions.map(q => q.system))].filter(Boolean);
+
+      const testId = `${userId}_${Date.now()}_custom`;
+      const packageName = localStorage.getItem("medbank_selected_package_name") || "Custom ID Test";
+
+      const testPayload = {
+        testId,
+        testNumber: null, // Let the list page assign sequential numbers
+        userId,
+        packageId,
+        packageName,
+        questions: finalSet,
+        mode,
+        pool: ["Custom IDs"],
+        date: new Date().toISOString(),
+        universeSize: questions.length,
+        eligiblePoolSize: finalSet.length,
+        poolLogic: {
+          customIds: tokens,
+          usageState: "custom",
+          subjects: customSubjects,
+          systems: customSystems
+        }
+      };
+
+      // saveTest from services/test.service
+      const saved = await saveTest(testPayload);
+      const testAttemptId = saved?.testAttemptId || saved?.latestAttemptId || null;
+
+      localStorage.setItem("medbank_current_test", JSON.stringify({ ...testPayload, ...(saved || {}), testAttemptId }));
+      router.push("/student/qbank/take-test");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate custom test.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="bg-white dark:bg-[#16161a] border border-zinc-200 dark:border-zinc-800 rounded-3xl p-10 shadow-2xl">
+        <div className="mb-8">
+          <h2 className="text-2xl font-black text-[#1B263B] dark:text-white mb-2 tracking-tight uppercase">Custom <span className="text-[#3b82f6]">ID</span> Test</h2>
+          <p className="text-zinc-500 text-sm font-medium">Paste question IDs or Test IDs separated by commas, spaces, or new lines. If you enter a Test ID, we'll clone all questions from that session.</p>
+        </div>
+
+        <div className="space-y-8">
+          <div>
+            <label className="block text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 ml-1">Paste IDs (Questions or Tests)</label>
+            <textarea
+              value={pastedIds}
+              onChange={(e) => setPastedIds(e.target.value)}
+              placeholder="e.g. q-123, test-abc-xyz..."
+              className="w-full h-48 bg-zinc-50/50 dark:bg-black/40 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 text-sm font-mono text-zinc-700 dark:text-zinc-300 focus:border-[#3b82f6] focus:ring-4 focus:ring-blue-500/10 outline-none transition-all resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 ml-1">Test Mode</label>
+            <div className="flex bg-zinc-100 dark:bg-black/40 border border-zinc-200 dark:border-zinc-800 p-1 rounded-full w-fit">
+              {["tutor", "timed"].map(m => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  className={`px-10 py-2 rounded-full text-[12px] font-black uppercase tracking-widest transition-all ${mode === m ? 'bg-[#3b82f6] text-white shadow-lg shadow-blue-500/20' : 'text-zinc-500 hover:text-zinc-400'}`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={handleStartCustomTest}
+            disabled={!pastedIds.trim() || isGenerating}
+            className={`w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[14px] transition-all shadow-2xl ${pastedIds.trim() && !isGenerating
+              ? 'bg-[#3b82f6] hover:bg-blue-600 text-white shadow-blue-500/20 hover:scale-[1.01] active:scale-[0.98]'
+              : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+              }`}
+          >
+            {isGenerating ? 'GENERATING...' : 'GENERATE TEST FROM IDS'}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -8,10 +8,10 @@ import { AppContext } from "@/context/AppContext";
 
 /* ---------- Helpers ---------- */
 export function imageSizeClass(size) {
-  if (size === "small") return "max-w-240 mx-auto rounded border mt-3 block";
-  if (size === "medium") return "max-w-480 mx-auto rounded border mt-3 block";
-  if (size === "large") return "max-w-720 mx-auto rounded border mt-3 block";
-  return "max-w-full mx-auto rounded border mt-3 block";
+  if (size === "small") return "max-w-[240px] mx-auto rounded-lg border mt-3 block";
+  if (size === "medium") return "max-w-[480px] mx-auto rounded-lg border mt-3 block";
+  if (size === "large") return "max-w-[720px] mx-auto rounded-lg border mt-3 block";
+  return "max-w-full mx-auto rounded-lg border mt-3 block";
 }
 
 export function fileToBase64(file, callback) {
@@ -62,24 +62,30 @@ export function useQuestionEditor() {
 
   // Content
   const [stem, setStem] = useState("");
-  const [stemImage, setStemImage] = useState({ data: "", size: "default", fileName: "" });
+  const [stemImage, setStemImage] = useState({ data: "", size: "default", fileName: "", placement: "bottom" });
+  const [matrixColumns, setMatrixColumns] = useState([]); // Array of { id: string, label: string, vertical: boolean }
+  const [matrixPlacement, setMatrixPlacement] = useState("after"); // 'before' or 'after' choice text
+  const [hideOptionText, setHideOptionText] = useState(false);
   const [choices, setChoices] = useState(
-    Array(5).fill().map(() => ({ text: "", image: { data: "", size: "default", fileName: "" } }))
+    Array(5).fill().map(() => ({
+      text: "",
+      image: { data: "", size: "default", fileName: "", placement: "bottom" },
+      matrixValues: [] // Matching matrixColumns length
+    }))
   );
   const [correctIndex, setCorrectIndex] = useState(0);
 
   // Explanations
   const [explanationCorrect, setExplanationCorrect] = useState("");
-  const [explanationCorrectImage, setExplanationCorrectImage] = useState({ data: "", size: "default", fileName: "" });
+  const [explanationCorrectImage, setExplanationCorrectImage] = useState({ data: "", size: "default", fileName: "", placement: "bottom" });
   const [explanationWrong, setExplanationWrong] = useState("");
-  const [explanationWrongImage, setExplanationWrongImage] = useState({ data: "", size: "default", fileName: "" });
+  const [explanationWrongImage, setExplanationWrongImage] = useState({ data: "", size: "default", fileName: "", placement: "bottom" });
   const [summary, setSummary] = useState("");
-  const [summaryImage, setSummaryImage] = useState({ data: "", size: "default", fileName: "" });
+  const [summaryImage, setSummaryImage] = useState({ data: "", size: "default", fileName: "", placement: "bottom" });
 
-  const [stemImageMode, setStemImageMode] = useState("auto");
-  const [explanationImageMode, setExplanationImageMode] = useState("auto");
   const [references, setReferences] = useState("");
   const [tags, setTags] = useState("");
+  const [gallery, setGallery] = useState({});
 
   // Auto-suggest
   const [suggestion, setSuggestion] = useState(null);
@@ -130,27 +136,47 @@ export function useQuestionEditor() {
         setOriginalCreatedAt(q.createdAt || Date.now());
         setTopic(q.topic || "");
         setStem(q.stem || "");
-        setStemImage(q.stemImage || { data: "", size: "default", fileName: "" });
+        setStemImage(q.stemImage || { data: "", size: "default", fileName: "", placement: "bottom" });
         setSystem(q.system || "");
         setSubject(q.subject || "");
-        setStemImageMode(q.stemImageMode || "auto");
-        setExplanationImageMode(q.explanationImageMode || "auto");
+        setMatrixColumns(q.matrixColumns || []);
+        setMatrixPlacement(q.matrixPlacement || "after");
+        setHideOptionText(q.hideOptionText || false);
         const loadedChoices = (q.choices || []).map(ch => ({
           text: ch.text || "",
-          image: ch.image || { data: "", size: "default", fileName: "" }
+          image: ch.image || { data: "", size: "default", fileName: "", placement: "bottom" },
+          matrixValues: ch.matrixValues || []
         }));
-        while (loadedChoices.length < 5) loadedChoices.push({ text: "", image: { data: "", size: "default", fileName: "" } });
-        setChoices(loadedChoices.slice(0, 5));
+        // If it's a new question (empty choices) we default to 5, but if we loaded data, we keep as is.
+        if (loadedChoices.length === 0) {
+          while (loadedChoices.length < 5) loadedChoices.push({
+            text: "",
+            image: { data: "", size: "default", fileName: "", placement: "bottom" },
+            matrixValues: (q.matrixColumns || []).map(() => "")
+          });
+        }
+        setChoices(loadedChoices);
         setCorrectIndex(q.correct ? q.correct.charCodeAt(0) - 65 : 0);
         setExplanationCorrect(q.explanationCorrect || "");
-        setExplanationCorrectImage(q.explanationCorrectImage || { data: "", size: "default", fileName: "" });
+        setExplanationCorrectImage(q.explanationCorrectImage || { data: "", size: "default", fileName: "", placement: "bottom" });
         setExplanationWrong(q.explanationWrong || "");
-        setExplanationWrongImage(q.explanationWrongImage || { data: "", size: "default", fileName: "" });
+        setExplanationWrongImage(q.explanationWrongImage || { data: "", size: "default", fileName: "", placement: "bottom" });
         setSummary(q.summary || "");
-        setSummaryImage(q.summaryImage || { data: "", size: "default", fileName: "" });
+        setSummaryImage(q.summaryImage || { data: "", size: "default", fileName: "", placement: "bottom" });
         setReferences(q.references || "");
         setTags(Array.isArray(q.tags) ? q.tags.join(", ") : "");
         setPackageId(q.packageId || "");
+        const loadedGallery = (q.gallery && typeof q.gallery === 'object') ? q.gallery : {};
+        // Migrate legacy simple base64 strings if necessary
+        const normalizedGallery = {};
+        Object.entries(loadedGallery).forEach(([id, val]) => {
+          if (typeof val === 'string') {
+            normalizedGallery[id] = { data: val, size: 'default', placement: 'bottom', variant: 'interactive' };
+          } else {
+            normalizedGallery[id] = { ...val, variant: val.variant || 'interactive' };
+          }
+        });
+        setGallery(normalizedGallery);
         setVersion(q.versionNumber || 1);
       } catch (err) {
         setLoadError("Failed to load question");
@@ -171,7 +197,10 @@ export function useQuestionEditor() {
     if (!subject.trim()) newErrors.subject = "Subject required";
     if (!selectedAuthorProduct) newErrors.product = "Product must be selected";
     choices.forEach((c, i) => {
-      if (!c.text.trim()) newErrors[`choice${i}`] = `Choice ${String.fromCharCode(65 + i)} required`;
+      const hasMatrixContent = (c.matrixValues || []).some(v => v && v.trim() !== "");
+      if (!c.text.trim() && !hasMatrixContent) {
+        newErrors[`choice${i}`] = `Choice ${String.fromCharCode(65 + i)} required`;
+      }
     });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -207,8 +236,12 @@ export function useQuestionEditor() {
       choices: choices.map((c, i) => ({
         id: String.fromCharCode(65 + i),
         text: c.text,
-        image: c.image
+        image: c.image,
+        matrixValues: c.matrixValues || []
       })),
+      matrixColumns,
+      matrixPlacement,
+      hideOptionText,
       correct: String.fromCharCode(65 + correctIndex),
       explanationCorrect,
       explanationCorrectImage,
@@ -221,16 +254,16 @@ export function useQuestionEditor() {
       topic: topic.trim() || "Mixed",
       status: shouldPublish ? 'published' : 'draft',
       published: shouldPublish ? 1 : 0,
-      stemImageMode,
-      explanationImageMode,
       createdAt: originalCreatedAt,
       updatedAt: new Date().toISOString(),
       type: "multiple-choice",
       references,
       tags: tags.split(",").map(t => t.trim()).filter(Boolean),
       versionNumber: version,
+      isLatest: 1,
       packageId: selectedAuthorProduct ? parseInt(selectedAuthorProduct.id) : (packageId ? parseInt(packageId) : null),
-      productId: selectedAuthorProduct ? parseInt(selectedAuthorProduct.id) : (packageId ? parseInt(packageId) : null)
+      productId: selectedAuthorProduct ? parseInt(selectedAuthorProduct.id) : (packageId ? parseInt(packageId) : null),
+      gallery
     };
 
     try {
@@ -257,7 +290,7 @@ export function useQuestionEditor() {
     } finally {
       setLoading(false);
     }
-  }, [validate, errors, isEditing, status, version, questionId, conceptId, stem, stemImage, choices, correctIndex, explanationCorrect, explanationCorrectImage, explanationWrong, explanationWrongImage, summary, summaryImage, system, subject, topic, stemImageMode, explanationImageMode, originalCreatedAt, references, tags, selectedAuthorProduct, packageId, router]);
+  }, [validate, errors, isEditing, status, version, questionId, conceptId, stem, stemImage, choices, correctIndex, explanationCorrect, explanationCorrectImage, explanationWrong, explanationWrongImage, summary, summaryImage, system, subject, topic, originalCreatedAt, references, tags, gallery, selectedAuthorProduct, packageId, router, matrixColumns, matrixPlacement, hideOptionText]);
 
   const resetForm = useCallback(() => {
     setQuestionId("");
@@ -265,20 +298,88 @@ export function useQuestionEditor() {
     setStatus("draft");
     setTopic("");
     setStem("");
-    setStemImage({ data: "", size: "default", fileName: "" });
-    setChoices(Array(5).fill().map(() => ({ text: "", image: { data: "", size: "default", fileName: "" } })));
+    setStemImage({ data: "", size: "default", fileName: "", placement: "bottom" });
+    setMatrixColumns([]);
+    setMatrixPlacement("after");
+    setHideOptionText(false);
+    setChoices(Array(5).fill().map(() => ({
+      text: "",
+      image: { data: "", size: "default", fileName: "", placement: "bottom" },
+      matrixValues: []
+    })));
     setCorrectIndex(0);
     setExplanationCorrect("");
-    setExplanationCorrectImage({ data: "", size: "default", fileName: "" });
+    setExplanationCorrectImage({ data: "", size: "default", fileName: "", placement: "bottom" });
     setExplanationWrong("");
-    setExplanationWrongImage({ data: "", size: "default", fileName: "" });
+    setExplanationWrongImage({ data: "", size: "default", fileName: "", placement: "bottom" });
     setSummary("");
-    setSummaryImage({ data: "", size: "default", fileName: "" });
+    setSummaryImage({ data: "", size: "default", fileName: "", placement: "bottom" });
     setReferences("");
     setTags("");
+    setGallery({});
     setVersion(1);
     setLastSaved(null);
   }, []);
+
+  const addChoice = useCallback(() => {
+    setChoices(prev => [
+      ...prev,
+      {
+        text: "",
+        image: { data: "", size: "default", fileName: "", placement: "bottom" },
+        matrixValues: matrixColumns.map(() => "")
+      }
+    ]);
+  }, [matrixColumns]);
+
+  const addMatrixColumn = useCallback(() => {
+    const colId = "col_" + Date.now();
+    setMatrixColumns(prev => [...prev, { id: colId, label: "", vertical: false }]);
+    setChoices(prev => prev.map(c => ({
+      ...c,
+      matrixValues: [...(c.matrixValues || []), ""]
+    })));
+  }, []);
+
+  const removeMatrixColumn = useCallback((index) => {
+    setMatrixColumns(prev => prev.filter((_, i) => i !== index));
+    setChoices(prev => prev.map(c => ({
+      ...c,
+      matrixValues: (c.matrixValues || []).filter((_, i) => i !== index)
+    })));
+  }, []);
+
+  const updateMatrixColumn = useCallback((index, updates) => {
+    setMatrixColumns(prev => prev.map((c, i) => i === index ? { ...c, ...updates } : c));
+  }, []);
+
+  const updateChoiceMatrixValue = useCallback((choiceIndex, colIndex, value) => {
+    setChoices(prev => prev.map((c, i) => {
+      if (i === choiceIndex) {
+        const nextValues = [...(c.matrixValues || [])];
+        nextValues[colIndex] = value;
+        return { ...c, matrixValues: nextValues };
+      }
+      return c;
+    }));
+  }, []);
+
+  const removeChoice = useCallback((index) => {
+    setChoices(prev => {
+      if (prev.length <= 2) {
+        alert("Minimum 2 choices required.");
+        return prev;
+      }
+      const next = prev.filter((_, i) => i !== index);
+      // Adjust correctIndex if needed
+      if (correctIndex === index) {
+        setCorrectIndex(0);
+      } else if (correctIndex > index) {
+        setCorrectIndex(correctIndex - 1);
+      }
+      return next;
+    });
+  }, [correctIndex]);
 
   const generateAutoId = useCallback(() => {
     const random = Math.floor(1000 + Math.random() * 9000).toString();
@@ -335,6 +436,107 @@ export function useQuestionEditor() {
     }
   }, [suggestion, activeField]);
 
+  const insertHighlightImage = useCallback((textSetter, textareaRef, currentText, imageSetter = null, currentImageObject = null) => () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selection = currentText.substring(start, end);
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result;
+
+        // If no text is highlighted, add as a new auto-show image (no word/label)
+        if (!selection && imageSetter) {
+          const imgId = "img_" + Date.now();
+
+          setGallery(prev => {
+            const safePrev = (prev && typeof prev === 'object') ? prev : {};
+            return { ...safePrev, [imgId]: { data: base64, size: 'default', placement: 'top', variant: 'standalone' } };
+          });
+
+          const newText = currentText.substring(0, start) + `[image:${imgId}]` + currentText.substring(end);
+          textSetter(newText);
+          return;
+        }
+
+        // If text is highlighted, insert as inline interactive element
+        const word = selection || "word";
+
+        // NEW BEHAVIOR: We add to the gallery and use [word|image:id]
+        if (imageSetter) {
+          const imgId = "img_" + Date.now();
+          setGallery(prev => ({ ...prev, [imgId]: { data: base64, size: 'default', placement: 'bottom', variant: 'interactive' } }));
+
+          const newText = currentText.substring(0, start) + `[${word}|image:${imgId}]` + currentText.substring(end);
+          textSetter(newText);
+        } else {
+          // Fallback to legacy base64-in-text behavior if no section image setter is provided
+          const newText = currentText.substring(0, start) + `[${word}|image:${base64}]` + currentText.substring(end);
+          textSetter(newText);
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }, [gallery]);
+
+  const removeHighlight = useCallback((textSetter, currentText) => () => {
+    // Matches [word|image:id] OR [word|image] OR [image:id] OR [image]
+    const newText = currentText.replace(/\[(?:([^|\]]+)\|)?image(?::[^\]]+)?\]/g, (match, word) => word || "");
+    if (newText !== currentText) {
+      if (confirm("Remove all highlight images from this field?")) {
+        textSetter(newText);
+      }
+    } else {
+      alert("No highlight images found in this field.");
+    }
+  }, []);
+
+  const removeGalleryItem = useCallback((id) => {
+    if (!confirm("Are you sure you want to remove this image from everywhere? This will also remove its tags from all text fields.")) return;
+
+    // 1. Remove from gallery
+    setGallery(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+
+    // 2. Remove from all text fields
+    // Matches [word|image:id] or [image:id] or [word|gallery_id] or [gallery_id]
+    // The previous implementation used image:id but some legacy might have just id or gallery_id
+    const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const tagRegex = new RegExp(`\\[(?:([^|\\]]+)\\|)?image:${escapedId}\\]`, 'g');
+    const standaloneTagRegex = new RegExp(`\\[image:${escapedId}\\]`, 'g');
+
+    const cleanText = (text) => {
+      if (!text) return text;
+      return text.replace(tagRegex, (match, word) => word || "").replace(standaloneTagRegex, "");
+    };
+
+    setStem(prev => cleanText(prev));
+    setChoices(prev => prev.map(c => ({ ...c, text: cleanText(c.text) })));
+    setExplanationCorrect(prev => cleanText(prev));
+    setExplanationWrong(prev => cleanText(prev));
+    setSummary(prev => cleanText(prev));
+    setReferences(prev => cleanText(prev));
+  }, []);
+
+  const updateGalleryItem = useCallback((id, updates) => {
+    setGallery(prev => ({
+      ...prev,
+      [id]: { ...prev[id], ...updates }
+    }));
+  }, []);
+
   return {
     isAuthorized, isEditing, loading, loadError, errors,
     questionId, setQuestionId, originalCreatedAt, version, lastSaved,
@@ -342,12 +544,15 @@ export function useQuestionEditor() {
     system, setSystem, subject, setSubject, topic, setTopic, packageId,
     stem, setStem, stemImage, setStemImage,
     choices, setChoices, correctIndex, setCorrectIndex,
+    matrixColumns, setMatrixColumns,
+    matrixPlacement, setMatrixPlacement,
+    hideOptionText, setHideOptionText,
     explanationCorrect, setExplanationCorrect, explanationCorrectImage, setExplanationCorrectImage,
     explanationWrong, setExplanationWrong, explanationWrongImage, setExplanationWrongImage,
     summary, setSummary, summaryImage, setSummaryImage,
-    stemImageMode, setStemImageMode, explanationImageMode, setExplanationImageMode,
-    references, setReferences, tags, setTags,
+    references, setReferences, tags, setTags, gallery, setGallery,
     suggestion, activeField, availableSystems, availableSubjects,
-    saveQuestion, resetForm, generateAutoId, handleImageChange, handleTextareaChange, handleKeyDownSuggested
+    saveQuestion, resetForm, generateAutoId, handleImageChange, handleTextareaChange, handleKeyDownSuggested, insertHighlightImage, removeHighlight, removeGalleryItem, updateGalleryItem,
+    addChoice, removeChoice, addMatrixColumn, removeMatrixColumn, updateMatrixColumn, updateChoiceMatrixValue
   };
 }

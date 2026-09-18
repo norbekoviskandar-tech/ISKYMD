@@ -262,7 +262,7 @@ export default function ManageProductsPage() {
   if (!ok) return null;
 
     return (
-        <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-hidden">
+      <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-auto">
             <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#0891B2]/5 pointer-events-none" />
             <main className="max-w-[1400px] mx-auto px-6 py-8 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">

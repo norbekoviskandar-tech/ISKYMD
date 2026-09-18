@@ -25,7 +25,16 @@ export function getUserQuestions(userId, productId) {
       ...q,
       choices: JSON.parse(q.choices || "[]"),
       stemImage: JSON.parse(q.stemImage || "{}"),
+      explanationCorrectImage: JSON.parse(q.explanationCorrectImage || "{}"),
+      explanationWrongImage: JSON.parse(q.explanationWrongImage || "{}"),
+      summaryImage: JSON.parse(q.summaryImage || "{}"),
+      choiceDistribution: JSON.parse(q.choiceDistribution || "{}"),
+      gallery: JSON.parse(q.gallery || "{}"),
       tags: JSON.parse(q.tags || "[]"),
+      matrixColumns: JSON.parse(q.matrixColumns || "[]"),
+      matrixPlacement: q.matrixPlacement || "after",
+      hideOptionText: !!q.hideOptionText,
+      published: !!q.published,
       status: q.userStatus || "unused",
       isMarked: !!q.isMarked,
       userAnswer: q.userAnswer || null,
@@ -247,6 +256,10 @@ export function getAllQuestions(productId = null, includeUnpublished = false) {
     summaryImage: JSON.parse(q.summaryImage || "{}"),
     tags: JSON.parse(q.tags || "[]"),
     choiceDistribution: JSON.parse(q.choiceDistribution || "{}"),
+    gallery: JSON.parse(q.gallery || "{}"),
+    matrixColumns: JSON.parse(q.matrixColumns || "[]"),
+    matrixPlacement: q.matrixPlacement || "after",
+    hideOptionText: !!q.hideOptionText,
     published: !!q.published,
     isLatest: !!q.isLatest,
   }));
@@ -266,6 +279,10 @@ export function getQuestionById(id) {
     summaryImage: JSON.parse(q.summaryImage || "{}"),
     tags: JSON.parse(q.tags || "[]"),
     choiceDistribution: JSON.parse(q.choiceDistribution || "{}"),
+    gallery: JSON.parse(q.gallery || "{}"),
+    matrixColumns: JSON.parse(q.matrixColumns || "[]"),
+    matrixPlacement: q.matrixPlacement || "after",
+    hideOptionText: !!q.hideOptionText,
     published: !!q.published,
     isLatest: !!q.isLatest,
   };
@@ -273,15 +290,17 @@ export function getQuestionById(id) {
 
 export function createQuestion(question) {
   const db = getDb();
+  const cleanPid = question.productId ? String(question.productId).replace(/\.0$/, '') : null;
+  const cleanPkid = question.packageId ? String(question.packageId).replace(/\.0$/, '') : null;
+
   const stmt = db.prepare(`
-    INSERT INTO questions (
       id, stem, stemImage, choices, correct, explanation, explanationCorrect, explanationCorrectImage,
       explanationWrong, explanationWrongImage, summary, summaryImage, subject, system, topic,
       cognitiveLevel, type, published, createdAt, updatedAt, packageId, productId,
       conceptId, status, versionNumber, isLatest, globalAttempts, globalCorrect,
-      choiceDistribution, totalTimeSpent, totalVolatility, totalStrikes, totalMarks, tags, "references"
+      choiceDistribution, totalTimeSpent, totalVolatility, totalStrikes, totalMarks, tags, "references", gallery, matrixColumns, matrixPlacement, hideOptionText
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   stmt.run(
@@ -305,12 +324,12 @@ export function createQuestion(question) {
     question.published ? 1 : 0,
     question.createdAt || new Date().toISOString(),
     question.updatedAt || new Date().toISOString(),
-    question.packageId || null,
-    question.productId || null,
+    cleanPkid,
+    cleanPid,
     question.conceptId || null,
     question.status || "draft",
     question.versionNumber || 1,
-    question.isLatest ? 1 : 0,
+    question.isLatest !== undefined ? (question.isLatest ? 1 : 0) : 1,
     question.globalAttempts || 0,
     question.globalCorrect || 0,
     JSON.stringify(question.choiceDistribution || {}),
@@ -319,7 +338,11 @@ export function createQuestion(question) {
     question.totalStrikes || 0,
     question.totalMarks || 0,
     JSON.stringify(question.tags || []),
-    question.references || null
+    question.references || null,
+    JSON.stringify(question.gallery || {}),
+    JSON.stringify(question.matrixColumns || []),
+    question.matrixPlacement || "after",
+    question.hideOptionText ? 1 : 0
   );
 
   return question;
@@ -332,23 +355,26 @@ export function updateQuestion(id, updates) {
 
   Object.keys(updates).forEach((key) => {
     if (key === "id") return;
-    if (["choices", "stemImage", "explanationCorrectImage", "explanationWrongImage", "summaryImage", "tags", "choiceDistribution"].includes(key)) {
-      fields.push(`${key} = ?`);
+    if (["choices", "stemImage", "explanationCorrectImage", "explanationWrongImage", "summaryImage", "tags", "choiceDistribution", "gallery", "matrixColumns"].includes(key)) {
+      fields.push(`"${key}" = ?`);
       params.push(JSON.stringify(updates[key] || {}));
-    } else if (["published", "isLatest"].includes(key)) {
-      fields.push(`${key} = ?`);
+    } else if (["published", "isLatest", "hideOptionText"].includes(key)) {
+      fields.push(`"${key}" = ?`);
       params.push(updates[key] ? 1 : 0);
+    } else if (["productId", "packageId"].includes(key)) {
+      fields.push(`"${key}" = ?`);
+      params.push(updates[key] ? String(updates[key]).replace(/\.0$/, '') : null);
     } else {
-      fields.push(`${key} = ?`);
+      fields.push(`"${key}" = ?`);
       params.push(updates[key]);
     }
   });
 
-  fields.push("updatedAt = ?");
+  fields.push(`"updatedAt" = ?`);
   params.push(new Date().toISOString());
   params.push(id);
 
-  db.prepare(`UPDATE questions SET ${fields.join(", ")} WHERE id = ?`).run(...params);
+  db.prepare(`UPDATE questions SET ${fields.join(", ")} WHERE "id" = ?`).run(...params);
   return getQuestionById(id);
 }
 
@@ -439,7 +465,7 @@ export function approveQuestion(questionId, userId) {
     actorId: userId,
     reason: "Approved",
   });
-  return updateQuestion(questionId, { status: "published" });
+  return updateQuestion(questionId, { status: "published", published: 1, isLatest: 1 });
 }
 
 export function publishQuestion(questionId, userId) {
@@ -455,7 +481,7 @@ export function deprecateQuestion(questionId, userId) {
     actorId: userId,
     reason: "Deprecated",
   });
-  return updateQuestion(questionId, { status: "deprecated" });
+  return updateQuestion(questionId, { status: "deprecated", published: 0 });
 }
 
 export function reviseQuestion(questionId, updates, userId) {
@@ -467,7 +493,7 @@ export function reviseQuestion(questionId, updates, userId) {
     actorId: userId,
     reason: "Revised",
   });
-  return updateQuestion(questionId, { ...updates, status: "draft" });
+  return updateQuestion(questionId, { ...updates, status: "draft", published: 0 });
 }
 
 export function getGovernanceHistory(versionId, conceptId) {

@@ -120,7 +120,7 @@ export default function ProductDetailsPage({ params }) {
     );
 
     return (
-        <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-hidden">
+        <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-auto">
             <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#0066CC]/5 pointer-events-none" />
             
             <main className="max-w-[1400px] mx-auto px-6 py-8 relative z-10">

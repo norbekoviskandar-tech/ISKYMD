@@ -6,6 +6,7 @@ import Image from "next/image";
 import { memo, useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getAllQuestions } from "@/services/question.service";
+import InteractiveText from "@/components/shared/InteractiveText";
 import { saveTest, getTestById, updateAttemptAnswer, updateAttemptFlag, snapshotAttempt, finishAttempt } from "@/services/test.service";
 import { submitFeedback } from "@/services/user.service";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,6 +17,13 @@ import {
   MessageSquare, PauseCircle, LogOut, AlertTriangle,
   Power, Pause, Check, X, BarChart2, Clock
  } from "lucide-react";
+
+function imageSizeClass(size) {
+  if (size === "small") return "max-w-[240px] mx-auto rounded-lg border mt-3 block";
+  if (size === "medium") return "max-w-[480px] mx-auto rounded-lg border mt-3 block";
+  if (size === "large") return "max-w-[720px] mx-auto rounded-lg border mt-3 block";
+  return "max-w-full mx-auto rounded-lg border mt-3 block";
+}
 
 const QuestionRail = memo(function QuestionRail({
   questions,
@@ -169,6 +177,7 @@ export default function TakeTestPage() {
   const unsavedSecondsRef = useRef(0);
   const timerStateRef = useRef({ globalTime: 0, questionDurations: {} });
   const lastCurrentTestSnapshotRef = useRef("");
+  const hasRestoredRef = useRef(false); // Guard: prevent sync effect from writing empty state before restore
   const [questionDurations, setQuestionDurations] = useState({}); // Local display only
   const [globalTime, setGlobalTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -404,6 +413,8 @@ export default function TakeTestPage() {
           setIsSubmitted(false);
         }
       }
+
+      hasRestoredRef.current = true; // Mark restore complete - sync effect can now safely write
     }
     fetchQuestions();
   }, [router]);
@@ -411,6 +422,7 @@ export default function TakeTestPage() {
   // Sync state to localStorage AND History for robust persistence
   useEffect(() => {
     if (questions.length === 0 || isReviewMode || isEnding) return;
+    if (!hasRestoredRef.current) return; // Don't sync until restore is complete
 
     const currentTestData = JSON.parse(localStorage.getItem("medbank_current_test") || "{}");
 
@@ -485,7 +497,11 @@ export default function TakeTestPage() {
       const attemptId = saved?.testAttemptId || saved?.latestAttemptId || null;
       if (attemptId) {
         setTestAttemptId(attemptId);
-        writeCurrentTestData({ ...currentTestData, ...(saved || {}), testAttemptId: attemptId });
+        // FIX: Re-read localStorage AFTER the async saveTest call to avoid overwriting
+        // answers/lockedAnswers that were written during the async gap.
+        // Only merge in the attemptId, not the full API response which has stale answers.
+        const freshTestData = JSON.parse(localStorage.getItem("medbank_current_test") || "{}");
+        writeCurrentTestData({ ...freshTestData, testAttemptId: attemptId });
       }
       return attemptId;
     } catch (e) {
@@ -501,11 +517,12 @@ export default function TakeTestPage() {
     // Time Tracking (Accumulated Seconds)
     const secondsElapsed = unsavedSecondsRef.current;
 
-    // Only flush if we have accumulated time or an answer change is forced (though usually we call this on nav)
-    // Actually rework to match Logic V2 "Flush" pattern but with accumulator
+    // Only flush if we have accumulated time or an answer change is forced
     if (secondsElapsed > 0 || currentOption) {
-      // We use our existing persistence function but ensure it handles proper DB syncing
-      const ok = await persistAttemptAnswerForCurrentQuestion(currentOption, answers, options); // pass current answers state
+      // FIX: Read fresh answers from localStorage instead of using stale closure
+      const freshData = JSON.parse(localStorage.getItem("medbank_current_test") || "{}");
+      const freshAnswers = freshData.answers || {};
+      const ok = await persistAttemptAnswerForCurrentQuestion(currentOption, freshAnswers, options);
       // persistAttemptAnswerForCurrentQuestion already resets unsavedSecondsRef on success
     }
   };
@@ -513,7 +530,6 @@ export default function TakeTestPage() {
   const persistAttemptAnswerForCurrentQuestion = async (letter, nextAnswers, options = {}) => {
     if (isReviewMode || isEnding) return false;
 
-    const currentTestData = JSON.parse(localStorage.getItem("medbank_current_test") || "{}");
     const attemptId = await ensureAttemptId();
     if (!attemptId) {
       console.error("[Exam Runtime] No testAttemptId found for attempt-scoped write.");
@@ -525,8 +541,6 @@ export default function TakeTestPage() {
 
     // Time Tracking (Accumulated Seconds)
     const secondsElapsed = unsavedSecondsRef.current;
-
-    // NOTE: UI is already updated by the interval; we just flush to DB here.
 
     const ok = await updateAttemptAnswer(attemptId, q.id, letter || null, secondsElapsed, options);
 
@@ -540,9 +554,10 @@ export default function TakeTestPage() {
       return false;
     }
 
-    // DB write succeeded (or assumed succeeded if keepalive); persist localStorage together
-    const updated = { ...currentTestData, answers: nextAnswers };
-    writeCurrentTestData(updated);
+    // FIX: Do NOT write answers to localStorage here.
+    // localStorage is already kept in sync by saveToLocalStorage() and the sync effect.
+    // Writing here with the (potentially stale) nextAnswers argument caused race conditions
+    // that wiped out submitted answers on refresh.
     return true;
   };
 
@@ -724,10 +739,9 @@ export default function TakeTestPage() {
         const nextLocked = { ...lockedAnswers, [q.id]: selectedAnswer };
         setLockedAnswers(nextLocked);
         setIsSubmitted(true);
-        // Persist time specifically on submit
-        await persistAttemptAnswerForCurrentQuestion(selectedAnswer, nextAnswers);
 
-        saveToLocalStorage({ lockedAnswers: nextLocked });
+        // FIX: Save BOTH answers AND lockedAnswers together to prevent data loss on refresh
+        saveToLocalStorage({ answers: nextAnswers, lockedAnswers: nextLocked });
       })();
     } else {
       handleNext();
@@ -747,7 +761,7 @@ export default function TakeTestPage() {
       // 3. Update Selection for the new question
       const previousAnswer = answers[questions[nextIdx]?.id] || null;
       setSelectedAnswer(previousAnswer);
-      setIsSubmitted(isReviewMode || (mode === "tutor" && !!previousAnswer));
+      setIsSubmitted(isReviewMode || (mode === "tutor" && !!lockedAnswers[questions[nextIdx]?.id]));
 
     } else if (!isReviewMode) {
       handleEndBlock();
@@ -1128,7 +1142,7 @@ export default function TakeTestPage() {
                   <div className="w-2 h-2 rounded-full bg-emerald-400" />
                   <span className="text-[12px] font-black text-emerald-400">{questions.filter(qItem => answers[qItem.id] === qItem.correct).length}</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-red-500" />
                   <span className="text-[12px] font-black text-red-500">{questions.filter(qItem => answers[qItem.id] && answers[qItem.id] !== qItem.correct).length}</span>
                 </div>
@@ -1169,21 +1183,50 @@ export default function TakeTestPage() {
           
             {/* TOP SECTION: Question Context (Stem) */}
             <div className="w-full space-y-6">
-              <div className="text-[18px] leading-relaxed text-zinc-800 dark:text-zinc-200 font-medium whitespace-pre-wrap">
-              {q.stem}
-              {q.stemImage?.data && (
+              {q.stemImage?.data && q.stemImage.placement === 'top' && (
+                <div className="mb-4 flex justify-center">
+                  <img src={q.stemImage.data} alt="stem" className={`rounded border-2 border-zinc-100 shadow-sm ${imageSizeClass(q.stemImage.size || 'default')}`} />
+                </div>
+              )}
+              <InteractiveText
+                text={q.stem}
+                sectionImage={q.stemImage?.data}
+                gallery={q.gallery}
+                className="text-[18px] leading-relaxed text-zinc-800 dark:text-zinc-200 font-medium"
+              />
+              {q.stemImage?.data && (q.stemImage.placement === 'bottom' || !q.stemImage.placement) && (
                 <div className="mt-8 flex justify-center">
-                  <Image src={q.stemImage.data} alt="stem" width={400} height={300} loading="lazy" className="max-w-full rounded border-2 border-zinc-100 shadow-sm" />
+                  <img src={q.stemImage.data} alt="stem" className={`rounded border-2 border-zinc-100 shadow-sm ${imageSizeClass(q.stemImage.size || 'default')}`} />
                 </div>
               )}
             </div>
-
-          </div>
 
             {/* BOTTOM SECTION: Choices and Rest of Parts */}
             <div className="w-full space-y-10">
             {/* Choices */}
               <div className="space-y-4">
+                {/* Matrix Headers if applicable */}
+                {q.matrixColumns && q.matrixColumns.length > 0 && (
+                  <div className="flex gap-2 mb-2 pl-[52px] pr-4"> {/* 16px padding + 20px radio + 16px gap */}
+                    {/* Spacer for Letter (40px) + Gap (16px) */}
+                    <div className="w-[56px] shrink-0" />
+
+                    {/* Spacer for Text if Matrix is After and Text is shown */}
+                    {q.matrixPlacement === 'after' && !q.hideOptionText && <div className="flex-1" />}
+
+                    {q.matrixColumns.map((col, idx) => (
+                      <div key={idx}
+                        className={`text-[15px] font-black text-[#334155] dark:text-zinc-400 text-center flex items-center justify-center rounded-lg bg-transparent px-2 py-3 leading-tight ${col.vertical ? 'w-24' : 'w-40'}`}
+                      >
+                        {col.label}
+                      </div>
+                    ))}
+
+                    {/* Spacer for Text if Matrix is Before and Text is shown */}
+                    {q.matrixPlacement === 'before' && !q.hideOptionText && <div className="flex-1" />}
+                  </div>
+                )}
+
                 {(q.choices || []).map((choice, i) => {
                 const letter = String.fromCharCode(65 + i);
                 const isSelected = selectedAnswer === letter;
@@ -1192,7 +1235,7 @@ export default function TakeTestPage() {
                 
                 const isLocked = !!lockedAnswers[q.id];
                 
-                let choiceStyle = "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50";
+                  let choiceStyle = "bg-transparent dark:bg-transparent";
                 let radioStyle = "border-zinc-400 dark:border-zinc-600 border-[3px]";
 
                 if (isLocked) {
@@ -1225,7 +1268,7 @@ export default function TakeTestPage() {
                 return (
                   <div 
                     key={i}
-                    className={`flex items-start gap-2 rounded-md transition-all border ${choiceStyle} relative group`}
+                    className={`flex items-start gap-2 rounded-md transition-all ${choiceStyle} relative group`}
                   >
                     {/* Feedback Icons (X or Check) */}
                     {showFeedback && (
@@ -1246,19 +1289,64 @@ export default function TakeTestPage() {
                         {isSelected && <div className="w-2 h-2 rounded-full bg-white shadow-sm" />}
                       </div>
                       <div
-                        className="flex-1 flex flex-col gap-2 cursor-pointer relative"
+                        className="flex-1 flex items-start gap-4 cursor-pointer relative"
                         onClick={() => toggleStrikeout(letter)}
                       >
-                        <span className={`text-[15px] select-none ${isStruck ? 'line-through text-zinc-400 dark:text-zinc-600' : isSelected ? "font-bold text-zinc-900 dark:text-[#f8fafc]" : "font-medium text-zinc-700 dark:text-zinc-300"}`}>
-                          {letter}. {choice.text}
+                        {/* Always show the Choice Letter and Feedback Stats if applicable */}
+                        <div className={`flex flex-col shrink-0 min-w-[2.5rem] ${isStruck ? 'opacity-40' : ''}`}>
+                          <div className={`text-[13px] ${isSelected ? "font-black text-[#0072bc]" : "font-bold text-zinc-500"}`}>
+                            {letter}.
+                          </div>
                           {showFeedback && (
-                            <span className="ml-2 text-zinc-400 dark:text-zinc-500 font-normal text-[14px]">
-                              ({correctPercentage}%)
-                            </span>
+                            <div className="text-zinc-400 dark:text-zinc-500 font-normal text-[11px] mt-0.5">
+                              {correctPercentage}%
+                            </div>
                           )}
-                        </span>
-                        {choice.image?.data && (
-                          <Image src={choice.image.data} alt={`choice-${letter}`} width={400} height={300} loading="lazy" className="max-w-xs rounded border mt-2" />
+                        </div>
+
+                        {/* Option Text (if Matrix is After) */}
+                        {q.matrixPlacement === 'after' && !q.hideOptionText && (
+                          <div className={`flex-1 text-[15px] select-none ${isStruck ? 'line-through text-zinc-400 dark:text-zinc-600' : isSelected ? "font-bold text-zinc-900 dark:text-[#f8fafc]" : "font-medium text-zinc-700 dark:text-zinc-300"}`}>
+                            <div className="flex flex-col">
+                              {choice.image?.data && choice.image.placement === 'top' && (
+                                <img src={choice.image.data} alt={`choice-${letter}`} className={`rounded border mt-1 mb-2 ${imageSizeClass(choice.image.size || 'default')}`} />
+                              )}
+                              <div className="flex items-center gap-1">
+                                <InteractiveText text={choice.text} sectionImage={choice.image?.data} gallery={q.gallery} className="inline-block" />
+                              </div>
+                              {choice.image?.data && (choice.image.placement === 'bottom' || !choice.image.placement) && (
+                                <img src={choice.image.data} alt={`choice-${letter}`} className={`rounded border mt-2 ${imageSizeClass(choice.image.size || 'default')}`} />
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Matrix Values */}
+                        <div className="flex gap-2">
+                          {q.matrixColumns?.map((col, idx) => (
+                            <div key={idx}
+                              className={`flex items-center justify-center text-[18px] font-medium transition-all ${isStruck ? 'opacity-20 line-through text-zinc-400' : 'text-zinc-800 dark:text-zinc-200'} bg-transparent rounded-lg ${col.vertical ? 'w-24' : 'w-40'}`}
+                            >
+                              {choice.matrixValues?.[idx] || ""}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Option Text (if Matrix is Before) */}
+                        {q.matrixPlacement === 'before' && !q.hideOptionText && (
+                          <div className={`flex-1 text-[15px] select-none border-l border-zinc-100 dark:border-white/5 pl-4 ${isStruck ? 'line-through text-zinc-400 dark:text-zinc-600' : isSelected ? "font-bold text-zinc-900 dark:text-[#f8fafc]" : "font-medium text-zinc-700 dark:text-zinc-300"}`}>
+                            <div className="flex flex-col">
+                              {choice.image?.data && choice.image.placement === 'top' && (
+                                <img src={choice.image.data} alt={`choice-${letter}`} className={`rounded border mt-1 mb-2 ${imageSizeClass(choice.image.size || 'default')}`} />
+                              )}
+                              <div className="flex items-center gap-1">
+                                <InteractiveText text={choice.text} sectionImage={choice.image?.data} gallery={q.gallery} className="inline-block" />
+                              </div>
+                              {choice.image?.data && (choice.image.placement === 'bottom' || !choice.image.placement) && (
+                                <img src={choice.image.data} alt={`choice-${letter}`} className={`rounded border mt-2 ${imageSizeClass(choice.image.size || 'default')}`} />
+                              )}
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1322,15 +1410,35 @@ export default function TakeTestPage() {
                     </div>
                     
                       <div className="text-[17px] leading-relaxed text-zinc-800 dark:text-zinc-200 space-y-4">
-                        {(q.explanationCorrect || '').split('\n').map((para, i) => <p key={i}>{para}</p>)}
+                        {q.explanationCorrectImage?.data && q.explanationCorrectImage.placement === 'top' && (
+                          <div className="mb-4 flex justify-center">
+                            <img src={q.explanationCorrectImage.data} alt="Rationale Analysis" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.explanationCorrectImage.size || 'default')}`} style={{ maxHeight: '400px', objectFit: 'contain' }} />
+                          </div>
+                        )}
+                        {(q.explanationCorrect || '').split('\n').map((para, i) => <InteractiveText key={i} text={para} sectionImage={q.explanationCorrectImage?.data} gallery={q.gallery} />)}
+                        {q.explanationCorrectImage?.data && (q.explanationCorrectImage.placement === 'bottom' || !q.explanationCorrectImage.placement) && (
+                          <div className="mt-4 flex justify-center">
+                            <img src={q.explanationCorrectImage.data} alt="Rationale Analysis" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.explanationCorrectImage.size || 'default')}`} style={{ maxHeight: '400px', objectFit: 'contain' }} />
+                          </div>
+                        )}
                     </div>
                   </div>
 
                   {q.explanationWrong && (
                       <div className="pt-8 border-t border-zinc-100">
                         <h4 className="text-[11px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-600 mb-4">Incorrect Explanations</h4>
-                        <div className="text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400 italic space-y-3">
-                          {(q.explanationWrong || '').split('\n').map((para, i) => <p key={i}>{para}</p>)}
+                        <div className="text-[17px] leading-relaxed text-zinc-800 dark:text-zinc-200 space-y-4">
+                          {q.explanationWrongImage?.data && q.explanationWrongImage.placement === 'top' && (
+                            <div className="mb-4 flex justify-center">
+                              <img src={q.explanationWrongImage.data} alt="Distractor Analysis" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.explanationWrongImage.size || 'default')}`} style={{ maxHeight: '400px', objectFit: 'contain' }} />
+                            </div>
+                          )}
+                          {(q.explanationWrong || '').split('\n').map((para, i) => <InteractiveText key={i} text={para} sectionImage={q.explanationWrongImage?.data} gallery={q.gallery} />)}
+                          {q.explanationWrongImage?.data && (q.explanationWrongImage.placement === 'bottom' || !q.explanationWrongImage.placement) && (
+                            <div className="mt-4 flex justify-center">
+                              <img src={q.explanationWrongImage.data} alt="Distractor Analysis" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.explanationWrongImage.size || 'default')}`} style={{ maxHeight: '400px', objectFit: 'contain' }} />
+                            </div>
+                          )}
                         </div>
                     </div>
                   )}
@@ -1338,12 +1446,20 @@ export default function TakeTestPage() {
                   {q.summary && (
                       <div className="mt-8 p-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#002b5c]/50 dark:text-blue-400/30 block mb-3">Key Summary</span>
-                        <p className="font-bold text-[16px] text-zinc-900 dark:text-zinc-200 italic">"{q.summary}"</p>
-                    </div>
-                  )}
-                </div>
-
-
+                        {q.summaryImage?.data && q.summaryImage.placement === 'top' && (
+                          <div className="mb-4 flex justify-center">
+                            <img src={q.summaryImage.data} alt="Summary" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.summaryImage.size || 'default')}`} style={{ maxHeight: '300px', objectFit: 'contain' }} />
+                          </div>
+                        )}
+                        <InteractiveText text={`"${q.summary}"`} sectionImage={q.summaryImage?.data} gallery={q.gallery} className="font-bold text-[17px] leading-relaxed text-zinc-900 dark:text-zinc-200" />
+                        {q.summaryImage?.data && (q.summaryImage.placement === 'bottom' || !q.summaryImage.placement) && (
+                          <div className="mt-4 flex justify-center">
+                            <img src={q.summaryImage.data} alt="Summary" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.summaryImage.size || 'default')}`} style={{ maxHeight: '300px', objectFit: 'contain' }} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

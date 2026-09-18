@@ -23,22 +23,31 @@ export default function PreviousTestsPage() {
 
   // Reactivity handled by context + useEffect[selectedStudentProduct]
 
-  useEffect(() => {
-     async function loadTests() {
-        const pId = selectedStudentProduct?.id;
-        const history = await getAllTests(pId);
+   useEffect(() => {
+      async function loadTests() {
+         const pId = selectedStudentProduct?.id;
+         if (!pId) return;
 
-        // Sort and assign test numbers if missing
-        const sorted = history.sort((a, b) => new Date(a.date) - new Date(b.date));
-        const normalized = sorted.map((test, index) => ({
-           ...test,
-           testNumber: test.testNumber || index + 1
-        }));
+         const history = await getAllTests(pId);
 
-        setTests(normalized.sort((a, b) => (b.testNumber || 0) - (a.testNumber || 0)));
-     }
-     loadTests();
-  }, [selectedStudentProduct]);
+         // 1. Sort by date ascending to assign sequential numbers (Oldest = 1)
+         const sortedByDateAsc = [...history].sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt));
+
+         const normalized = sortedByDateAsc.map((test, index) => {
+            const isCustom = test.poolLogic?.usageState === 'custom' || test.testId?.endsWith('_custom') || String(test.pool).includes('Custom IDs');
+            return {
+               ...test,
+               testNumber: index + 1, // Enforce strict sequential numbering
+               isCustom
+            };
+         });
+
+         // 2. Sort by date descending so the LATEST test is on TOP
+         const final = normalized.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
+         setTests(final);
+      }
+      loadTests();
+   }, [selectedStudentProduct]);
 
    const handleResume = (test, isResumeOmitted = false) => {
       // Always use all questions from the original test session
@@ -180,28 +189,38 @@ export default function PreviousTestsPage() {
                                 const omittedCount = hasAttemptStats ? Number(test.attemptStats.omitted || 0) : (test.questions || []).filter(q => !q.userAnswer).length;
                                 const allOmitted = totalCount > 0 && omittedCount === totalCount;
 
-                                const uniqueSubjects = [...new Set((test.questions || []).map(q => q.subject))].filter(Boolean);
-                                const uniqueSystems = [...new Set((test.questions || []).map(q => q.system))].filter(Boolean);
+                                // Determine Subjects/Systems (augmented by server if missing)
+                                let subjectsList = test.poolLogic?.subjects || [];
+                                let systemsList = test.poolLogic?.systems || [];
 
-                                let displayPool = "MULTIPLE";
-                                if (Array.isArray(test.pool)) {
-                                   if (test.pool.length === 1) {
-                                      displayPool = test.pool[0].toUpperCase();
-                                   } else if (test.pool.length === 0) {
-                                      displayPool = "NONE";
-                                   }
-                                } else if (typeof test.pool === 'string') {
-                                   if (test.pool === 'All Questions') displayPool = "ALL";
-                                   else displayPool = test.pool.toUpperCase();
+                                // Fallback: Legacy Template A might have them in 'pool'
+                                if (subjectsList.length === 0 && Array.isArray(test.pool)) {
+                                   const FILTER_EXCLUDES = ["Unused", "Incorrect", "Marked", "Omitted", "Correct", "Custom IDs"];
+                                   subjectsList = test.pool.filter(p => !FILTER_EXCLUDES.includes(p));
                                 }
 
-                                const displaySubjects = uniqueSubjects.length > 1
+                                const displaySubjects = subjectsList.length > 1
                                    ? "MULTIPLE"
-                                   : (uniqueSubjects[0]?.toUpperCase() || "--");
+                                    : (subjectsList[0]?.toUpperCase() || "--");
 
-                                const displaySystems = uniqueSystems.length > 1
+                                const displaySystems = systemsList.length > 1
                                    ? "MULTIPLE"
-                                   : (uniqueSystems[0]?.toUpperCase() || "--");
+                                   : (systemsList[0]?.toUpperCase() || "--");
+
+                                let displayPool = "MULTIPLE";
+                                const poolRaw = test.poolLogic?.usageState || test.pool;
+                                if (poolRaw === 'custom' || test.isCustom) {
+                                   displayPool = "CUSTOM IDS";
+                                } else if (Array.isArray(poolRaw)) {
+                                   if (poolRaw.length === 1) {
+                                      displayPool = poolRaw[0].toUpperCase();
+                                   } else if (poolRaw.length === 0) {
+                                      displayPool = "NONE";
+                                   }
+                                } else if (typeof poolRaw === 'string') {
+                                   if (poolRaw === 'All Questions') displayPool = "ALL";
+                                   else displayPool = poolRaw.toUpperCase();
+                                }
 
                                 return (
                                    <tr key={test.testId} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors group">
@@ -224,7 +243,7 @@ export default function PreviousTestsPage() {
                                          onDoubleClick={() => handleCopyId(test.testNumber)}
                                          title="Double-click to copy"
                                       >
-                                         {test.testNumber}
+                                         {test.testNumber}{test.isCustom ? 'C' : ''}
                                          {copySuccess === test.testNumber && (
                                             <span className="absolute -top-1 left-1/2 -translate-x-1/2 bg-zinc-800 text-white text-[10px] px-2 py-1 rounded shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-300 font-bold whitespace-nowrap z-50">
                                                COPIED!
@@ -237,13 +256,13 @@ export default function PreviousTestsPage() {
                                       <td className="px-6 py-5 text-[14px] text-zinc-900 dark:text-zinc-100 font-bold lowercase">
                                          {test.mode === 'tutor' ? 'tutor' : 'timed'}
                                       </td>
-                                      <td className="px-6 py-5 text-[11px] text-[#0072bc] dark:text-white font-black uppercase tracking-widest" title={Array.isArray(test.pool) ? test.pool.join(', ') : test.pool}>
+                                      <td className="px-6 py-5 text-[11px] text-[#0072bc] dark:text-white font-black uppercase tracking-widest" title={displayPool}>
                                          {displayPool}
                                       </td>
-                                      <td className="px-6 py-5 text-[13px] text-zinc-900 dark:text-zinc-100 font-black" title={uniqueSubjects.join(', ')}>
+                                      <td className="px-6 py-5 text-[13px] text-zinc-900 dark:text-zinc-100 font-black" title={subjectsList.join(', ')}>
                                          {displaySubjects}
                                       </td>
-                                      <td className="px-6 py-5 text-[13px] text-zinc-900 dark:text-zinc-100 font-black" title={uniqueSystems.join(', ')}>
+                                      <td className="px-6 py-5 text-[13px] text-zinc-900 dark:text-zinc-100 font-black" title={systemsList.join(', ')}>
                                          {displaySystems}
                                       </td>
 

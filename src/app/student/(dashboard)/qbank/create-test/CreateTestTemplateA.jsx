@@ -227,11 +227,7 @@ export default function CreateTestTemplateA({ questions, userId }) {
         </div>
         {isQuestionModeOpen && (
           <div className="pb-6 flex flex-col gap-6">
-            <div className="flex gap-2">
-              {["Standard", "Custom"].map(qm => (
-                <button key={qm} onClick={() => setQuestionMode(qm)} className={`px-4 py-1 rounded-full text-[11px] font-bold transition-all border ${questionMode === qm ? "bg-zinc-800 border-zinc-700 text-zinc-200" : "bg-zinc-900 border-zinc-800 text-zinc-500"}`}>{qm}</button>
-              ))}
-            </div>
+
             <div className="flex items-center gap-8">
               {STATUS_FILTERS.map(f => (
                 <label key={f} className={`flex items-center gap-2 ${filterCounts[f] === 0 ? 'opacity-20 cursor-not-allowed' : 'cursor-pointer group'}`}>

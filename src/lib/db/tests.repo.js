@@ -164,6 +164,33 @@ export function saveTest(test) {
     }
   }
 
+  // Pre-populate user_questions for "usage" tracking and consistent "Unused" logic
+  try {
+    const questionsArray = Array.isArray(test.questions) ? test.questions : [];
+    const prepUserQ = db.prepare(`
+      INSERT OR IGNORE INTO user_questions 
+      (userId, questionId, productId, packageId, status, totalAttempts, lastSeenAt, updatedAt, lastUpdated)
+      VALUES (?, ?, ?, ?, 'omitted', 0, ?, ?, ?)
+    `);
+
+    questionsArray.forEach(qItem => {
+      const qId = String(typeof qItem === 'object' ? (qItem?.id || "") : qItem);
+      if (qId && qId !== 'undefined' && qId !== "") {
+        prepUserQ.run(
+          uidStr,
+          qId,
+          pidStr,
+          pidStr,
+          new Date().toISOString(),
+          new Date().toISOString(),
+          new Date().toISOString()
+        );
+      }
+    });
+  } catch (err) {
+    console.error('[Exam Runtime] Failed to pre-populate user_questions:', err);
+  }
+
   return test;
 }
 
@@ -460,14 +487,34 @@ export function getUserTests(userId, packageId) {
 
   return tests.map((t) => {
     try {
+      const parsedQuestions = parseJson(t.questions, []);
+      const poolLogic = parseJson(t.poolLogic, {});
+
+      // If poolLogic is missing subjects/systems, try to derive them from the first few questions
+      // to avoid heavy queries while still giving good data for the list view.
+      if ((!poolLogic.subjects || poolLogic.subjects.length === 0 || !poolLogic.systems || poolLogic.systems.length === 0) && parsedQuestions.length > 0) {
+        const firstFewIds = parsedQuestions.slice(0, 50).map(q => String(typeof q === 'object' ? q.id : q));
+        if (firstFewIds.length > 0) {
+          const placeholders = firstFewIds.map(() => "?").join(",");
+          const metadata = db.prepare(`SELECT subject, system FROM questions WHERE id IN (${placeholders})`).all(firstFewIds);
+
+          if (!poolLogic.subjects || poolLogic.subjects.length === 0) {
+            poolLogic.subjects = [...new Set(metadata.map(m => m.subject))].filter(Boolean);
+          }
+          if (!poolLogic.systems || poolLogic.systems.length === 0) {
+            poolLogic.systems = [...new Set(metadata.map(m => m.system))].filter(Boolean);
+          }
+        }
+      }
+
       return {
         ...t,
-        questions: parseJson(t.questions, []),
+        questions: parsedQuestions,
         answers: parseJson(t.answers, {}),
         firstAnswers: parseJson(t.firstAnswers, {}),
         markedIds: parseJson(t.markedIds, []),
         pool: parseJson(t.pool, []),
-        poolLogic: parseJson(t.poolLogic, {}),
+        poolLogic: poolLogic,
         sessionState: parseJson(t.sessionState, {}),
         isSuspended: !!t.isSuspended,
         latestAttemptId: t.latestAttemptId || null,

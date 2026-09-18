@@ -18,8 +18,8 @@ export async function POST(request) {
 
   try {
 
-    const { email, password } = await request.json();
-
+    const { email: rawEmail, password } = await request.json();
+    const email = rawEmail?.trim();
     console.log('[API Login] attempting login for:', email);
 
 
