@@ -8,14 +8,5 @@ build
 *.db
 *.db-shm
 *.db-wal
-.next
-.env*
 medbank.db*
 main.db
-*.log
-.next
-.env*
-medbank.db*
-main.db
-*.log
-*.log
