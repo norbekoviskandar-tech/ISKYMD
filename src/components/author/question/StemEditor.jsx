@@ -92,7 +92,7 @@ export default function StemEditor({ editor }) {
             </button>
           </div>
           <div className="relative group inline-block p-2 bg-white dark:bg-black/20 rounded-xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
-            <img src={stemImage.data} alt="stem" className={`${imageSizeClass(stemImage.size)} rounded-lg`} />
+            <img src={stemImage.data} alt="stem" loading="lazy" className={`${imageSizeClass(stemImage.size)} rounded-lg`} />
             <button
               onClick={() => setStemImage({ data: "", size: "default", fileName: "", placement: "bottom" })}
               className="absolute top-3 right-3 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] shadow-lg opacity-90 transition-opacity border-2 border-white dark:border-zinc-800 hover:opacity-100"

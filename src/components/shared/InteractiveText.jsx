@@ -73,6 +73,7 @@ export default function InteractiveText({ text, sectionImage = null, gallery = {
             <img
                src={targetImage}
                alt="Auto-show"
+               loading="lazy"
                className={`${sizeClass} h-auto rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm cursor-zoom-in hover:shadow-md transition-all`}
                onClick={() => setActiveImage({ word: "Viewing Image", data: targetImage })}
             />
@@ -125,6 +126,7 @@ export default function InteractiveText({ text, sectionImage = null, gallery = {
               <img 
                 src={activeImage.data} 
                 alt={activeImage.word} 
+                loading="lazy"
                 className="max-h-[70vh] rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-800"
               />
             </div>

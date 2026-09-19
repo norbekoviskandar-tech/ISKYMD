@@ -102,7 +102,7 @@ export default function ExplanationEditor({ editor }) {
               </button>
             </div>
             <div className="relative group inline-block p-2 bg-white dark:bg-black/20 rounded-xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
-              <img src={explanationCorrectImage.data} alt="exp-correct" className={`${imageSizeClass(explanationCorrectImage.size)} rounded-lg`} />
+              <img src={explanationCorrectImage.data} alt="exp-correct" loading="lazy" className={`${imageSizeClass(explanationCorrectImage.size)} rounded-lg`} />
               <button
                 onClick={() => setExplanationCorrectImage({ data: "", size: "default", fileName: "", placement: "bottom" })}
                 className="absolute top-3 right-3 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] shadow-lg opacity-90 transition-all border-2 border-white dark:border-zinc-800 hover:opacity-100"
@@ -190,7 +190,7 @@ export default function ExplanationEditor({ editor }) {
               </button>
             </div>
             <div className="relative group inline-block p-2 bg-white dark:bg-black/20 rounded-xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
-              <img src={explanationWrongImage.data} alt="exp-wrong" className={`${imageSizeClass(explanationWrongImage.size)} rounded-lg`} />
+              <img src={explanationWrongImage.data} alt="exp-wrong" loading="lazy" className={`${imageSizeClass(explanationWrongImage.size)} rounded-lg`} />
               <button
                 onClick={() => setExplanationWrongImage({ data: "", size: "default", fileName: "", placement: "bottom" })}
                 className="absolute top-3 right-3 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] shadow-lg opacity-90 transition-all border-2 border-white dark:border-zinc-800 hover:opacity-100"
@@ -278,7 +278,7 @@ export default function ExplanationEditor({ editor }) {
               </button>
             </div>
             <div className="relative group inline-block p-2 bg-white dark:bg-black/20 rounded-xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
-              <img src={summaryImage.data} alt="summary" className={`${imageSizeClass(summaryImage.size)} rounded-lg`} />
+              <img src={summaryImage.data} alt="summary" loading="lazy" className={`${imageSizeClass(summaryImage.size)} rounded-lg`} />
               <button
                 onClick={() => setSummaryImage({ data: "", size: "default", fileName: "", placement: "bottom" })}
                 className="absolute top-3 right-3 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] shadow-lg opacity-90 transition-all border-2 border-white dark:border-zinc-800 hover:opacity-100"

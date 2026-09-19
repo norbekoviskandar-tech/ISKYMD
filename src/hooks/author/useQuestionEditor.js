@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { addQuestion, getQuestionById, updateQuestion } from "@/services/question.service";
 import Question from "@/models/question.model";
 import { AppContext } from "@/context/AppContext";
+import { createClient } from '@supabase/supabase-js';
 
 /* ---------- Helpers ---------- */
 export function imageSizeClass(size) {
@@ -19,6 +20,96 @@ export function fileToBase64(file, callback) {
   const reader = new FileReader();
   reader.onloadend = () => callback(reader.result);
   reader.readAsDataURL(file);
+}
+
+// Supabase Storage upload function
+async function uploadImageToStorage(file, questionId, imageType) {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Missing Supabase environment variables');
+      throw new Error('Storage not configured');
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const BUCKET_NAME = 'question-images';
+    
+    // Compress image using browser's canvas
+    const compressedFile = await compressImage(file);
+    
+    // Generate unique filename
+    const timestamp = Date.now();
+    const extension = 'webp';
+    const filename = `${questionId}-${imageType}-${timestamp}.${extension}`;
+    
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(filename, compressedFile, {
+        contentType: 'image/webp',
+        upsert: true
+      });
+    
+    if (error) {
+      console.error('Storage upload error:', error);
+      throw error;
+    }
+    
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(filename);
+    
+    return publicUrl;
+  } catch (error) {
+    console.error('Image upload failed:', error);
+    throw error;
+  }
+}
+
+// Compress image using browser canvas
+async function compressImage(file, maxWidth = 1400, quality = 0.8) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      
+      // Calculate new dimensions
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/webp',
+              lastModified: Date.now()
+            });
+            resolve(compressedFile);
+          } else {
+            reject(new Error('Canvas compression failed'));
+          }
+        },
+        'image/webp',
+        quality
+      );
+    };
+    
+    img.onerror = () => reject(new Error('Image load failed'));
+    img.src = URL.createObjectURL(file);
+  });
 }
 
 export function countWords(text) {
@@ -386,11 +477,23 @@ export function useQuestionEditor() {
     setQuestionId(random);
   }, []);
 
-  const handleImageChange = useCallback((setter, current) => (e) => {
+  const handleImageChange = useCallback((setter, current, imageType = 'image') => async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    fileToBase64(file, (img) => setter({ ...current, data: img, fileName: file.name }));
-  }, []);
+    
+    try {
+      // Upload to Supabase Storage
+      const currentQuestionId = questionId || `temp-${Date.now()}`;
+      const publicUrl = await uploadImageToStorage(file, currentQuestionId, imageType);
+      
+      // Set the URL instead of base64
+      setter({ ...current, data: publicUrl, fileName: file.name });
+    } catch (error) {
+      console.error('Image upload failed, falling back to base64:', error);
+      // Fallback to base64 if upload fails
+      fileToBase64(file, (img) => setter({ ...current, data: img, fileName: file.name }));
+    }
+  }, [questionId]);
 
   const handleTextareaChange = useCallback((setter, fieldName) => (e) => {
     const value = e.target.value;
@@ -553,6 +656,7 @@ export function useQuestionEditor() {
     references, setReferences, tags, setTags, gallery, setGallery,
     suggestion, activeField, availableSystems, availableSubjects,
     saveQuestion, resetForm, generateAutoId, handleImageChange, handleTextareaChange, handleKeyDownSuggested, insertHighlightImage, removeHighlight, removeGalleryItem, updateGalleryItem,
-    addChoice, removeChoice, addMatrixColumn, removeMatrixColumn, updateMatrixColumn, updateChoiceMatrixValue
+    addChoice, removeChoice, addMatrixColumn, removeMatrixColumn, updateMatrixColumn, updateChoiceMatrixValue,
+    questionId // Add questionId for image uploads
   };
 }

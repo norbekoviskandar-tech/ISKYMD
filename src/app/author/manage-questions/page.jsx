@@ -888,7 +888,7 @@ export default function ManageQuestionsPage() {
               <div className="mb-8">
                 <h3 className="font-semibold text-lg mb-2 text-foreground">Stem</h3>
                       {previewQuestion.stemImage?.data && previewQuestion.stemImage.placement === 'top' && (
-                        <img src={previewQuestion.stemImage.data} alt="Stem" className={`rounded-xl shadow-lg border border-border mb-4 ${imageSizeClass(previewQuestion.stemImage.size || "default")}`} />
+                        <img src={previewQuestion.stemImage.data} alt="Stem" loading="lazy" className={`rounded-xl shadow-lg border border-border mb-4 ${imageSizeClass(previewQuestion.stemImage.size || "default")}`} />
                       )}
                       <div className="mb-4 text-muted-foreground">
                         {(previewQuestion.stem || '').split('\n').map((para, i) => (
@@ -896,7 +896,7 @@ export default function ManageQuestionsPage() {
                         ))}
                       </div>
                       {previewQuestion.stemImage?.data && (previewQuestion.stemImage.placement === 'bottom' || !previewQuestion.stemImage.placement) && (
-                        <img src={previewQuestion.stemImage.data} alt="Stem" className={`rounded-xl shadow-lg border border-border ${imageSizeClass(previewQuestion.stemImage.size || "default")}`} />
+                        <img src={previewQuestion.stemImage.data} alt="Stem" loading="lazy" className={`rounded-xl shadow-lg border border-border ${imageSizeClass(previewQuestion.stemImage.size || "default")}`} />
                       )}
               </div>
 
@@ -927,7 +927,7 @@ export default function ManageQuestionsPage() {
                           <div className="flex-1 text-sm">
                             <InteractiveText text={c.text} sectionImage={c.image?.data} className="mb-2" />
                             {c.image?.data && (
-                              <img src={c.image.data} alt={`Choice ${String.fromCharCode(65 + i)}`} className={`rounded-xl shadow-md border border-border ${imageSizeClass(c.image.size || "default")}`} />
+                              <img src={c.image.data} alt={`Choice ${String.fromCharCode(65 + i)}`} loading="lazy" className={`rounded-xl shadow-md border border-border ${imageSizeClass(c.image.size || "default")}`} />
                             )}
                           </div>
                         )}
@@ -946,7 +946,7 @@ export default function ManageQuestionsPage() {
                           <div className="flex-1 text-sm pl-4 border-l border-border/50">
                             <InteractiveText text={c.text} sectionImage={c.image?.data} className="mb-2" />
                             {c.image?.data && (
-                              <img src={c.image.data} alt={`Choice ${String.fromCharCode(65 + i)}`} className={`rounded-xl shadow-md border border-border ${imageSizeClass(c.image.size || "default")}`} />
+                              <img src={c.image.data} alt={`Choice ${String.fromCharCode(65 + i)}`} loading="lazy" className={`rounded-xl shadow-md border border-border ${imageSizeClass(c.image.size || "default")}`} />
                             )}
                           </div>
                         )}
@@ -963,7 +963,7 @@ export default function ManageQuestionsPage() {
                   <div className="mb-6">
                     <p className="font-medium mb-2">Correct:</p>
                           {previewQuestion.explanationCorrectImage?.data && previewQuestion.explanationCorrectImage.placement === 'top' && (
-                            <img src={previewQuestion.explanationCorrectImage.data} alt="Correct" className={`mb-3 rounded-xl shadow-md border border-border ${imageSizeClass(previewQuestion.explanationCorrectImage.size || "default")}`} />
+                            <img src={previewQuestion.explanationCorrectImage.data} alt="Correct" loading="lazy" className={`mb-3 rounded-xl shadow-md border border-border ${imageSizeClass(previewQuestion.explanationCorrectImage.size || "default")}`} />
                           )}
                           <div className="text-zinc-800 dark:text-zinc-200">
                             {(previewQuestion.explanationCorrect || '').split('\n').map((para, i) => (
@@ -971,7 +971,7 @@ export default function ManageQuestionsPage() {
                             ))}
                           </div>
                           {previewQuestion.explanationCorrectImage?.data && (previewQuestion.explanationCorrectImage.placement === 'bottom' || !previewQuestion.explanationCorrectImage.placement) && (
-                            <img src={previewQuestion.explanationCorrectImage.data} alt="Correct" className={`mt-3 rounded-xl shadow-md border border-border ${imageSizeClass(previewQuestion.explanationCorrectImage.size || "default")}`} />
+                            <img src={previewQuestion.explanationCorrectImage.data} alt="Correct" loading="lazy" className={`mt-3 rounded-xl shadow-md border border-border ${imageSizeClass(previewQuestion.explanationCorrectImage.size || "default")}`} />
                           )}
                   </div>
                 )}
@@ -979,7 +979,7 @@ export default function ManageQuestionsPage() {
                   <div className="mb-6">
                     <p className="font-medium mb-2">Wrong:</p>
                           {previewQuestion.explanationWrongImage?.data && previewQuestion.explanationWrongImage.placement === 'top' && (
-                            <img src={previewQuestion.explanationWrongImage.data} alt="Wrong" className={`mb-3 rounded-xl shadow-md border border-border ${imageSizeClass(previewQuestion.explanationWrongImage.size || "default")}`} />
+                            <img src={previewQuestion.explanationWrongImage.data} alt="Wrong" loading="lazy" className={`mb-3 rounded-xl shadow-md border border-border ${imageSizeClass(previewQuestion.explanationWrongImage.size || "default")}`} />
                           )}
                           <div className="text-zinc-800 dark:text-zinc-200">
                             {(previewQuestion.explanationWrong || '').split('\n').map((para, i) => (
@@ -987,7 +987,7 @@ export default function ManageQuestionsPage() {
                             ))}
                           </div>
                           {previewQuestion.explanationWrongImage?.data && (previewQuestion.explanationWrongImage.placement === 'bottom' || !previewQuestion.explanationWrongImage.placement) && (
-                            <img src={previewQuestion.explanationWrongImage.data} alt="Wrong" className={`mt-3 rounded-xl shadow-md border border-border ${imageSizeClass(previewQuestion.explanationWrongImage.size || "default")}`} />
+                            <img src={previewQuestion.explanationWrongImage.data} alt="Wrong" loading="lazy" className={`mt-3 rounded-xl shadow-md border border-border ${imageSizeClass(previewQuestion.explanationWrongImage.size || "default")}`} />
                           )}
                   </div>
                 )}

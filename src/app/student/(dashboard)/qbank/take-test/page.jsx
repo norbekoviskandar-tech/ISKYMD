@@ -1337,7 +1337,7 @@ export default function TakeTestPage() {
             <div className="w-full space-y-6">
               {q.stemImage?.data && q.stemImage.placement === 'top' && (
                 <div className="mb-4 flex justify-center">
-                  <img src={q.stemImage.data} alt="stem" className={`rounded border-2 border-zinc-100 shadow-sm ${imageSizeClass(q.stemImage.size || 'default')}`} />
+                  <img src={q.stemImage.data} alt="stem" loading="lazy" className={`rounded border-2 border-zinc-100 shadow-sm ${imageSizeClass(q.stemImage.size || 'default')}`} />
                 </div>
               )}
               <InteractiveText
@@ -1348,7 +1348,7 @@ export default function TakeTestPage() {
               />
               {q.stemImage?.data && (q.stemImage.placement === 'bottom' || !q.stemImage.placement) && (
                 <div className="mt-8 flex justify-center">
-                  <img src={q.stemImage.data} alt="stem" className={`rounded border-2 border-zinc-100 shadow-sm ${imageSizeClass(q.stemImage.size || 'default')}`} />
+                  <img src={q.stemImage.data} alt="stem" loading="lazy" className={`rounded border-2 border-zinc-100 shadow-sm ${imageSizeClass(q.stemImage.size || 'default')}`} />
                 </div>
               )}
             </div>
@@ -1461,13 +1461,13 @@ export default function TakeTestPage() {
                           <div className={`flex-1 text-[15px] select-none ${isStruck ? 'line-through text-zinc-400 dark:text-zinc-600' : isSelected ? "font-bold text-zinc-900 dark:text-[#f8fafc]" : "font-medium text-zinc-700 dark:text-zinc-300"}`}>
                             <div className="flex flex-col">
                               {choice.image?.data && choice.image.placement === 'top' && (
-                                <img src={choice.image.data} alt={`choice-${letter}`} className={`rounded border mt-1 mb-2 ${imageSizeClass(choice.image.size || 'default')}`} />
+                                <img src={choice.image.data} alt={`choice-${letter}`} loading="lazy" className={`rounded border mt-1 mb-2 ${imageSizeClass(choice.image.size || 'default')}`} />
                               )}
                               <div className="flex items-center gap-1">
                                 <InteractiveText text={choice.text} sectionImage={choice.image?.data} gallery={q.gallery} className="inline-block" />
                               </div>
                               {choice.image?.data && (choice.image.placement === 'bottom' || !choice.image.placement) && (
-                                <img src={choice.image.data} alt={`choice-${letter}`} className={`rounded border mt-2 ${imageSizeClass(choice.image.size || 'default')}`} />
+                                <img src={choice.image.data} alt={`choice-${letter}`} loading="lazy" className={`rounded border mt-2 ${imageSizeClass(choice.image.size || 'default')}`} />
                               )}
                             </div>
                           </div>
@@ -1495,7 +1495,7 @@ export default function TakeTestPage() {
                                 <InteractiveText text={choice.text} sectionImage={choice.image?.data} gallery={q.gallery} className="inline-block" />
                               </div>
                               {choice.image?.data && (choice.image.placement === 'bottom' || !choice.image.placement) && (
-                                <img src={choice.image.data} alt={`choice-${letter}`} className={`rounded border mt-2 ${imageSizeClass(choice.image.size || 'default')}`} />
+                                <img src={choice.image.data} alt={`choice-${letter}`} loading="lazy" className={`rounded border mt-2 ${imageSizeClass(choice.image.size || 'default')}`} />
                               )}
                             </div>
                           </div>
@@ -1564,13 +1564,13 @@ export default function TakeTestPage() {
                       <div className="text-[17px] leading-relaxed text-zinc-800 dark:text-zinc-200 space-y-4">
                         {q.explanationCorrectImage?.data && q.explanationCorrectImage.placement === 'top' && (
                           <div className="mb-4 flex justify-center">
-                            <img src={q.explanationCorrectImage.data} alt="Rationale Analysis" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.explanationCorrectImage.size || 'default')}`} style={{ maxHeight: '400px', objectFit: 'contain' }} />
+                            <img src={q.explanationCorrectImage.data} alt="Rationale Analysis" loading="lazy" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.explanationCorrectImage.size || 'default')}`} style={{ maxHeight: '400px', objectFit: 'contain' }} />
                           </div>
                         )}
                         {(q.explanationCorrect || '').split('\n').map((para, i) => <InteractiveText key={i} text={para} sectionImage={q.explanationCorrectImage?.data} gallery={q.gallery} />)}
                         {q.explanationCorrectImage?.data && (q.explanationCorrectImage.placement === 'bottom' || !q.explanationCorrectImage.placement) && (
                           <div className="mt-4 flex justify-center">
-                            <img src={q.explanationCorrectImage.data} alt="Rationale Analysis" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.explanationCorrectImage.size || 'default')}`} style={{ maxHeight: '400px', objectFit: 'contain' }} />
+                            <img src={q.explanationCorrectImage.data} alt="Rationale Analysis" loading="lazy" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.explanationCorrectImage.size || 'default')}`} style={{ maxHeight: '400px', objectFit: 'contain' }} />
                           </div>
                         )}
                     </div>
@@ -1582,13 +1582,13 @@ export default function TakeTestPage() {
                         <div className="text-[17px] leading-relaxed text-zinc-800 dark:text-zinc-200 space-y-4">
                           {q.explanationWrongImage?.data && q.explanationWrongImage.placement === 'top' && (
                             <div className="mb-4 flex justify-center">
-                              <img src={q.explanationWrongImage.data} alt="Distractor Analysis" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.explanationWrongImage.size || 'default')}`} style={{ maxHeight: '400px', objectFit: 'contain' }} />
+                              <img src={q.explanationWrongImage.data} alt="Distractor Analysis" loading="lazy" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.explanationWrongImage.size || 'default')}`} style={{ maxHeight: '400px', objectFit: 'contain' }} />
                             </div>
                           )}
                           {(q.explanationWrong || '').split('\n').map((para, i) => <InteractiveText key={i} text={para} sectionImage={q.explanationWrongImage?.data} gallery={q.gallery} />)}
                           {q.explanationWrongImage?.data && (q.explanationWrongImage.placement === 'bottom' || !q.explanationWrongImage.placement) && (
                             <div className="mt-4 flex justify-center">
-                              <img src={q.explanationWrongImage.data} alt="Distractor Analysis" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.explanationWrongImage.size || 'default')}`} style={{ maxHeight: '400px', objectFit: 'contain' }} />
+                              <img src={q.explanationWrongImage.data} alt="Distractor Analysis" loading="lazy" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.explanationWrongImage.size || 'default')}`} style={{ maxHeight: '400px', objectFit: 'contain' }} />
                             </div>
                           )}
                         </div>
@@ -1600,13 +1600,13 @@ export default function TakeTestPage() {
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#002b5c]/50 dark:text-blue-400/30 block mb-3">Key Summary</span>
                         {q.summaryImage?.data && q.summaryImage.placement === 'top' && (
                           <div className="mb-4 flex justify-center">
-                            <img src={q.summaryImage.data} alt="Summary" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.summaryImage.size || 'default')}`} style={{ maxHeight: '300px', objectFit: 'contain' }} />
+                            <img src={q.summaryImage.data} alt="Summary" loading="lazy" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.summaryImage.size || 'default')}`} style={{ maxHeight: '300px', objectFit: 'contain' }} />
                           </div>
                         )}
                         <InteractiveText text={`"${q.summary}"`} sectionImage={q.summaryImage?.data} gallery={q.gallery} className="font-bold text-[17px] leading-relaxed text-zinc-900 dark:text-zinc-200" />
                         {q.summaryImage?.data && (q.summaryImage.placement === 'bottom' || !q.summaryImage.placement) && (
                           <div className="mt-4 flex justify-center">
-                            <img src={q.summaryImage.data} alt="Summary" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.summaryImage.size || 'default')}`} style={{ maxHeight: '300px', objectFit: 'contain' }} />
+                            <img src={q.summaryImage.data} alt="Summary" loading="lazy" className={`rounded-xl border border-zinc-200 shadow-sm ${imageSizeClass(q.summaryImage.size || 'default')}`} style={{ maxHeight: '300px', objectFit: 'contain' }} />
                           </div>
                         )}
                       </div>

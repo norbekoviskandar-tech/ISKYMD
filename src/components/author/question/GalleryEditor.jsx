@@ -67,6 +67,7 @@ export default function GalleryEditor({ editor }) {
                 <img 
                   src={item.data} 
                   alt="" 
+                  loading="lazy"
                   className="max-h-full max-w-full object-contain" 
                 />
                 

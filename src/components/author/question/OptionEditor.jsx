@@ -212,7 +212,7 @@ export default function OptionEditor({ editor }) {
                               </button>
                             </div>
                             <div className="relative group inline-block border border-zinc-100 dark:border-zinc-800 rounded-lg overflow-hidden">
-                              <img src={c.image.data} alt={`choice-${i}`} className={`${imageSizeClass(c.image.size)}`} />
+                              <img src={c.image.data} alt={`choice-${i}`} loading="lazy" className={`${imageSizeClass(c.image.size)}`} />
                               <button
                                 onClick={() => handleChoiceImageRemove(i)}
                                 className="absolute top-2 right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[8px] shadow-lg opacity-0 group-hover:opacity-100 transition-opacity border-2 border-white dark:border-zinc-800"
@@ -297,7 +297,7 @@ export default function OptionEditor({ editor }) {
                               <button type="button" onClick={() => handleChoiceImageRemove(i)} className="p-1 px-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all text-[9px] font-bold uppercase">DEL</button>
                             </div>
                             <div className="relative group inline-block border border-zinc-100 dark:border-zinc-800 rounded-lg overflow-hidden">
-                              <img src={c.image.data} alt={`choice-${i}`} className={`${imageSizeClass(c.image.size)}`} />
+                              <img src={c.image.data} alt={`choice-${i}`} loading="lazy" className={`${imageSizeClass(c.image.size)}`} />
                               <button
                                 onClick={() => handleChoiceImageRemove(i)}
                                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover/img:opacity-100 transition-all shadow-lg"
@@ -372,7 +372,7 @@ export default function OptionEditor({ editor }) {
                               </button>
                             </div>
                             <div className="relative group inline-block border border-zinc-100 dark:border-zinc-800 rounded-lg overflow-hidden">
-                              <img src={c.image.data} alt={`choice-${i}`} className={`${imageSizeClass(c.image.size)}`} />
+                              <img src={c.image.data} alt={`choice-${i}`} loading="lazy" className={`${imageSizeClass(c.image.size)}`} />
                               <button
                                 onClick={() => handleChoiceImageRemove(i)}
                                 className="absolute top-2 right-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[8px] shadow-lg opacity-0 group-hover:opacity-100 transition-opacity border-2 border-white dark:border-zinc-800"
@@ -457,7 +457,7 @@ export default function OptionEditor({ editor }) {
                               <button type="button" onClick={() => handleChoiceImageRemove(i)} className="p-1 px-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all text-[9px] font-bold uppercase">DEL</button>
                             </div>
                             <div className="relative group inline-block border border-zinc-100 dark:border-zinc-800 rounded-lg overflow-hidden">
-                              <img src={c.image.data} alt={`choice-${i}`} className={`${imageSizeClass(c.image.size)}`} />
+                              <img src={c.image.data} alt={`choice-${i}`} loading="lazy" className={`${imageSizeClass(c.image.size)}`} />
                               <button
                                 onClick={() => handleChoiceImageRemove(i)}
                                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover/img:opacity-100 transition-all shadow-lg"
