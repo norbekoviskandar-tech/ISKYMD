@@ -168,6 +168,7 @@ export default function TakeTestPage() {
   const [strikeouts, setStrikeouts] = useState({}); // { questionId: Set of letters }
   const [modal, setModal] = useState({ show: false, title: "", message: "", onConfirm: null });
   const [isEnding, setIsEnding] = useState(false);
+  const [loadingQuestionIds, setLoadingQuestionIds] = useState(new Set()); // Track which questions are loading
   const router = useRouter();
   const handleEndBlockRef = useRef(null);
   const submissionInFlightRef = useRef(false);
@@ -195,6 +196,91 @@ export default function TakeTestPage() {
     const rs = s % 60;
     return `${m.toString().padStart(2, '0')}:${rs.toString().padStart(2, '0')}`;
   };
+
+  // Fetch full question data by ID
+  const fetchFullQuestion = async (questionId, includeAnswers = false) => {
+    if (!questionId) return null;
+    
+    try {
+      const url = includeAnswers 
+        ? `/api/questions/${questionId}?includeAnswers=true`
+        : `/api/questions/${questionId}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.error('Failed to fetch question:', questionId, response.status);
+        return null;
+      }
+      const fullQuestion = await response.json();
+      return fullQuestion;
+    } catch (error) {
+      console.error('Error fetching full question:', error);
+      return null;
+    }
+  };
+
+  // Effect to fetch full question data when current question changes
+  useEffect(() => {
+    if (questions.length === 0 || !currentQuestionId) return;
+    
+    const currentQ = questions[currentIndex];
+    
+    // Check if current question already has full data (has stem, choices, etc.)
+    const hasFullData = currentQ && currentQ.stem && currentQ.choices && currentQ.choices.length > 0;
+    
+    // In review mode, also check if we have answer fields
+    const hasAnswerFields = isReviewMode && currentQ && currentQ.correct && currentQ.explanationCorrect;
+    const needsFetch = !hasFullData || (isReviewMode && !hasAnswerFields);
+    
+    if (!needsFetch) {
+      // Question already has the required data, no need to fetch
+      return;
+    }
+    
+    // Fetch full question data (include answers only in review mode)
+    const loadFullQuestion = async () => {
+      setLoadingQuestionIds(prev => new Set([...prev, currentQuestionId]));
+      
+      const fullQuestion = await fetchFullQuestion(currentQuestionId, isReviewMode);
+      
+      if (fullQuestion) {
+        setQuestions(prevQuestions => {
+          const updated = [...prevQuestions];
+          updated[currentIndex] = { ...updated[currentIndex], ...fullQuestion };
+          return updated;
+        });
+      }
+      
+      setLoadingQuestionIds(prev => {
+        const next = new Set(prev);
+        next.delete(currentQuestionId);
+        return next;
+      });
+    };
+    
+    loadFullQuestion();
+    
+    // Prefetch next question in background (don't include answers for prefetch)
+    if (currentIndex < questions.length - 1) {
+      const nextQuestionId = questions[currentIndex + 1]?.id;
+      if (nextQuestionId) {
+        const nextQ = questions[currentIndex + 1];
+        const nextHasFullData = nextQ && nextQ.stem && nextQ.choices && nextQ.choices.length > 0;
+        
+        if (!nextHasFullData) {
+          fetchFullQuestion(nextQuestionId, false).then(fullQuestion => {
+            if (fullQuestion) {
+              setQuestions(prevQuestions => {
+                const updated = [...prevQuestions];
+                updated[currentIndex + 1] = { ...updated[currentIndex + 1], ...fullQuestion };
+                return updated;
+              });
+            }
+          });
+        }
+      }
+    }
+  }, [currentQuestionId, currentIndex, questions, isReviewMode]);
 
   useEffect(() => {
     handleSuspendRef.current = handleSuspend;
@@ -563,6 +649,13 @@ export default function TakeTestPage() {
 
   const q = questions[currentIndex];
   const totalQuestions = questions.length;
+  const isLoadingQuestion = loadingQuestionIds.has(currentQuestionId);
+  const hasFullData = q && q.stem && q.choices && q.choices.length > 0;
+  // In review mode or after tutor submission, we also need answer fields
+  const needsAnswerFields = isReviewMode || (mode === 'tutor' && isSubmitted);
+  const hasAnswerFields = q && q.correct && q.explanationCorrect;
+  // Show loading if: currently loading, or don't have basic data, or need answers but don't have them
+  const shouldShowLoading = isLoadingQuestion || !hasFullData || (needsAnswerFields && !hasAnswerFields);
 
   const handleQuestionJump = useCallback((idx) => {
     setCurrentIndex(idx);
@@ -742,6 +835,16 @@ export default function TakeTestPage() {
 
         // FIX: Save BOTH answers AND lockedAnswers together to prevent data loss on refresh
         saveToLocalStorage({ answers: nextAnswers, lockedAnswers: nextLocked });
+
+        // PHASE 2: Fetch answer fields after submission in tutor mode
+        const fullQuestionWithAnswers = await fetchFullQuestion(currentQuestionId, true);
+        if (fullQuestionWithAnswers) {
+          setQuestions(prevQuestions => {
+            const updated = [...prevQuestions];
+            updated[currentIndex] = { ...updated[currentIndex], ...fullQuestionWithAnswers };
+            return updated;
+          });
+        }
       })();
     } else {
       handleNext();
@@ -1052,6 +1155,55 @@ export default function TakeTestPage() {
     return (
       <div className="fixed inset-0 bg-white flex items-center justify-center z-[9999]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#002b5c]"></div>
+      </div>
+    );
+  }
+
+  // Show loading skeleton while fetching full question data
+  if (shouldShowLoading) {
+    return (
+      <div className="fixed inset-0 bg-[#f3f4f6] dark:bg-[#0F0F12] flex flex-col z-[9999] font-sans overflow-hidden select-none text-[#333] dark:text-zinc-300 transition-colors duration-300">
+        {/* HEADER */}
+        <header className="bg-[#002b5c] text-white h-[45px] flex items-center px-4 shrink-0 shadow-lg z-50 font-medium relative border-b border-white/10">
+          <div className="flex items-center gap-5">
+            <div className="flex gap-4">
+              <div className="w-5 h-5 bg-white/20 rounded animate-pulse" />
+              <div className="flex items-center gap-3 ml-2 border-l border-white/10 pl-4">
+                <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Item ID:</span>
+                <div className="w-12 h-4 bg-white/20 rounded animate-pulse" />
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 flex justify-center items-center">
+            <div className="w-16 h-4 bg-white/20 rounded animate-pulse" />
+          </div>
+        </header>
+
+        {/* MAIN CONTENT - LOADING SKELETON */}
+        <main className="flex-1 overflow-y-auto bg-white dark:bg-[#16161a] p-6 lg:p-8 transition-colors duration-300">
+          <div className="w-full flex flex-col gap-10">
+            {/* Question Stem Skeleton */}
+            <div className="w-full space-y-6">
+              <div className="h-8 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse w-3/4" />
+              <div className="h-6 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse w-full" />
+              <div className="h-6 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse w-5/6" />
+              <div className="h-6 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse w-4/5" />
+            </div>
+
+            {/* Choices Skeleton */}
+            <div className="w-full space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex items-start gap-4 p-4 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                  <div className="w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-800 animate-pulse shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse w-1/4" />
+                    <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse w-full" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
