@@ -64,12 +64,12 @@ export default function ExplanationEditor({ editor }) {
           </div>
         )}
         {explanationCorrectImage.data && (
-          <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+          <div className="mt-4 p-4 bg-[#111111] dark:bg-zinc-900/50 rounded-2xl border border-[#2E2A1E] dark:border-zinc-800 shadow-sm space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
                 <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400 block mb-1">Image Settings</span>
                 <div className="flex items-center gap-2">
-                  <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                  <div className="flex bg-[#141414] dark:bg-zinc-800 rounded-lg p-1 border border-[#2E2A1E] dark:border-zinc-700 shadow-sm">
                     {['small', 'medium', 'large', 'default'].map(s => (
                       <button
                         key={s}
@@ -80,7 +80,7 @@ export default function ExplanationEditor({ editor }) {
                       </button>
                     ))}
                   </div>
-                  <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                  <div className="flex bg-[#141414] dark:bg-zinc-800 rounded-lg p-1 border border-[#2E2A1E] dark:border-zinc-700 shadow-sm">
                     {[{ key: 'top', label: 'TOP' }, { key: 'bottom', label: 'BTM' }, { key: 'inline', label: 'INL' }].map(p => (
                       <button
                         key={p.key}
@@ -101,7 +101,7 @@ export default function ExplanationEditor({ editor }) {
                 Remove
               </button>
             </div>
-            <div className="relative group inline-block p-2 bg-white dark:bg-black/20 rounded-xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+            <div className="relative group inline-block p-2 bg-[#141414] dark:bg-black/20 rounded-xl border border-[#1F1F1F] dark:border-zinc-800 overflow-hidden">
               <img src={explanationCorrectImage.data} alt="exp-correct" loading="lazy" className={`${imageSizeClass(explanationCorrectImage.size)} rounded-lg`} />
               <button
                 onClick={() => setExplanationCorrectImage({ data: "", size: "default", fileName: "", placement: "bottom" })}
@@ -152,12 +152,12 @@ export default function ExplanationEditor({ editor }) {
           </div>
         )}
         {explanationWrongImage.data && (
-          <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+          <div className="mt-4 p-4 bg-[#111111] dark:bg-zinc-900/50 rounded-2xl border border-[#2E2A1E] dark:border-zinc-800 shadow-sm space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
                 <span className="text-[9px] font-black uppercase tracking-widest text-amber-500 block mb-1">Image Settings</span>
                 <div className="flex items-center gap-2">
-                  <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                  <div className="flex bg-[#141414] dark:bg-zinc-800 rounded-lg p-1 border border-[#2E2A1E] dark:border-zinc-700 shadow-sm">
                     {['small', 'medium', 'large', 'default'].map(s => (
                       <button
                         key={s}
@@ -168,7 +168,7 @@ export default function ExplanationEditor({ editor }) {
                       </button>
                     ))}
                   </div>
-                  <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                  <div className="flex bg-[#141414] dark:bg-zinc-800 rounded-lg p-1 border border-[#2E2A1E] dark:border-zinc-700 shadow-sm">
                     {[{ key: 'top', label: 'TOP' }, { key: 'bottom', label: 'BTM' }, { key: 'inline', label: 'INL' }].map(p => (
                       <button
                         key={p.key}
@@ -189,7 +189,7 @@ export default function ExplanationEditor({ editor }) {
                 Remove
               </button>
             </div>
-            <div className="relative group inline-block p-2 bg-white dark:bg-black/20 rounded-xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+            <div className="relative group inline-block p-2 bg-[#141414] dark:bg-black/20 rounded-xl border border-[#1F1F1F] dark:border-zinc-800 overflow-hidden">
               <img src={explanationWrongImage.data} alt="exp-wrong" loading="lazy" className={`${imageSizeClass(explanationWrongImage.size)} rounded-lg`} />
               <button
                 onClick={() => setExplanationWrongImage({ data: "", size: "default", fileName: "", placement: "bottom" })}
@@ -206,11 +206,11 @@ export default function ExplanationEditor({ editor }) {
       {/* Summary */}
       <div className="space-y-3">
         <div className="flex justify-between items-center ml-1">
-          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0066CC] font-mono block">Key Summary</label>
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37] font-mono block">Key Summary</label>
           <div className="flex items-center gap-3">
             <button
               onClick={insertHighlightImage(setSummary, summaryTextareaRef, summary, setSummaryImage, summaryImage)}
-              className="text-[10px] font-black uppercase tracking-widest text-[#0066CC] hover:text-[#0055AA] transition-colors flex items-center gap-1"
+              className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] hover:text-[#B8922A] transition-colors flex items-center gap-1"
             >
               <span className="text-sm">+</span> Highlight
             </button>
@@ -234,34 +234,34 @@ export default function ExplanationEditor({ editor }) {
           className="bg-background text-foreground border border-border p-4 rounded-xl w-full resize-none min-h-[60px] focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium focus:border-primary/20 text-sm italic"
         />
         {summary.includes('|') && (
-          <div className="p-3 bg-blue-50/50 rounded-lg border border-dashed border-blue-200">
-            <span className="text-[9px] font-black uppercase tracking-widest text-blue-400 block mb-2">Interactive Preview</span>
+          <div className="p-3 bg-[#1A1810]/50 rounded-lg border border-dashed border-[#3A3010]">
+            <span className="text-[9px] font-black uppercase tracking-widest text-[#E5C158] block mb-2">Interactive Preview</span>
             <InteractiveText text={summary} sectionImage={summaryImage.data} gallery={editor.gallery} className="text-sm" />
           </div>
         )}
         {summaryImage.data && (
-          <div className="mt-4 p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+          <div className="mt-4 p-4 bg-[#111111] dark:bg-zinc-900/50 rounded-2xl border border-[#2E2A1E] dark:border-zinc-800 shadow-sm space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
-                <span className="text-[9px] font-black uppercase tracking-widest text-blue-500 block mb-1">Image Settings</span>
+                <span className="text-[9px] font-black uppercase tracking-widest text-[#D4AF37] block mb-1">Image Settings</span>
                 <div className="flex items-center gap-2">
-                  <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                  <div className="flex bg-[#141414] dark:bg-zinc-800 rounded-lg p-1 border border-[#2E2A1E] dark:border-zinc-700 shadow-sm">
                     {['small', 'medium', 'large', 'default'].map(s => (
                       <button
                         key={s}
                         onClick={() => setSummaryImage({ ...summaryImage, size: s })}
-                        className={`px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${summaryImage.size === s ? 'bg-blue-500 text-white shadow-sm' : 'text-zinc-400 hover:text-blue-600'}`}
+                        className={`px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${summaryImage.size === s ? 'bg-[#D4AF37] text-black shadow-sm' : 'text-zinc-400 hover:text-[#C9A227]'}`}
                       >
                         {s === 'default' ? 'DEF' : s.substring(0, 1)}
                       </button>
                     ))}
                   </div>
-                  <div className="flex bg-white dark:bg-zinc-800 rounded-lg p-1 border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                  <div className="flex bg-[#141414] dark:bg-zinc-800 rounded-lg p-1 border border-[#2E2A1E] dark:border-zinc-700 shadow-sm">
                     {[{ key: 'top', label: 'TOP' }, { key: 'bottom', label: 'BTM' }, { key: 'inline', label: 'INL' }].map(p => (
                       <button
                         key={p.key}
                         onClick={() => setSummaryImage({ ...summaryImage, placement: p.key })}
-                        className={`px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${summaryImage.placement === p.key ? 'bg-blue-600 text-white shadow-sm' : 'text-zinc-400 hover:text-blue-600'}`}
+                        className={`px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${summaryImage.placement === p.key ? 'bg-[#C9A227] text-black shadow-sm' : 'text-zinc-400 hover:text-[#C9A227]'}`}
                       >
                         {p.label}
                       </button>
@@ -277,7 +277,7 @@ export default function ExplanationEditor({ editor }) {
                 Remove
               </button>
             </div>
-            <div className="relative group inline-block p-2 bg-white dark:bg-black/20 rounded-xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+            <div className="relative group inline-block p-2 bg-[#141414] dark:bg-black/20 rounded-xl border border-[#1F1F1F] dark:border-zinc-800 overflow-hidden">
               <img src={summaryImage.data} alt="summary" loading="lazy" className={`${imageSizeClass(summaryImage.size)} rounded-lg`} />
               <button
                 onClick={() => setSummaryImage({ data: "", size: "default", fileName: "", placement: "bottom" })}

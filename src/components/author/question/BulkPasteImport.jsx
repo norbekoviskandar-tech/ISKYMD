@@ -448,7 +448,7 @@ export default function BulkPasteImport({ onImport, onComplete, selectedProduct,
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="px-6 py-2.5 bg-gradient-to-r from-violet-500 to-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest cursor-pointer transition-all shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2"
+        className="px-6 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#C9A227] text-black rounded-2xl text-[11px] font-black uppercase tracking-widest cursor-pointer transition-all shadow-lg shadow-[#D4AF37]/30 hover:shadow-[#D4AF37]/50 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2"
       >
         <ClipboardPaste size={14} />
         Bulk Paste
@@ -458,18 +458,18 @@ export default function BulkPasteImport({ onImport, onComplete, selectedProduct,
       {isOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4" onClick={handleClose}>
           <div
-            className="bg-white rounded-3xl max-w-5xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 relative overflow-hidden"
+            className="bg-[#141414] rounded-3xl max-w-5xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-[#2E2A1E] relative overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="px-8 py-5 bg-gradient-to-r from-violet-600 to-indigo-700 text-white flex items-center justify-between shrink-0">
+            <div className="px-8 py-5 bg-gradient-to-r from-[#C9A227] to-[#B8922A] text-black flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
                   <Sparkles size={20} />
                 </div>
                 <div>
                   <h2 className="text-xl font-black tracking-tight">Bulk Paste Import</h2>
-                  <p className="text-violet-200 text-xs font-medium mt-0.5">Paste raw questions → auto-parse → import</p>
+                  <p className="text-[#3A3010] text-xs font-medium mt-0.5">Paste raw questions → auto-parse → import</p>
                 </div>
               </div>
               <button onClick={handleClose} className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all">
@@ -478,18 +478,18 @@ export default function BulkPasteImport({ onImport, onComplete, selectedProduct,
             </div>
 
             {/* Step Indicator */}
-            <div className="px-8 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2 shrink-0">
+            <div className="px-8 py-3 bg-[#111111] border-b border-[#2E2A1E] flex items-center gap-2 shrink-0">
               {["paste", "preview", "importing", "done"].map((s, i) => (
                 <div key={s} className="flex items-center gap-2">
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${
-                    step === s ? "bg-violet-600 text-white shadow-lg shadow-violet-500/30" :
+                    step === s ? "bg-[#C9A227] text-black shadow-lg shadow-[#D4AF37]/30" :
                     ["paste", "preview", "importing", "done"].indexOf(step) > i ? "bg-emerald-500 text-white" :
-                    "bg-slate-200 text-slate-400"
+                    "bg-[#1F1F1F] text-slate-400"
                   }`}>{i + 1}</div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider ${step === s ? "text-violet-700" : "text-slate-400"}`}>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${step === s ? "text-[#B8922A]" : "text-slate-400"}`}>
                     {s === "paste" ? "Paste" : s === "preview" ? "Review" : s === "importing" ? "Importing" : "Done"}
                   </span>
-                  {i < 3 && <div className="w-8 h-px bg-slate-300 mx-1" />}
+                  {i < 3 && <div className="w-8 h-px bg-[#2A2A2A] mx-1" />}
                 </div>
               ))}
             </div>
@@ -555,7 +555,7 @@ AAA is associated with...`}
                     value={rawText}
                     onChange={e => setRawText(e.target.value)}
                     placeholder={`Paste your questions here... You can paste one or many.\n\nSystem: Cardiovascular\nSubject: Pathology\nTopic: Aortic aneurysm\nQuestion Id: 463\n\nA 66-year-old man comes to the office...\n\nA. Chronic transmural inflammation\nB. Cystic medial necrosis\nC. Focal intimal tear\nD. Malignant endothelial proliferation\n\nCorrect answer: A\n\nExplanation\nThis patient's pulsating mass...\n\n(Choice B) Cystic medial necrosis is...\n\nEducational objective:\nAAA is associated with risk factors...`}
-                    className="w-full h-[340px] bg-white border-2 border-slate-200 rounded-2xl p-5 text-sm font-mono leading-relaxed outline-none resize-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100 transition-all placeholder:text-slate-300"
+                    className="w-full h-[340px] bg-[#141414] border-2 border-[#2E2A1E] rounded-2xl p-5 text-sm font-mono leading-relaxed outline-none resize-none focus:border-[#E5C158] focus:ring-4 focus:ring-[#241F10] transition-all placeholder:text-slate-300"
                     spellCheck={false}
                   />
 
@@ -564,7 +564,7 @@ AAA is associated with...`}
                     <button
                       onClick={handleParse}
                       disabled={!rawText.trim()}
-                      className="px-6 py-3 bg-gradient-to-r from-violet-500 to-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                      className="px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#C9A227] text-black rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-[#D4AF37]/30 hover:shadow-[#D4AF37]/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2"
                     >
                       <Sparkles size={14} />
                       Parse Questions
@@ -596,9 +596,9 @@ AAA is associated with...`}
                   {parsedQuestions.length === 0 ? (
                     <div className="text-center py-16">
                       <div className="text-6xl mb-4">🤷</div>
-                      <p className="text-lg font-bold text-slate-500">No questions detected</p>
+                      <p className="text-lg font-bold text-[#A39C86]">No questions detected</p>
                       <p className="text-sm text-slate-400 mt-2">Make sure your text follows one of the supported formats</p>
-                      <button onClick={() => setStep("paste")} className="mt-6 px-6 py-2.5 bg-violet-100 text-violet-700 rounded-xl text-xs font-bold hover:bg-violet-200 transition-all">
+                      <button onClick={() => setStep("paste")} className="mt-6 px-6 py-2.5 bg-[#241F10] text-[#B8922A] rounded-xl text-xs font-bold hover:bg-[#3A3010] transition-all">
                         ← Back to Paste
                       </button>
                     </div>
@@ -609,34 +609,34 @@ AAA is associated with...`}
                         const isValid = q.stem.trim() && q.choices.length >= 2;
 
                         return (
-                          <div key={q.id} className={`bg-white border rounded-2xl overflow-hidden transition-all ${
-                            isValid ? "border-slate-200 hover:border-violet-300" : "border-red-200 bg-red-50/30"
+                          <div key={q.id} className={`bg-[#141414] border rounded-2xl overflow-hidden transition-all ${
+                            isValid ? "border-[#2E2A1E] hover:border-[#8A6D1B]" : "border-red-200 bg-red-50/30"
                           }`}>
                             {/* Collapsed row */}
                             <div
-                              className="flex items-center gap-3 px-5 py-3.5 cursor-pointer hover:bg-slate-50/80 transition-all"
+                              className="flex items-center gap-3 px-5 py-3.5 cursor-pointer hover:bg-[#111111]/80 transition-all"
                               onClick={() => setExpandedIdx(isExpanded ? null : idx)}
                             >
-                              <span className="w-8 h-8 bg-violet-100 text-violet-700 rounded-lg flex items-center justify-center text-xs font-black shrink-0">
+                              <span className="w-8 h-8 bg-[#241F10] text-[#B8922A] rounded-lg flex items-center justify-center text-xs font-black shrink-0">
                                 {idx + 1}
                               </span>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm text-slate-700 truncate font-medium">{q.stem || "(empty stem)"}</p>
+                                <p className="text-sm text-[#D9D0B4] truncate font-medium">{q.stem || "(empty stem)"}</p>
                                 <div className="flex items-center gap-3 mt-1 flex-wrap">
                                   {q.id && (
-                                    <span className="text-[10px] text-slate-400 font-bold bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 italic">
+                                    <span className="text-[10px] text-slate-400 font-bold bg-[#111111] px-1.5 py-0.5 rounded border border-[#1F1F1F] italic">
                                       #{q.id}
                                     </span>
                                   )}
                                   <span className="text-[10px] text-slate-400 font-bold">{q.choices.length} choices</span>
                                   {q.correct && <span className="text-[10px] text-emerald-600 font-bold">✓ {q.correct}</span>}
                                   {!q.correct && <span className="text-[10px] text-amber-600 font-bold">⚠ No answer</span>}
-                                  {q.system && <span className="text-[10px] text-violet-500 font-medium">{q.system}</span>}
-                                  {q.subject && <span className="text-[10px] text-indigo-500 font-medium">{q.subject}</span>}
+                                  {q.system && <span className="text-[10px] text-[#D4AF37] font-medium">{q.system}</span>}
+                                  {q.subject && <span className="text-[10px] text-[#D4AF37] font-medium">{q.subject}</span>}
                                   {q.topic && <span className="text-[10px] text-slate-400 font-medium">• {q.topic}</span>}
                                   {q.explanationCorrect && <span className="text-[10px] text-emerald-400 font-medium">📖 Explanation</span>}
                                   {q.explanationWrong && <span className="text-[10px] text-red-400 font-medium">📖 Wrong</span>}
-                                  {q.summary && <span className="text-[10px] text-indigo-400 font-medium">📝 Objective</span>}
+                                  {q.summary && <span className="text-[10px] text-[#E5C158] font-medium">📝 Objective</span>}
                                 </div>
                               </div>
                               <button
@@ -652,31 +652,31 @@ AAA is associated with...`}
 
                             {/* Expanded detail */}
                             {isExpanded && (
-                              <div className="px-5 pb-5 pt-1 border-t border-slate-100 bg-slate-50/30">
+                              <div className="px-5 pb-5 pt-1 border-t border-[#1F1F1F] bg-[#111111]/30">
                                 {/* Stem edit */}
                                 <div className="mb-3">
-                                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Stem</label>
+                                  <label className="text-[10px] font-black text-[#A39C86] uppercase tracking-wider">Stem</label>
                                   <textarea
                                     value={q.stem}
                                     onChange={e => handleEditField(idx, "stem", e.target.value)}
-                                    className="w-full mt-1 bg-white border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100 resize-none"
+                                    className="w-full mt-1 bg-[#141414] border border-[#2E2A1E] rounded-xl p-3 text-sm outline-none focus:border-[#8A6D1B] focus:ring-2 focus:ring-[#241F10] resize-none"
                                     rows={3}
                                   />
                                 </div>
 
                                 {/* Choices */}
                                 <div className="mb-3">
-                                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Choices</label>
+                                  <label className="text-[10px] font-black text-[#A39C86] uppercase tracking-wider">Choices</label>
                                   <div className="space-y-2 mt-1">
                                     {q.choices.map((c, ci) => (
                                       <div key={ci} className="flex items-center gap-2">
                                         <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
-                                          q.correct === String.fromCharCode(65 + ci) ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500"
+                                          q.correct === String.fromCharCode(65 + ci) ? "bg-emerald-500 text-white" : "bg-[#171717] text-[#A39C86]"
                                         }`}>{String.fromCharCode(65 + ci)}</span>
                                         <input
                                           value={c.text}
                                           onChange={e => handleEditChoice(idx, ci, e.target.value)}
-                                          className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
+                                          className="flex-1 bg-[#141414] border border-[#2E2A1E] rounded-lg px-3 py-2 text-sm outline-none focus:border-[#8A6D1B] focus:ring-2 focus:ring-[#241F10]"
                                         />
                                       </div>
                                     ))}
@@ -686,11 +686,11 @@ AAA is associated with...`}
                                 {/* Answer */}
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                                   <div>
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Correct</label>
+                                    <label className="text-[10px] font-black text-[#A39C86] uppercase tracking-wider">Correct</label>
                                     <select
                                       value={q.correct}
                                       onChange={e => handleEditField(idx, "correct", e.target.value)}
-                                      className="w-full mt-1 bg-white border border-slate-200 rounded-lg p-2 text-sm outline-none focus:border-violet-300"
+                                      className="w-full mt-1 bg-[#141414] border border-[#2E2A1E] rounded-lg p-2 text-sm outline-none focus:border-[#8A6D1B]"
                                     >
                                       <option value="">—</option>
                                       {q.choices.map((_, ci) => (
@@ -699,25 +699,25 @@ AAA is associated with...`}
                                     </select>
                                   </div>
                                   <div>
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">System</label>
+                                    <label className="text-[10px] font-black text-[#A39C86] uppercase tracking-wider">System</label>
                                     <select value={q.system} onChange={e => handleEditField(idx, "system", e.target.value)}
-                                      className="w-full mt-1 bg-white border border-slate-200 rounded-lg p-2 text-sm outline-none focus:border-violet-300">
+                                      className="w-full mt-1 bg-[#141414] border border-[#2E2A1E] rounded-lg p-2 text-sm outline-none focus:border-[#8A6D1B]">
                                       <option value="">—</option>
                                       {(availableSystems || []).map(s => <option key={s} value={s}>{s}</option>)}
                                     </select>
                                   </div>
                                   <div>
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Subject</label>
+                                    <label className="text-[10px] font-black text-[#A39C86] uppercase tracking-wider">Subject</label>
                                     <select value={q.subject} onChange={e => handleEditField(idx, "subject", e.target.value)}
-                                      className="w-full mt-1 bg-white border border-slate-200 rounded-lg p-2 text-sm outline-none focus:border-violet-300">
+                                      className="w-full mt-1 bg-[#141414] border border-[#2E2A1E] rounded-lg p-2 text-sm outline-none focus:border-[#8A6D1B]">
                                       <option value="">—</option>
                                       {(availableSubjects || []).map(s => <option key={s} value={s}>{s}</option>)}
                                     </select>
                                   </div>
                                   <div>
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Topic</label>
+                                    <label className="text-[10px] font-black text-[#A39C86] uppercase tracking-wider">Topic</label>
                                     <input value={q.topic || ""} onChange={e => handleEditField(idx, "topic", e.target.value)}
-                                      className="w-full mt-1 bg-white border border-slate-200 rounded-lg p-2 text-sm outline-none focus:border-violet-300" />
+                                      className="w-full mt-1 bg-[#141414] border border-[#2E2A1E] rounded-lg p-2 text-sm outline-none focus:border-[#8A6D1B]" />
                                   </div>
                                 </div>
 
@@ -727,7 +727,7 @@ AAA is associated with...`}
                                   <textarea
                                     value={q.explanationCorrect}
                                     onChange={e => handleEditField(idx, "explanationCorrect", e.target.value)}
-                                    className="w-full mt-1 bg-white border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100 resize-none"
+                                    className="w-full mt-1 bg-[#141414] border border-[#2E2A1E] rounded-xl p-3 text-sm outline-none focus:border-[#8A6D1B] focus:ring-2 focus:ring-[#241F10] resize-none"
                                     rows={q.explanationCorrect ? Math.min(6, q.explanationCorrect.split("\n").length + 1) : 2}
                                     placeholder="Explanation for the correct answer (optional)"
                                   />
@@ -739,7 +739,7 @@ AAA is associated with...`}
                                   <textarea
                                     value={q.explanationWrong}
                                     onChange={e => handleEditField(idx, "explanationWrong", e.target.value)}
-                                    className="w-full mt-1 bg-white border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100 resize-none"
+                                    className="w-full mt-1 bg-[#141414] border border-[#2E2A1E] rounded-xl p-3 text-sm outline-none focus:border-[#8A6D1B] focus:ring-2 focus:ring-[#241F10] resize-none"
                                     rows={q.explanationWrong ? Math.min(6, q.explanationWrong.split("\n").length + 1) : 2}
                                     placeholder="(Choice B) explanation... (optional)"
                                   />
@@ -747,11 +747,11 @@ AAA is associated with...`}
 
                                 {/* Summary / Educational Objective */}
                                 <div>
-                                  <label className="text-[10px] font-black text-indigo-600 uppercase tracking-wider">📝 Summary / Educational Objective</label>
+                                  <label className="text-[10px] font-black text-[#C9A227] uppercase tracking-wider">📝 Summary / Educational Objective</label>
                                   <textarea
                                     value={q.summary}
                                     onChange={e => handleEditField(idx, "summary", e.target.value)}
-                                    className="w-full mt-1 bg-white border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100 resize-none"
+                                    className="w-full mt-1 bg-[#141414] border border-[#2E2A1E] rounded-xl p-3 text-sm outline-none focus:border-[#8A6D1B] focus:ring-2 focus:ring-[#241F10] resize-none"
                                     rows={q.summary ? Math.min(4, q.summary.split("\n").length + 1) : 2}
                                     placeholder="Educational objective (optional)"
                                   />
@@ -769,14 +769,14 @@ AAA is associated with...`}
               {/* ── STEP 3: IMPORTING ── */}
               {step === "importing" && (
                 <div className="p-8 flex flex-col items-center justify-center py-20">
-                  <Loader2 size={48} className="text-violet-500 animate-spin mb-6" />
-                  <p className="text-xl font-black text-slate-700">Importing Questions...</p>
+                  <Loader2 size={48} className="text-[#D4AF37] animate-spin mb-6" />
+                  <p className="text-xl font-black text-[#D9D0B4]">Importing Questions...</p>
                   <p className="text-sm text-slate-400 mt-2 font-medium">
                     {importProgress.done} / {importProgress.total} complete
                   </p>
-                  <div className="w-80 h-3 bg-slate-100 rounded-full mt-6 overflow-hidden">
+                  <div className="w-80 h-3 bg-[#171717] rounded-full mt-6 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-violet-500 to-indigo-600 rounded-full transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-[#D4AF37] to-[#C9A227] rounded-full transition-all duration-300"
                       style={{ width: `${importProgress.total ? (importProgress.done / importProgress.total) * 100 : 0}%` }}
                     />
                   </div>
@@ -789,8 +789,8 @@ AAA is associated with...`}
                   <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mb-6">
                     <Check size={40} className="text-emerald-600" />
                   </div>
-                  <p className="text-2xl font-black text-slate-700">Import Complete!</p>
-                  <p className="text-sm text-slate-500 mt-2 font-medium">
+                  <p className="text-2xl font-black text-[#D9D0B4]">Import Complete!</p>
+                  <p className="text-sm text-[#A39C86] mt-2 font-medium">
                     Successfully imported {importProgress.total - importProgress.errors.length} of {importProgress.total} questions
                   </p>
                   {importProgress.errors.length > 0 && (
@@ -805,7 +805,7 @@ AAA is associated with...`}
                   )}
                   <button
                     onClick={handleClose}
-                    className="mt-8 px-8 py-3 bg-gradient-to-r from-violet-500 to-indigo-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg"
+                    className="mt-8 px-8 py-3 bg-gradient-to-r from-[#D4AF37] to-[#C9A227] text-black rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg"
                   >
                     Done
                   </button>
@@ -815,8 +815,8 @@ AAA is associated with...`}
 
             {/* Footer (for paste & preview steps) */}
             {(step === "preview" && parsedQuestions.length > 0) && (
-              <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
-                <button onClick={() => setStep("paste")} className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all">
+              <div className="px-8 py-4 bg-[#111111] border-t border-[#2E2A1E] flex items-center justify-between shrink-0">
+                <button onClick={() => setStep("paste")} className="px-5 py-2.5 bg-[#141414] border border-[#2E2A1E] text-[#B8B09A] rounded-xl text-xs font-bold hover:bg-[#171717] transition-all">
                   ← Back to Edit
                 </button>
                 <button

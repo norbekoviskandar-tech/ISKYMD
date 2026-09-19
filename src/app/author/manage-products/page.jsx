@@ -262,20 +262,20 @@ export default function ManageProductsPage() {
   if (!ok) return null;
 
     return (
-      <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-auto">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#0891B2]/5 pointer-events-none" />
+      <div className="font-body min-h-screen bg-[#0E0E0E] relative overflow-auto">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#C9A227]/5 pointer-events-none" />
             <main className="max-w-[1400px] mx-auto px-6 py-8 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-heading font-black tracking-tight text-[#1B263B] uppercase italic">Product <span className="text-[#005EB8]">Vault</span></h1>
-            <p className="text-slate-500 mt-2 text-sm font-medium">Control subscription packages, pricing, and availability</p>
+            <h1 className="text-3xl font-heading font-black tracking-tight text-[#F3EBD3] uppercase italic">Product <span className="text-[#C9A227]">Vault</span></h1>
+            <p className="text-[#A39C86] mt-2 text-sm font-medium">Control subscription packages, pricing, and availability</p>
           </div>
           <button 
             onClick={() => {
               if (showCreateForm) resetForm();
               else setShowCreateForm(true);
             }} 
-            className="px-6 py-3 bg-[#005EB8] text-white rounded-2xl hover:bg-[#004e9a] text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-[#005EB8]/20 flex items-center gap-2 active:scale-95"
+            className="px-6 py-3 bg-[#C9A227] text-black rounded-2xl hover:bg-[#B8922A] text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-[#C9A227]/20 flex items-center gap-2 active:scale-95"
           >
             {showCreateForm ? <X size={16} /> : <Plus size={16} />}
             {showCreateForm ? "Cancel" : "Create Product"}
@@ -288,11 +288,11 @@ export default function ManageProductsPage() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="bg-white border border-slate-200 p-8 rounded-[40px] shadow-[0_20px_50px_rgba(0,94,184,0.06)] mb-8 relative overflow-hidden"
+              className="bg-[#141414] border border-[#2E2A1E] p-8 rounded-[40px] shadow-[0_20px_50px_rgba(201,162,39,0.06)] mb-8 relative overflow-hidden"
             >
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-[#005EB8]" />
-              <h2 className="text-xl font-heading font-black text-[#1B263B] mb-6 uppercase flex items-center gap-2">
-                {editingId ? "Modify" : "Deploy"} <span className="text-[#005EB8]">Package</span>
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-[#C9A227]" />
+              <h2 className="text-xl font-heading font-black text-[#F3EBD3] mb-6 uppercase flex items-center gap-2">
+                {editingId ? "Modify" : "Deploy"} <span className="text-[#C9A227]">Package</span>
               </h2>
               <form onSubmit={editingId ? handleUpdate : handleCreate} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="space-y-2">
@@ -302,7 +302,7 @@ export default function ManageProductsPage() {
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                     placeholder="e.g. 90-Day VIP Access"
-                    className="bg-[#FDFDFD] border border-slate-200 px-4 py-3 rounded-2xl w-full text-[#1B263B] focus:ring-4 focus:ring-[#0066CC]/10 focus:border-[#0066CC] outline-none transition-all font-medium shadow-sm"
+                    className="bg-[#141414] border border-[#2E2A1E] px-4 py-3 rounded-2xl w-full text-[#F3EBD3] focus:ring-4 focus:ring-[#D4AF37]/10 focus:border-[#D4AF37] outline-none transition-all font-medium shadow-sm"
                   />
                 </div>
                 <div className="space-y-2">
@@ -391,28 +391,28 @@ export default function ManageProductsPage() {
                     />
                   </div>
                 </div>
-                <div className="lg:col-span-3 h-[1px] bg-slate-100 my-2" />
+                <div className="lg:col-span-3 h-[1px] bg-[#171717] my-2" />
 
                 <div className="lg:col-span-3 space-y-4">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black text-[#0066CC] uppercase tracking-[0.2em] ml-1">Additional Pricing Tiers</label>
+                    <label className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em] ml-1">Additional Pricing Tiers</label>
                     <button 
                       type="button" 
                       onClick={addPlanTier}
-                      className="px-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[9px] font-black uppercase tracking-widest text-[#1B263B] hover:bg-[#0066CC] hover:text-white transition-all shadow-sm"
+                      className="px-4 py-1.5 bg-[#111111] border border-[#2E2A1E] rounded-lg text-[9px] font-black uppercase tracking-widest text-[#F3EBD3] hover:bg-[#D4AF37] hover:text-white transition-all shadow-sm"
                     >
                       + Add Tier
                     </button>
                   </div>
                   
                   {formData.plans.length === 0 ? (
-                    <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-6 text-center">
+                    <div className="bg-[#111111] border-2 border-dashed border-[#2E2A1E] rounded-3xl p-6 text-center">
                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">No extra tiers defined for this stream</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {formData.plans.map((plan, idx) => (
-                        <div key={idx} className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-4 rounded-[24px] shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div key={idx} className="flex items-center gap-3 bg-[#111111] border border-[#2E2A1E] p-4 rounded-[24px] shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
                           <div className="flex-1 space-y-2">
                              <div className="relative">
                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
@@ -421,7 +421,7 @@ export default function ManageProductsPage() {
                                  placeholder="Days"
                                  value={plan.days}
                                  onChange={e => updatePlanTier(idx, 'days', e.target.value)}
-                                 className="w-full bg-white border border-slate-200 pl-10 pr-4 py-2 rounded-xl text-xs font-bold focus:ring-4 focus:ring-[#0066CC]/5 outline-none"
+                                 className="w-full bg-[#141414] border border-[#2E2A1E] pl-10 pr-4 py-2 rounded-xl text-xs font-bold focus:ring-4 focus:ring-[#D4AF37]/5 outline-none"
                                />
                              </div>
                           </div>
@@ -433,14 +433,14 @@ export default function ManageProductsPage() {
                                  placeholder="Price"
                                  value={plan.price}
                                  onChange={e => updatePlanTier(idx, 'price', e.target.value)}
-                                 className="w-full bg-white border border-slate-200 pl-10 pr-4 py-2 rounded-xl text-xs font-bold focus:ring-4 focus:ring-[#0066CC]/5 outline-none"
+                                 className="w-full bg-[#141414] border border-[#2E2A1E] pl-10 pr-4 py-2 rounded-xl text-xs font-bold focus:ring-4 focus:ring-[#D4AF37]/5 outline-none"
                                />
                              </div>
                           </div>
                           <button 
                             type="button" 
                             onClick={() => removePlanTier(idx)}
-                            className="p-3 bg-white border border-slate-200 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                            className="p-3 bg-[#141414] border border-[#2E2A1E] text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
                           >
                             <Trash2 size={14} />
                           </button>
@@ -450,11 +450,11 @@ export default function ManageProductsPage() {
                   )}
                 </div>
 
-                <div className="lg:col-span-3 h-[1px] bg-slate-100 my-4" />
+                <div className="lg:col-span-3 h-[1px] bg-[#171717] my-4" />
 
                 <div className="lg:col-span-3 space-y-4">
-                  <label className="text-[10px] font-black text-[#0066CC] uppercase tracking-[0.2em] ml-1">Testing Configuration</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 bg-slate-50/30 p-6 rounded-[32px] border border-slate-100/50">
+                  <label className="text-[10px] font-black text-[#D4AF37] uppercase tracking-[0.2em] ml-1">Testing Configuration</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 bg-[#111111]/30 p-6 rounded-[32px] border border-[#1F1F1F]/50">
                     <div className="space-y-2">
                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Default Block Size</label>
                       <input 
@@ -464,12 +464,12 @@ export default function ManageProductsPage() {
                           ...formData,
                           defaultCreateTestConfig: { ...formData.defaultCreateTestConfig, blockSize: parseInt(e.target.value) || 0 }
                         })}
-                        className="w-full bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold focus:ring-4 focus:ring-[#0066CC]/5 outline-none"
+                        className="w-full bg-[#141414] border border-[#2E2A1E] px-4 py-2.5 rounded-xl text-xs font-bold focus:ring-4 focus:ring-[#D4AF37]/5 outline-none"
                       />
                     </div>
                     <div className="space-y-2">
                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Negative Marking</label>
-                       <div className="flex items-center gap-3 h-[42px] px-3 bg-white rounded-xl border border-slate-200">
+                       <div className="flex items-center gap-3 h-[42px] px-3 bg-[#141414] rounded-xl border border-[#2E2A1E]">
                           <input 
                             type="checkbox"
                             checked={formData.defaultCreateTestConfig.negativeMarking}
@@ -477,9 +477,9 @@ export default function ManageProductsPage() {
                               ...formData,
                               defaultCreateTestConfig: { ...formData.defaultCreateTestConfig, negativeMarking: e.target.checked }
                             })}
-                            className="w-4 h-4 rounded text-[#0066CC] focus:ring-[#0066CC]/20"
+                            className="w-4 h-4 rounded text-[#D4AF37] focus:ring-[#D4AF37]/20"
                           />
-                          <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Enabled</span>
+                          <span className="text-[10px] font-bold text-[#B8B09A] uppercase tracking-wider">Enabled</span>
                        </div>
                     </div>
                     <div className="md:col-span-2 space-y-2">
@@ -492,7 +492,7 @@ export default function ManageProductsPage() {
                           ...formData,
                           defaultCreateTestConfig: { ...formData.defaultCreateTestConfig, columns: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }
                         })}
-                        className="w-full bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold focus:ring-4 focus:ring-[#0066CC]/5 outline-none"
+                        className="w-full bg-[#141414] border border-[#2E2A1E] px-4 py-2.5 rounded-xl text-xs font-bold focus:ring-4 focus:ring-[#D4AF37]/5 outline-none"
                       />
                       <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest ml-1">Comma-separated: system, tags, etc.</p>
                     </div>
@@ -502,8 +502,8 @@ export default function ManageProductsPage() {
                 <div className="lg:col-span-3 flex flex-col justify-end mt-4">
                   <div className="flex items-center gap-6 h-[60px]">
                     <label className="flex items-center gap-4 cursor-pointer group shrink-0">
-                      <div className={`w-14 h-8 rounded-full p-1.5 transition-all duration-500 shadow-inner ${formData.is_published ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'bg-slate-200'}`}>
-                        <div className={`w-5 h-5 bg-white rounded-full transition-all duration-500 shadow-md ${formData.is_published ? 'translate-x-6' : 'translate-x-0'}`} />
+                      <div className={`w-14 h-8 rounded-full p-1.5 transition-all duration-500 shadow-inner ${formData.is_published ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'bg-[#1F1F1F]'}`}>
+                        <div className={`w-5 h-5 bg-[#141414] rounded-full transition-all duration-500 shadow-md ${formData.is_published ? 'translate-x-6' : 'translate-x-0'}`} />
                       </div>
                       <span className={`text-[12px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${formData.is_published ? 'text-emerald-600 scale-105' : 'text-slate-400'}`}>
                         {formData.is_published ? 'PUBLISHED' : 'DRAFT'}
@@ -513,7 +513,7 @@ export default function ManageProductsPage() {
                     <button type="submit" className={`flex-1 rounded-[24px] text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-500 shadow-2xl h-full active:scale-95 group relative overflow-hidden ${
                       formData.is_published 
                         ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20' 
-                        : 'bg-[#0066CC] hover:bg-[#0052A3] text-white shadow-[#0066CC]/20'
+                        : 'bg-[#D4AF37] hover:bg-[#B8922A] text-black shadow-[#D4AF37]/20'
                     }`}>
                        <span className="relative z-10">{editingId ? "Update Product" : (formData.is_published ? "Launch Live" : "Sync Archive")}</span>
                        <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12" />
@@ -550,15 +550,15 @@ export default function ManageProductsPage() {
           </div>
 
           {/* Standard QBank Management Card */}
-          <div className="bg-white border border-slate-200 p-6 rounded-[32px] mb-8 flex flex-col md:flex-row items-center justify-between shadow-sm relative overflow-hidden group">
-             <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full translate-x-10 translate-y-[-10px] opacity-50 group-hover:scale-110 transition-transform" />
+          <div className="bg-[#141414] border border-[#2E2A1E] p-6 rounded-[32px] mb-8 flex flex-col md:flex-row items-center justify-between shadow-sm relative overflow-hidden group">
+             <div className="absolute top-0 right-0 w-32 h-32 bg-[#111111] rounded-full translate-x-10 translate-y-[-10px] opacity-50 group-hover:scale-110 transition-transform" />
              
              <div className="flex items-center gap-5 relative z-10">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border border-slate-200 flex items-center justify-center text-slate-400">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border border-[#2E2A1E] flex items-center justify-center text-slate-400">
                    <Database size={24} />
                 </div>
                 <div>
-                   <h3 className="text-xl font-heading font-black text-slate-800">Standard QBank</h3>
+                   <h3 className="text-xl font-heading font-black text-[#EAE2C8]">Standard QBank</h3>
                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Universal Question Repository (Legacy)</p>
                 </div>
              </div>
@@ -566,13 +566,13 @@ export default function ManageProductsPage() {
              <div className="flex items-center gap-3 mt-4 md:mt-0 relative z-10">
                 <button 
                   onClick={() => router.push('/author/manage-questions')}
-                  className="px-5 py-3 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-[#005EB8] hover:border-[#005EB8]/30 font-bold text-[11px] uppercase tracking-widest shadow-sm hover:shadow-md transition-all flex items-center gap-2"
+                  className="px-5 py-3 rounded-xl bg-[#141414] border border-[#2E2A1E] text-[#B8B09A] hover:text-[#C9A227] hover:border-[#C9A227]/30 font-bold text-[11px] uppercase tracking-widest shadow-sm hover:shadow-md transition-all flex items-center gap-2"
                 >
                    <Database size={16} /> Manage Pool
                 </button>
                 <button 
                   onClick={() => router.push('/author/create-question')}
-                  className="px-5 py-3 rounded-xl bg-[#005EB8] text-white font-bold text-[11px] uppercase tracking-widest shadow-lg shadow-[#005EB8]/20 hover:bg-[#004E9A] transition-all flex items-center gap-2"
+                  className="px-5 py-3 rounded-xl bg-[#C9A227] text-black font-bold text-[11px] uppercase tracking-widest shadow-lg shadow-[#C9A227]/20 hover:bg-[#B8922A] transition-all flex items-center gap-2"
                 >
                    <Plus size={16} /> Add Item
                 </button>
@@ -645,7 +645,7 @@ export default function ManageProductsPage() {
                             {product.duration_days} DAYS
                           </span>
                           {plans.map((p, i) => (
-                            <span key={i} className="bg-[#0066CC]/5 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-tight border border-[#0066CC]/10 text-[#0066CC] w-fit">
+                            <span key={i} className="bg-[#D4AF37]/5 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-tight border border-[#D4AF37]/10 text-[#D4AF37] w-fit">
                               {p.days} DAYS
                             </span>
                           ))}
@@ -653,7 +653,7 @@ export default function ManageProductsPage() {
                     </td>
                     <td className="px-8 py-6">
                        <div className="flex flex-col gap-1.5">
-                          <div className="text-sm font-black text-[#1B263B]">${(Number(product.price) || 0).toFixed(2)}</div>
+                          <div className="text-sm font-black text-[#F3EBD3]">${(Number(product.price) || 0).toFixed(2)}</div>
                           {plans.map((p, i) => (
                             <div key={i} className="text-[10px] font-bold text-slate-400">${parseFloat(p.price || 0).toFixed(2)}</div>
                           ))}
@@ -669,7 +669,7 @@ export default function ManageProductsPage() {
                        <div className="flex justify-end gap-2">
                         <button 
                           onClick={() => router.push(`/author/manage-questions?packageId=${product.id}`)}
-                          className="p-2.5 rounded-xl bg-[#005EB8]/10 text-[#005EB8] hover:bg-[#005EB8] hover:text-white transition-all border border-[#005EB8]/20 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-4"
+                          className="p-2.5 rounded-xl bg-[#C9A227]/10 text-[#C9A227] hover:bg-[#C9A227] hover:text-white transition-all border border-[#C9A227]/20 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-4"
                           title="Manage Questions for this Package"
                         >
                           <Database size={14} /> Questions

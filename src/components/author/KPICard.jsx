@@ -39,20 +39,20 @@ const KPICard = ({
 
     // Color map based on specified themes
     const themeColors = {
-        "text-[#8B5CF6]": { hex: "#7C3AED", bg: "bg-[#7C3AED]/10", border: "border-[#7C3AED]/20" },
-        "text-[#06B6D4]": { hex: "#0284C7", bg: "bg-[#0284C7]/10", border: "border-[#0284C7]/20" },
+        "text-[#E5C158]": { hex: "#D4AF37", bg: "bg-[#D4AF37]/10", border: "border-[#D4AF37]/20" },
+        "text-[#F0D77A]": { hex: "#D4AF37", bg: "bg-[#D4AF37]/10", border: "border-[#D4AF37]/20" },
         "text-[#10B981]": { hex: "#059669", bg: "bg-[#059669]/10", border: "border-[#059669]/20" },
         "text-[#F59E0B]": { hex: "#D97706", bg: "bg-[#D97706]/10", border: "border-[#D97706]/20" },
     };
 
-    const currentTheme = themeColors[color] || { hex: "#8B5CF6", bg: "bg-primary/10", border: "border-primary/20" };
+    const currentTheme = themeColors[color] || { hex: "#E5C158", bg: "bg-primary/10", border: "border-primary/20" };
 
     return (
         <motion.div
             layout
             onClick={() => setIsExpanded(!isExpanded)}
             whileHover={{ y: -4, scale: 1.005 }}
-            className={`bg-[#FDFDFD] p-6 flex flex-col gap-4 group cursor-pointer border ${isExpanded ? currentTheme.border : 'border-slate-200'} rounded-3xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.05)] transition-all duration-300`}
+            className={`bg-[#141414] p-6 flex flex-col gap-4 group cursor-pointer border ${isExpanded ? currentTheme.border : 'border-[#2E2A1E]'} rounded-3xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.05)] transition-all duration-300`}
         >
             <div className="flex items-center justify-between">
                 <motion.div
@@ -100,13 +100,13 @@ const KPICard = ({
             </div>
 
             <div>
-                <p className="text-[#1B263B] text-xs font-heading font-black uppercase tracking-widest">{title}</p>
+                <p className="text-[#F3EBD3] text-xs font-heading font-black uppercase tracking-widest">{title}</p>
                 <div className="flex items-center justify-between mt-1">
                     <div className="flex items-baseline gap-1">
                         <motion.h3
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="text-3xl font-mono font-black text-[#1B263B] tracking-tighter"
+                            className="text-3xl font-mono font-black text-[#F3EBD3] tracking-tighter"
                         >
                             {value}
                         </motion.h3>
@@ -135,13 +135,13 @@ const KPICard = ({
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3, ease: "circOut" }}
-                        className="overflow-hidden pt-4 border-t border-slate-100 space-y-3"
+                        className="overflow-hidden pt-4 border-t border-[#1F1F1F] space-y-3"
                     >
                         <div className="flex flex-col gap-1">
                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Instant Insight</span>
-                            <p className="text-xs text-[#1B263B] font-semibold">{insight}</p>
+                            <p className="text-xs text-[#F3EBD3] font-semibold">{insight}</p>
                         </div>
-                        <div className="flex items-center justify-between p-3 rounded-2xl bg-[#F0F4F8] border border-slate-200/50">
+                        <div className="flex items-center justify-between p-3 rounded-2xl bg-[#111111] border border-[#2E2A1E]/50">
                             <div className="flex flex-col">
                                 <span className="text-[9px] text-muted-foreground font-bold uppercase">Benchmark</span>
                                 <span className="text-[10px] text-primary font-bold">{benchmark}</span>
@@ -156,7 +156,7 @@ const KPICard = ({
             </AnimatePresence>
 
             <div className="flex justify-center">
-                <div className={`mt-2 text-gray-600 group-hover:text-gray-400 transition-colors`}>
+                <div className={`mt-2 text-[#B8B09A] group-hover:text-gray-400 transition-colors`}>
                     {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 </div>
             </div>

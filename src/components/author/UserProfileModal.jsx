@@ -99,10 +99,10 @@ export default function UserProfileModal({ user, onClose, onUpdate }) {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-2xl bg-white border border-slate-200 rounded-[32px] shadow-2xl overflow-hidden"
+        className="relative w-full max-w-2xl bg-[#141414] border border-[#2E2A1E] rounded-[32px] shadow-2xl overflow-hidden"
       >
         {/* Header */}
-        <div className="p-8 border-b border-slate-100 bg-[#F8FAFC] flex items-center justify-between">
+        <div className="p-8 border-b border-[#1F1F1F] bg-[#111111] flex items-center justify-between">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary to-primary/40 p-[1px] shadow-lg shadow-primary/20">
               <div className="w-full h-full rounded-2xl bg-card flex items-center justify-center text-primary text-2xl font-black">
@@ -139,23 +139,23 @@ export default function UserProfileModal({ user, onClose, onUpdate }) {
         {/* Content */}
         <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-6">
-            <div className="bg-[#F8FAFC] border border-slate-100 rounded-3xl p-5">
+            <div className="bg-[#111111] border border-[#1F1F1F] rounded-3xl p-5">
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-3">Subscription Details</label>
               <div className="space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-semibold">Status</span>
+                  <span className="text-[#A39C86] font-semibold">Status</span>
                   <span className="font-black uppercase">{user.subscriptionStatus || 'inactive'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-semibold">Type</span>
+                  <span className="text-[#A39C86] font-semibold">Type</span>
                   <span className="font-black uppercase">{subscriptionTypeLabel}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-semibold">Start</span>
+                  <span className="text-[#A39C86] font-semibold">Start</span>
                   <span className="font-black">{user.activatedAt ? new Date(user.activatedAt).toLocaleDateString() : '-'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-semibold">End</span>
+                  <span className="text-[#A39C86] font-semibold">End</span>
                   <span className="font-black">{user.expiresAt ? new Date(user.expiresAt).toLocaleDateString() : '-'}</span>
                 </div>
               </div>
@@ -183,7 +183,7 @@ export default function UserProfileModal({ user, onClose, onUpdate }) {
                   onClick={() => setStatus('active-trial')}
                   className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
                     status === 'active-trial' 
-                    ? 'bg-blue-500/10 border-blue-500/30 text-blue-600' 
+                    ? 'bg-[#D4AF37]/10 border-[#D4AF37]/30 text-[#C9A227]' 
                     : 'bg-panel border-border text-muted-foreground hover:border-border/80'
                   }`}
                 >
@@ -191,7 +191,7 @@ export default function UserProfileModal({ user, onClose, onUpdate }) {
                     <ShieldCheck size={18} />
                     <span className="text-xs font-bold uppercase tracking-wider">Grant Free Trial</span>
                   </div>
-                  {status === 'active-trial' && <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_#3b82f6]" />}
+                  {status === 'active-trial' && <div className="w-2 h-2 rounded-full bg-[#D4AF37] shadow-[0_0_10px_#D4AF37]" />}
                 </button>
 
                 <button 
@@ -226,7 +226,7 @@ export default function UserProfileModal({ user, onClose, onUpdate }) {
               </div>
             </div>
 
-            <div className="bg-[#F8FAFC] border border-slate-100 rounded-3xl p-5 space-y-3">
+            <div className="bg-[#111111] border border-[#1F1F1F] rounded-3xl p-5 space-y-3">
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Extend Subscription</label>
               <div className="flex items-center gap-2">
                 <input
@@ -234,9 +234,9 @@ export default function UserProfileModal({ user, onClose, onUpdate }) {
                   min={1}
                   value={extendDays}
                   onChange={(e) => setExtendDays(e.target.value)}
-                  className="w-24 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold"
+                  className="w-24 rounded-xl border border-[#2E2A1E] px-3 py-2 text-sm font-bold"
                 />
-                <span className="text-xs font-semibold text-slate-500">days</span>
+                <span className="text-xs font-semibold text-[#A39C86]">days</span>
               </div>
               <button
                 onClick={handleExtendSubscription}
@@ -273,7 +273,7 @@ export default function UserProfileModal({ user, onClose, onUpdate }) {
           </div>
 
           <div className="space-y-6">
-            <div className="bg-[#F8FAFC] border border-slate-100 rounded-3xl p-6">
+            <div className="bg-[#111111] border border-[#1F1F1F] rounded-3xl p-6">
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-4">Mastery Statistics</label>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -281,7 +281,7 @@ export default function UserProfileModal({ user, onClose, onUpdate }) {
                   <span className="text-sm font-black text-foreground">{user.progress?.percentage || 0}%</span>
                 </div>
                 <div className="h-2 w-full bg-panel border border-border/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-primary shadow-[0_0_10px_rgba(139,92,246,0.3)] transition-all duration-1000" style={{ width: `${user.progress?.percentage || 0}%` }} />
+                  <div className="h-full bg-primary shadow-[0_0_10px_rgba(212,175,55,0.3)] transition-all duration-1000" style={{ width: `${user.progress?.percentage || 0}%` }} />
                 </div>
                 <div className="grid grid-cols-2 gap-4 mt-2">
                   <div className="bg-card border border-border/50 rounded-2xl p-4">
@@ -308,25 +308,25 @@ export default function UserProfileModal({ user, onClose, onUpdate }) {
               </div>
             </div>
 
-            <div className="bg-[#F8FAFC] border border-slate-100 rounded-3xl p-6">
+            <div className="bg-[#111111] border border-[#1F1F1F] rounded-3xl p-6">
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-4 flex items-center gap-2">
                 <MessageSquare size={14} />
                 User Feedback
               </label>
               {feedback.length === 0 ? (
-                <p className="text-xs text-slate-500">No feedback submitted yet.</p>
+                <p className="text-xs text-[#A39C86]">No feedback submitted yet.</p>
               ) : (
                 <div className="space-y-3 max-h-[230px] overflow-y-auto pr-2">
                   {feedback.map((item) => (
-                    <div key={item.id} className="bg-white border border-slate-200 rounded-xl p-3">
+                    <div key={item.id} className="bg-[#141414] border border-[#2E2A1E] rounded-xl p-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#0066CC]">{item.source}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">{item.source}</span>
                         <span className="text-[10px] text-slate-400 font-mono">{new Date(item.createdAt).toLocaleString()}</span>
                       </div>
                       {item.questionId && (
                         <div className="text-[10px] font-bold text-amber-600 mb-1">Question ID: {item.questionId}</div>
                       )}
-                      <p className="text-xs text-slate-700 leading-relaxed">{item.message}</p>
+                      <p className="text-xs text-[#D9D0B4] leading-relaxed">{item.message}</p>
                     </div>
                   ))}
                 </div>
@@ -334,7 +334,7 @@ export default function UserProfileModal({ user, onClose, onUpdate }) {
             </div>
 
             {/* Performance Breakdown */}
-            <div className="bg-[#F8FAFC] border border-slate-100 rounded-3xl p-6 flex-1 overflow-hidden flex flex-col">
+            <div className="bg-[#111111] border border-[#1F1F1F] rounded-3xl p-6 flex-1 overflow-hidden flex flex-col">
               <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-4">Performance Analysis</label>
               <div className="space-y-4 overflow-y-auto max-h-[250px] pr-2 custom-scrollbar">
                 {user.progress?.systems && Object.entries(user.progress.systems).map(([name, data]) => {
@@ -385,7 +385,7 @@ export default function UserProfileModal({ user, onClose, onUpdate }) {
                 Send Manual Alert
               </button>
 
-              <div className="h-[1px] bg-slate-100 my-2" />
+              <div className="h-[1px] bg-[#171717] my-2" />
 
               <button
                 onClick={async () => {

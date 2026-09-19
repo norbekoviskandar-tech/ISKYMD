@@ -60,7 +60,7 @@ export default function SettingsPage() {
                                 <p className="text-xs text-muted-foreground">Maximize workspace display area</p>
                             </div>
                             <div className="w-10 h-5 bg-border rounded-full relative">
-                                <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full shadow" />
+                                <div className="absolute left-1 top-1 w-3 h-3 bg-[#141414] rounded-full shadow" />
                             </div>
                         </div>
                     </section>
@@ -98,7 +98,7 @@ export default function SettingsPage() {
 
 function SettingsTab({ label, icon: Icon, active = false }) {
     return (
-        <button className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${active ? 'bg-primary text-white shadow-lg shadow-primary/10' : 'text-muted-foreground hover:bg-panel hover:text-foreground'}`}>
+        <button className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${active ? 'bg-primary text-black shadow-lg shadow-primary/10' : 'text-muted-foreground hover:bg-panel hover:text-foreground'}`}>
             <Icon size={18} />
             {label}
         </button>

@@ -24,16 +24,16 @@ export default function GalleryEditor({ editor }) {
           const isInteractive = item.variant === 'interactive';
           
           return (
-            <div key={id} className="p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm space-y-1.5 relative group transition-all">
+            <div key={id} className="p-1.5 bg-[#141414] dark:bg-zinc-900 border border-[#2E2A1E] dark:border-zinc-800 rounded-lg shadow-sm space-y-1.5 relative group transition-all">
               <div className="flex flex-col gap-1">
                 {/* Size Controls */}
-                <div className="flex bg-zinc-50 dark:bg-zinc-800 rounded p-0.5 border border-zinc-100 dark:border-zinc-700 w-full">
+                <div className="flex bg-[#111111] dark:bg-zinc-800 rounded p-0.5 border border-[#1F1F1F] dark:border-zinc-700 w-full">
                   {['small', 'medium', 'large', 'default'].map(s => (
                     <button
                       key={s}
                       type="button"
                       onClick={() => updateGalleryItem(id, { size: s })}
-                      className={`flex-1 py-0.5 text-[7px] font-bold uppercase rounded-sm transition-all ${item.size === s ? 'bg-primary text-white' : 'text-zinc-400 hover:text-zinc-500'}`}
+                      className={`flex-1 py-0.5 text-[7px] font-bold uppercase rounded-sm transition-all ${item.size === s ? 'bg-primary text-white' : 'text-zinc-400 hover:text-[#A39C86]'}`}
                       title={`Size: ${s}`}
                     >
                       {s === 'default' ? 'DEF' : s.substring(0, 1)}
@@ -43,7 +43,7 @@ export default function GalleryEditor({ editor }) {
 
                 {/* Placement Controls */}
                 {!isInteractive && (
-                  <div className="flex bg-zinc-50 dark:bg-zinc-800 rounded p-0.5 border border-zinc-100 dark:border-zinc-700 w-full">
+                  <div className="flex bg-[#111111] dark:bg-zinc-800 rounded p-0.5 border border-[#1F1F1F] dark:border-zinc-700 w-full">
                     {[
                       { key: 'top', label: 'T' },
                       { key: 'bottom', label: 'B' },
@@ -53,7 +53,7 @@ export default function GalleryEditor({ editor }) {
                         key={p.key}
                         type="button"
                         onClick={() => updateGalleryItem(id, { placement: p.key })}
-                        className={`flex-1 py-0.5 text-[7px] font-bold uppercase rounded-sm transition-all ${item.placement === p.key ? 'bg-blue-600 text-white' : 'text-zinc-400 hover:text-zinc-500'}`}
+                        className={`flex-1 py-0.5 text-[7px] font-bold uppercase rounded-sm transition-all ${item.placement === p.key ? 'bg-[#C9A227] text-black' : 'text-zinc-400 hover:text-[#A39C86]'}`}
                         title={`Placement: ${p.key}`}
                       >
                         {p.label}
@@ -63,7 +63,7 @@ export default function GalleryEditor({ editor }) {
                 )}
               </div>
 
-              <div className="relative aspect-square flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 rounded border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+              <div className="relative aspect-square flex items-center justify-center bg-[#111111] dark:bg-zinc-950 rounded border border-[#1F1F1F] dark:border-zinc-800 overflow-hidden">
                 <img 
                   src={item.data} 
                   alt="" 

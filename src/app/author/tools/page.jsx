@@ -70,19 +70,19 @@ export default function ToolsPage() {
     };
 
     return (
-        <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-auto">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#4F46E5]/5 pointer-events-none" />
+        <div className="font-body min-h-screen bg-[#0E0E0E] relative overflow-auto">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#C9A227]/5 pointer-events-none" />
             <div className="p-8 max-w-6xl mx-auto space-y-8 relative z-10">
             <header className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-3xl font-heading font-black tracking-tight text-[#1B263B] uppercase italic">
-                        System <span className="text-[#0066CC]">Tools</span>
+                    <h1 className="text-3xl font-heading font-black tracking-tight text-[#F3EBD3] uppercase italic">
+                        System <span className="text-[#D4AF37]">Tools</span>
                     </h1>
-                    <p className="text-slate-500 mt-2 font-medium">Advanced administrative utilities and maintenance protocols</p>
+                    <p className="text-[#A39C86] mt-2 font-medium">Advanced administrative utilities and maintenance protocols</p>
                 </div>
-                <div className="flex items-center gap-3 bg-white border border-slate-200 px-4 py-2 rounded-2xl shadow-sm">
-                    <Activity size={16} className="text-[#0066CC] animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#1B263B]">System Status: Optimal</span>
+                <div className="flex items-center gap-3 bg-[#141414] border border-[#2E2A1E] px-4 py-2 rounded-2xl shadow-sm">
+                    <Activity size={16} className="text-[#D4AF37] animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#F3EBD3]">System Status: Optimal</span>
                 </div>
             </header>
 
@@ -93,7 +93,7 @@ export default function ToolsPage() {
                     className={`p-4 rounded-2xl border flex items-center gap-3 ${
                         status.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' :
                         status.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-600' :
-                        'bg-blue-500/10 border-blue-500/20 text-blue-600'
+                        'bg-[#D4AF37]/10 border-[#D4AF37]/20 text-[#C9A227]'
                     }`}
                 >
                     {status.type === 'success' ? <CheckCircle2 size={18} /> : 
@@ -155,16 +155,16 @@ export default function ToolsPage() {
 
             <section className="space-y-4">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Data Transfer Protocols</h3>
-                <div className="bg-white border border-slate-200 p-8 rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.03)] flex flex-col md:flex-row gap-8 items-center justify-between">
+                <div className="bg-[#141414] border border-[#2E2A1E] p-8 rounded-[32px] shadow-[0_8px_30px_rgba(0,0,0,0.03)] flex flex-col md:flex-row gap-8 items-center justify-between">
                     <div className="space-y-2 text-center md:text-left">
-                        <h4 className="font-heading font-black text-xl text-[#1B263B]">Master Question Registry</h4>
-                        <p className="text-sm text-slate-500 max-w-md">Import or export the entire question database in high-fidelity JSON format for backup or migration purposes.</p>
+                        <h4 className="font-heading font-black text-xl text-[#F3EBD3]">Master Question Registry</h4>
+                        <p className="text-sm text-[#A39C86] max-w-md">Import or export the entire question database in high-fidelity JSON format for backup or migration purposes.</p>
                     </div>
                     <div className="flex gap-4">
-                        <button className="flex items-center gap-2 px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all text-[#1B263B]">
+                        <button className="flex items-center gap-2 px-6 py-3 bg-[#111111] border border-[#2E2A1E] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#171717] transition-all text-[#F3EBD3]">
                             <Download size={16} /> Export Registry
                         </button>
-                        <button className="flex items-center gap-2 px-6 py-3 bg-[#0066CC] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#004C99] shadow-lg shadow-[#0066CC]/20 transition-all">
+                        <button className="flex items-center gap-2 px-6 py-3 bg-[#D4AF37] text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#A67F1E] shadow-lg shadow-[#D4AF37]/20 transition-all">
                             <Upload size={16} /> Import Registry
                         </button>
                     </div>
@@ -177,27 +177,27 @@ export default function ToolsPage() {
 
 function ToolCard({ icon: Icon, title, description, actionLabel, onAction, variant = "default", loading = false }) {
     return (
-        <div className="bg-white border border-slate-200 p-6 rounded-[24px] shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:border-[#0066CC]/20 transition-all group">
+        <div className="bg-[#141414] border border-[#2E2A1E] p-6 rounded-[24px] shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:border-[#D4AF37]/20 transition-all group">
             <div className="flex gap-4">
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all ${
-                    variant === 'primary' ? 'bg-[#0066CC]/10 text-[#0066CC] group-hover:bg-[#0066CC] group-hover:text-white' :
+                    variant === 'primary' ? 'bg-[#D4AF37]/10 text-[#D4AF37] group-hover:bg-[#D4AF37] group-hover:text-white' :
                     variant === 'danger' ? 'bg-red-500/10 text-red-600 group-hover:bg-red-500 group-hover:text-white' :
-                    'bg-slate-50 text-slate-400 group-hover:text-[#1B263B]'
+                    'bg-[#111111] text-slate-400 group-hover:text-[#F3EBD3]'
                 }`}>
                     <Icon size={24} />
                 </div>
                 <div className="flex-1 space-y-4">
                     <div className="space-y-1">
-                        <h4 className="font-bold text-[#1B263B] text-sm">{title}</h4>
-                        <p className="text-xs text-slate-500 leading-relaxed">{description}</p>
+                        <h4 className="font-bold text-[#F3EBD3] text-sm">{title}</h4>
+                        <p className="text-xs text-[#A39C86] leading-relaxed">{description}</p>
                     </div>
                     <button 
                         onClick={onAction}
                         disabled={loading}
                         className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                            variant === 'primary' ? 'bg-[#0066CC]/10 text-[#0066CC] hover:bg-[#0066CC] hover:text-white' :
+                            variant === 'primary' ? 'bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-white' :
                             variant === 'danger' ? 'bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white' :
-                            'bg-slate-50 text-[#1B263B] hover:bg-slate-100'
+                            'bg-[#111111] text-[#F3EBD3] hover:bg-[#171717]'
                         } disabled:opacity-50`}
                     >
                         {loading ? 'Processing...' : actionLabel}

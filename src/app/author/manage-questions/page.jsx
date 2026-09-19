@@ -578,13 +578,13 @@ export default function ManageQuestionsPage() {
   if (!ok) return null;
 
   return (
-    <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-auto">
-      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#005EB8]/5 pointer-events-none" />
+    <div className="font-body min-h-screen bg-[#0E0E0E] relative overflow-auto">
+      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#C9A227]/5 pointer-events-none" />
       <main className="max-w-[1400px] mx-auto px-6 py-8 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-heading font-black tracking-tight text-[#1B263B]">Question <span className="text-[#005EB8]">Bank</span></h1>
-            <p className="text-slate-500 mt-2 text-sm font-medium">Manage your educational content, import/export data, and monitor question status</p>
+            <h1 className="text-3xl font-heading font-black tracking-tight text-[#F3EBD3]">Question <span className="text-[#C9A227]">Bank</span></h1>
+            <p className="text-[#A39C86] mt-2 text-sm font-medium">Manage your educational content, import/export data, and monitor question status</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <button onClick={handleExport} className="px-6 py-2.5 bg-background border border-border text-foreground rounded-2xl hover:bg-panel text-xs font-bold transition-all shadow-sm">
@@ -593,7 +593,7 @@ export default function ManageQuestionsPage() {
             <button onClick={handleExportCSV} className="px-6 py-2.5 bg-background border border-border text-foreground rounded-2xl hover:bg-panel text-xs font-bold transition-all shadow-sm">
               Export CSV
             </button>
-            <label className="px-6 py-2.5 bg-white border-2 border-primary/20 text-primary rounded-2xl hover:bg-primary hover:text-white text-[11px] font-black uppercase tracking-widest cursor-pointer transition-all shadow-md group border-dashed hover:border-solid">
+            <label className="px-6 py-2.5 bg-[#141414] border-2 border-primary/20 text-primary rounded-2xl hover:bg-primary hover:text-white text-[11px] font-black uppercase tracking-widest cursor-pointer transition-all shadow-md group border-dashed hover:border-solid">
               <span className="flex items-center gap-2">
                 <LayoutGrid size={14} className="group-hover:rotate-90 transition-transform duration-500" />
                 Import File
@@ -625,22 +625,22 @@ export default function ManageQuestionsPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 mb-6 mt-4 p-4 bg-white/50 border border-slate-200 rounded-[24px] backdrop-blur-sm shadow-sm">
+        <div className="flex flex-wrap items-center gap-4 mb-6 mt-4 p-4 bg-[#141414]/50 border border-[#2E2A1E] rounded-[24px] backdrop-blur-sm shadow-sm">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-3 px-4 py-2 bg-white border border-[#E2E8F0] rounded-xl shadow-sm">
-              <div className="w-1.5 h-6 bg-[#0066CC] rounded-full" />
+            <div className="flex items-center gap-3 px-4 py-2 bg-[#141414] border border-[#2E2A1E] rounded-xl shadow-sm">
+              <div className="w-1.5 h-6 bg-[#D4AF37] rounded-full" />
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Master Pool:</span>
-              <span className="text-sm font-black text-[#1B263B]">{questions.length}</span>
+              <span className="text-sm font-black text-[#F3EBD3]">{questions.length}</span>
             </div>
-            <div className="flex items-center gap-3 px-4 py-2 bg-[#0066CC]/5 border border-[#0066CC]/10 rounded-xl shadow-sm">
-              <div className="w-1.5 h-6 bg-[#0066CC] rounded-full animate-pulse" />
-              <span className="text-[10px] font-black text-[#0066CC] uppercase tracking-widest">Active Stream:</span>
-              <span className="text-sm font-black text-[#0066CC]">{filteredQuestions.length}</span>
+            <div className="flex items-center gap-3 px-4 py-2 bg-[#D4AF37]/5 border border-[#D4AF37]/10 rounded-xl shadow-sm">
+              <div className="w-1.5 h-6 bg-[#D4AF37] rounded-full animate-pulse" />
+              <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">Active Stream:</span>
+              <span className="text-sm font-black text-[#D4AF37]">{filteredQuestions.length}</span>
             </div>
 
           </div>
           {packageName && (
-            <div className="flex items-center gap-2 bg-[#005EB8]/10 text-[#005EB8] px-4 py-1.5 rounded-full border border-[#005EB8]/20 animate-in fade-in slide-in-from-left-4 duration-500">
+            <div className="flex items-center gap-2 bg-[#C9A227]/10 text-[#C9A227] px-4 py-1.5 rounded-full border border-[#C9A227]/20 animate-in fade-in slide-in-from-left-4 duration-500">
               <Database size={14} />
               <span className="text-[10px] font-black uppercase tracking-widest">
                 {selectedAuthorProduct ? 'LOCKED CONTEXT:' : 'Package:'} {packageName}
@@ -654,17 +654,17 @@ export default function ManageQuestionsPage() {
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-6">
-          <select value={filterSystem} onChange={e => { setFilterSystem(e.target.value); setCurrentPage(1); }} className="bg-white text-[#1B263B] border border-slate-200 p-2.5 rounded-xl min-w-[160px] focus:ring-4 focus:ring-[#0066CC]/10 focus:border-[#0066CC] outline-none transition-all hover:bg-slate-50 shadow-sm">
+          <select value={filterSystem} onChange={e => { setFilterSystem(e.target.value); setCurrentPage(1); }} className="bg-[#141414] text-[#F3EBD3] border border-[#2E2A1E] p-2.5 rounded-xl min-w-[160px] focus:ring-4 focus:ring-[#D4AF37]/10 focus:border-[#D4AF37] outline-none transition-all hover:bg-[#111111] shadow-sm">
             <option value="">All Systems</option>
             {availableSystems.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
 
-          <select value={filterSubject} onChange={e => { setFilterSubject(e.target.value); setCurrentPage(1); }} className="bg-white text-[#1B263B] border border-slate-200 p-2.5 rounded-xl min-w-[160px] focus:ring-4 focus:ring-[#0066CC]/10 focus:border-[#0066CC] outline-none transition-all hover:bg-slate-50 shadow-sm">
+          <select value={filterSubject} onChange={e => { setFilterSubject(e.target.value); setCurrentPage(1); }} className="bg-[#141414] text-[#F3EBD3] border border-[#2E2A1E] p-2.5 rounded-xl min-w-[160px] focus:ring-4 focus:ring-[#D4AF37]/10 focus:border-[#D4AF37] outline-none transition-all hover:bg-[#111111] shadow-sm">
             <option value="">All Subjects</option>
             {availableSubjects.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
 
-          <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }} className="bg-white text-[#1B263B] border border-slate-200 p-2.5 rounded-xl min-w-[160px] focus:ring-4 focus:ring-[#0066CC]/10 focus:border-[#0066CC] outline-none transition-all hover:bg-slate-50 shadow-sm">
+          <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }} className="bg-[#141414] text-[#F3EBD3] border border-[#2E2A1E] p-2.5 rounded-xl min-w-[160px] focus:ring-4 focus:ring-[#D4AF37]/10 focus:border-[#D4AF37] outline-none transition-all hover:bg-[#111111] shadow-sm">
             <option value="">All Statuses</option>
             <option value="draft">Draft</option>
             <option value="published">Published</option>
@@ -673,16 +673,16 @@ export default function ManageQuestionsPage() {
             <option value="deprecated">Deprecated</option>
           </select>
 
-          <input placeholder="Filter Topic" value={filterTopic} onChange={e => { setFilterTopic(e.target.value); setCurrentPage(1); }} className="bg-white text-[#1B263B] border border-slate-200 p-2.5 rounded-xl min-w-[160px] focus:ring-4 focus:ring-[#0066CC]/10 focus:border-[#0066CC] outline-none transition-all hover:bg-slate-50 shadow-sm" />
+          <input placeholder="Filter Topic" value={filterTopic} onChange={e => { setFilterTopic(e.target.value); setCurrentPage(1); }} className="bg-[#141414] text-[#F3EBD3] border border-[#2E2A1E] p-2.5 rounded-xl min-w-[160px] focus:ring-4 focus:ring-[#D4AF37]/10 focus:border-[#D4AF37] outline-none transition-all hover:bg-[#111111] shadow-sm" />
 
-          <input placeholder="Filter Stem" value={filterStem} onChange={e => { setFilterStem(e.target.value); setCurrentPage(1); }} className="bg-white text-[#1B263B] border border-slate-200 p-2.5 rounded-xl min-w-[200px] flex-1 focus:ring-4 focus:ring-[#0066CC]/10 focus:border-[#0066CC] outline-none transition-all shadow-sm" />
+          <input placeholder="Filter Stem" value={filterStem} onChange={e => { setFilterStem(e.target.value); setCurrentPage(1); }} className="bg-[#141414] text-[#F3EBD3] border border-[#2E2A1E] p-2.5 rounded-xl min-w-[200px] flex-1 focus:ring-4 focus:ring-[#D4AF37]/10 focus:border-[#D4AF37] outline-none transition-all shadow-sm" />
 
           <div className="relative flex-1 min-w-[140px]">
             <input
               placeholder="Search ID..."
               value={filterId}
               onChange={e => { setFilterId(e.target.value); setCurrentPage(1); }}
-              className="w-full bg-white text-[#1B263B] border border-slate-200 p-2.5 pl-10 rounded-xl focus:ring-4 focus:ring-[#0066CC]/10 focus:border-[#0066CC] outline-none transition-all shadow-sm"
+              className="w-full bg-[#141414] text-[#F3EBD3] border border-[#2E2A1E] p-2.5 pl-10 rounded-xl focus:ring-4 focus:ring-[#D4AF37]/10 focus:border-[#D4AF37] outline-none transition-all shadow-sm"
             />
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           </div>
@@ -743,14 +743,14 @@ export default function ManageQuestionsPage() {
         </div>
 
         {isLoading ? (
-          <div className="text-center py-12 text-gray-500">Loading...</div>
+          <div className="text-center py-12 text-[#A39C86]">Loading...</div>
         ) : error ? (
           <div className="text-center py-12 text-red-600">{error}</div>
         ) : filteredQuestions.length === 0 ? (
           <div className="text-center py-12 opacity-50 bg-card rounded-2xl border border-border">No questions found</div>
         ) : (
           <>
-                  <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-[0_15px_40px_rgba(0,0,94,0.04)] mb-6">
+                  <div className="overflow-x-auto bg-[#141414] rounded-2xl border border-[#2E2A1E] shadow-[0_15px_40px_rgba(0,0,94,0.04)] mb-6">
                     <table className="w-full divide-y divide-border" style={{ minWidth: '700px' }}>
                       <thead className="bg-panel font-bold text-[10px] uppercase tracking-widest text-muted-foreground border-b border-border">
                   <tr>
@@ -773,8 +773,8 @@ export default function ManageQuestionsPage() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {paginated.map(q => (
-                    <tr key={q.id} className={`hover:bg-[#EAF1F7]/50 transition-all border-b border-slate-100 last:border-0 group cursor-default ${selectedIds.has(q.id) ? 'bg-[#0066CC]/5' : ''}`}>
-                      <td className="px-3 py-4 whitespace-nowrap sticky left-0 bg-white group-hover:bg-[#EAF1F7]/50 z-10 transition-colors">
+                    <tr key={q.id} className={`hover:bg-[#1A1810]/50 transition-all border-b border-[#1F1F1F] last:border-0 group cursor-default ${selectedIds.has(q.id) ? 'bg-[#D4AF37]/5' : ''}`}>
+                      <td className="px-3 py-4 whitespace-nowrap sticky left-0 bg-[#141414] group-hover:bg-[#1A1810]/50 z-10 transition-colors">
                         <input
                           type="checkbox"
                           className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
@@ -782,7 +782,7 @@ export default function ManageQuestionsPage() {
                           onChange={() => toggleSelect(q.id)}
                         />
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-xs font-mono text-muted-foreground sticky left-[40px] bg-white group-hover:bg-[#EAF1F7]/50 z-10 transition-colors">{q.id.substring(0, 8)}</td>
+                      <td className="px-3 py-4 whitespace-nowrap text-xs font-mono text-muted-foreground sticky left-[40px] bg-[#141414] group-hover:bg-[#1A1810]/50 z-10 transition-colors">{q.id.substring(0, 8)}</td>
                       <td className="px-3 py-4 whitespace-nowrap text-xs font-bold text-foreground opacity-80">{q.system || '-'}</td>
                       <td className="px-2 py-4" style={{ maxWidth: '120px' }}>
                         <div className="text-xs font-bold text-foreground truncate">{q.subject}</div>
@@ -800,10 +800,10 @@ export default function ManageQuestionsPage() {
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-fit ${
                           q.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 
                           q.status === 'draft' ? 'bg-amber-100 text-amber-700' : 
-                          q.status === 'review' ? 'bg-blue-100 text-blue-700' :
-                          q.status === 'approved' ? 'bg-indigo-100 text-indigo-700' :
+                          q.status === 'review' ? 'bg-[#241F10] text-[#B8922A]' :
+                          q.status === 'approved' ? 'bg-[#241F10] text-[#B8922A]' :
                           q.status === 'deprecated' ? 'bg-red-100 text-red-700' :
-                          'bg-slate-100 text-slate-600'
+                          'bg-[#171717] text-[#B8B09A]'
                         }`}>
                           {q.status === 'published' && <CheckCircle2 size={10} />}
                           {q.status === 'review' && <Clock size={10} />}
@@ -813,17 +813,17 @@ export default function ManageQuestionsPage() {
                           {q.status || 'Draft'} {q.versionNumber ? `v${q.versionNumber}` : ''}
                         </span>
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-right sticky right-0 bg-white group-hover:bg-[#EAF1F7]/50 z-10 transition-colors">
+                      <td className="px-3 py-4 whitespace-nowrap text-right sticky right-0 bg-[#141414] group-hover:bg-[#1A1810]/50 z-10 transition-colors">
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => router.push(`/author/create-question?id=${q.id}`)}
-                            className="p-1 px-2.5 bg-blue-100 text-blue-600 rounded text-[10px] font-bold hover:bg-blue-200 transition-colors uppercase"
+                            className="p-1 px-2.5 bg-[#241F10] text-[#C9A227] rounded text-[10px] font-bold hover:bg-[#3A3010] transition-colors uppercase"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => setPreviewQuestion(q)}
-                            className="p-1 px-2.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold hover:bg-slate-200 transition-colors uppercase"
+                            className="p-1 px-2.5 bg-[#171717] text-[#B8B09A] rounded text-[10px] font-bold hover:bg-[#1F1F1F] transition-colors uppercase"
                           >
                             View
                           </button>
@@ -935,7 +935,7 @@ export default function ManageQuestionsPage() {
                         {/* Matrix Values */}
                         <div className="flex gap-2">
                           {previewQuestion.matrixColumns?.map((col, idx) => (
-                            <div key={idx} className={`flex items-center justify-center text-[16px] font-medium text-zinc-900 dark:text-zinc-200 bg-transparent rounded-lg ${col.vertical ? 'w-24' : 'w-40'}`}>
+                            <div key={idx} className={`flex items-center justify-center text-[16px] font-medium text-[#F3EBD3] dark:text-zinc-200 bg-transparent rounded-lg ${col.vertical ? 'w-24' : 'w-40'}`}>
                               {c.matrixValues?.[idx] || ""}
                             </div>
                           ))}
@@ -965,7 +965,7 @@ export default function ManageQuestionsPage() {
                           {previewQuestion.explanationCorrectImage?.data && previewQuestion.explanationCorrectImage.placement === 'top' && (
                             <img src={previewQuestion.explanationCorrectImage.data} alt="Correct" loading="lazy" className={`mb-3 rounded-xl shadow-md border border-border ${imageSizeClass(previewQuestion.explanationCorrectImage.size || "default")}`} />
                           )}
-                          <div className="text-zinc-800 dark:text-zinc-200">
+                          <div className="text-[#EAE2C8] dark:text-zinc-200">
                             {(previewQuestion.explanationCorrect || '').split('\n').map((para, i) => (
                               <InteractiveText key={i} text={para} sectionImage={previewQuestion.explanationCorrectImage?.data} gallery={previewQuestion.gallery} className="mb-2" />
                             ))}
@@ -981,7 +981,7 @@ export default function ManageQuestionsPage() {
                           {previewQuestion.explanationWrongImage?.data && previewQuestion.explanationWrongImage.placement === 'top' && (
                             <img src={previewQuestion.explanationWrongImage.data} alt="Wrong" loading="lazy" className={`mb-3 rounded-xl shadow-md border border-border ${imageSizeClass(previewQuestion.explanationWrongImage.size || "default")}`} />
                           )}
-                          <div className="text-zinc-800 dark:text-zinc-200">
+                          <div className="text-[#EAE2C8] dark:text-zinc-200">
                             {(previewQuestion.explanationWrong || '').split('\n').map((para, i) => (
                               <InteractiveText key={i} text={para} sectionImage={previewQuestion.explanationWrongImage?.data} gallery={previewQuestion.gallery} className="mb-2" />
                             ))}
@@ -997,7 +997,7 @@ export default function ManageQuestionsPage() {
                           {previewQuestion.summaryImage?.data && previewQuestion.summaryImage.placement === 'top' && (
                             <img src={previewQuestion.summaryImage.data} alt="Summary" className={`mb-3 rounded-xl shadow-md border border-border ${imageSizeClass(previewQuestion.summaryImage.size || "default")}`} />
                           )}
-                          <div className="text-zinc-800 dark:text-zinc-200 font-bold italic">
+                          <div className="text-[#EAE2C8] dark:text-zinc-200 font-bold italic">
                             <InteractiveText text={previewQuestion.summary} sectionImage={previewQuestion.summaryImage?.data} gallery={previewQuestion.gallery} />
                           </div>
                           {previewQuestion.summaryImage?.data && (previewQuestion.summaryImage.placement === 'bottom' || !previewQuestion.summaryImage.placement) && (

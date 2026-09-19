@@ -136,16 +136,16 @@ export default function Dashboard() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-[#8B5CF6]/20 border-t-[#8B5CF6] rounded-full animate-spin"></div>
-          <p className="text-gray-500 font-mono text-xs uppercase tracking-[0.3em] animate-pulse">Syncing_Realtime_Data...</p>
+          <div className="w-12 h-12 border-4 border-[#E5C158]/20 border-t-[#E5C158] rounded-full animate-spin"></div>
+          <p className="text-[#A39C86] font-mono text-xs uppercase tracking-[0.3em] animate-pulse">Syncing_Realtime_Data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-auto">
-      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#8B5CF6]/5 pointer-events-none" />
+    <div className="font-body min-h-screen bg-[#0E0E0E] relative overflow-auto">
+      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#E5C158]/5 pointer-events-none" />
       <main className="max-w-[1400px] mx-auto px-6 py-8 relative z-10">
         <motion.div
           initial={{ opacity: 0 }}
@@ -160,7 +160,7 @@ export default function Dashboard() {
               value={stats.totalUsers}
               trend="+100%"
               icon={Users}
-              color="text-[#8B5CF6]"
+              color="text-[#E5C158]"
               trendData={[100, 200, 300, 400, 500, 600, 700]}
               insight="Students on platform"
               benchmark={`${stats.paidUsers} Paid subs`}
@@ -170,7 +170,7 @@ export default function Dashboard() {
               value={stats.totalQuestions}
               trend="+5%"
               icon={Database}
-              color="text-[#06B6D4]"
+              color="text-[#F0D77A]"
               trendData={[400, 420, 450, 480, 500, 520, stats.totalQuestions]}
               insight="Total items in QBank"
               benchmark="Sync: Realtime"
@@ -200,7 +200,7 @@ export default function Dashboard() {
               value={`${stats.avgCorrectRate}%`}
               trend="CALIBRATED"
               icon={Target}
-              color="text-blue-500"
+              color="text-[#D4AF37]"
               trendData={[65, 68, 70, 67, 69, 72, parseFloat(stats.avgCorrectRate)]}
               insight="Overall correct rate"
               benchmark="Performance index"
@@ -211,8 +211,8 @@ export default function Dashboard() {
           <QuickInsights insights={[
             { icon: Users, label: `${stats.dau} Students active today`, bg: "bg-emerald-50", color: "text-emerald-600" },
             { icon: Database, label: `${stats.draftCount} Drafts awaiting review`, bg: "bg-amber-50", color: "text-amber-600" },
-            { icon: Clock, label: "Peak Time: 18:00 - 21:00", bg: "bg-blue-50", color: "text-blue-600" },
-            { icon: Shield, label: "System Secure: MB-2026-v2", bg: "bg-purple-50", color: "text-purple-600" }
+            { icon: Clock, label: "Peak Time: 18:00 - 21:00", bg: "bg-[#1A1810]", color: "text-[#C9A227]" },
+            { icon: Shield, label: "System Secure: MB-2026-v2", bg: "bg-[#1A1810]", color: "text-[#C9A227]" }
           ]} />
 
           {/* Main Charts */}

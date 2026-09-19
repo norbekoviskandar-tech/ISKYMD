@@ -133,15 +133,15 @@ export default function ManageUsersPage() {
     if (!ok) return null;
 
     return (
-        <div className="font-body min-h-screen bg-[#F1F4F7] relative overflow-auto">
+        <div className="font-body min-h-screen bg-[#0E0E0E] relative overflow-auto">
             {/* Background Blend Accent */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#0066CC]/5 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-[#D4AF37]/5 pointer-events-none" />
             
             <main className="max-w-[1400px] mx-auto px-6 py-8 relative z-10">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
                     <div>
-                        <h1 className="text-4xl font-heading font-black tracking-tighter text-[#1B263B] uppercase italic">Personnel <span className="text-[#0066CC]">Registry</span></h1>
-                        <p className="text-slate-500 mt-2 text-sm font-semibold tracking-tight">System-wide monitoring of student access, credentials, and progress metrics</p>
+                        <h1 className="text-4xl font-heading font-black tracking-tighter text-[#F3EBD3] uppercase italic">Personnel <span className="text-[#D4AF37]">Registry</span></h1>
+                        <p className="text-[#A39C86] mt-2 text-sm font-semibold tracking-tight">System-wide monitoring of student access, credentials, and progress metrics</p>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -149,9 +149,9 @@ export default function ManageUsersPage() {
                             <motion.div 
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="flex items-center gap-3 bg-white p-2 pl-4 rounded-2xl border border-[#0066CC]/20 shadow-lg"
+                                className="flex items-center gap-3 bg-[#141414] p-2 pl-4 rounded-2xl border border-[#D4AF37]/20 shadow-lg"
                             >
-                                <span className="text-[10px] font-black text-[#0066CC] uppercase tracking-widest mr-2">{selectedIds.size} Selected</span>
+                                <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-widest mr-2">{selectedIds.size} Selected</span>
                                 <button 
                                     onClick={handleBulkBan}
                                     className="px-4 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all shadow-md active:scale-95"
@@ -177,14 +177,14 @@ export default function ManageUsersPage() {
                             placeholder="Search by name or email..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-white border border-slate-200 pl-12 pr-4 py-3 rounded-2xl focus:ring-4 focus:ring-[#0066CC]/10 focus:border-[#0066CC] outline-none transition-all font-black shadow-sm text-[#1B263B] uppercase tracking-tight"
+                            className="w-full bg-[#141414] border border-[#2E2A1E] pl-12 pr-4 py-3 rounded-2xl focus:ring-4 focus:ring-[#D4AF37]/10 focus:border-[#D4AF37] outline-none transition-all font-black shadow-sm text-[#F3EBD3] uppercase tracking-tight"
                         />
                     </div>
 
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="bg-white text-[#1B263B] border border-slate-200 px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-widest focus:ring-4 focus:ring-[#0066CC]/10 focus:border-[#0066CC] outline-none transition-all cursor-pointer hover:bg-slate-50 shadow-sm"
+                        className="bg-[#141414] text-[#F3EBD3] border border-[#2E2A1E] px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-widest focus:ring-4 focus:ring-[#D4AF37]/10 focus:border-[#D4AF37] outline-none transition-all cursor-pointer hover:bg-[#111111] shadow-sm"
                     >
                         <option value="">All Statuses</option>
                         <option value="active">Active (All)</option>
@@ -196,7 +196,7 @@ export default function ManageUsersPage() {
 
                     <button
                         onClick={loadUsers}
-                        className="p-3 bg-white border border-slate-200 text-[#1B263B] hover:bg-slate-50 rounded-2xl transition-all shadow-sm"
+                        className="p-3 bg-[#141414] border border-[#2E2A1E] text-[#F3EBD3] hover:bg-[#111111] rounded-2xl transition-all shadow-sm"
                         title="Refresh List"
                     >
                         <Clock size={20} />
@@ -205,7 +205,7 @@ export default function ManageUsersPage() {
 
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-20 gap-4">
-                        <div className="w-10 h-10 border-4 border-[#0066CC]/20 border-t-[#0066CC] rounded-full animate-spin"></div>
+                        <div className="w-10 h-10 border-4 border-[#D4AF37]/20 border-t-[#D4AF37] rounded-full animate-spin"></div>
                         <p className="text-slate-400 font-mono text-[10px] font-black uppercase tracking-[0.3em]">Hydrating_User_Registry...</p>
                     </div>
                 ) : error ? (
@@ -213,51 +213,51 @@ export default function ManageUsersPage() {
                         {error}
                     </div>
                 ) : filteredUsers.length === 0 ? (
-                    <div className="p-20 bg-white rounded-[40px] border border-slate-200 text-center shadow-sm">
-                        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                            <User size={40} className="text-[#0066CC]" />
+                    <div className="p-20 bg-[#141414] rounded-[40px] border border-[#2E2A1E] text-center shadow-sm">
+                        <div className="w-20 h-20 bg-[#111111] rounded-3xl flex items-center justify-center mx-auto mb-6">
+                            <User size={40} className="text-[#D4AF37]" />
                         </div>
-                        <h3 className="font-heading font-black text-2xl mb-2 text-[#1B263B] uppercase italic">Empty Registry</h3>
-                        <p className="text-slate-500 text-sm font-semibold max-w-xs mx-auto">No student identities detected matching the current search parameters.</p>
+                        <h3 className="font-heading font-black text-2xl mb-2 text-[#F3EBD3] uppercase italic">Empty Registry</h3>
+                        <p className="text-[#A39C86] text-sm font-semibold max-w-xs mx-auto">No student identities detected matching the current search parameters.</p>
                     </div>
                 ) : (
-                    <div className="overflow-hidden bg-white rounded-[40px] border border-slate-200 shadow-[0_15px_40px_rgba(0,0,94,0.04)]">
+                    <div className="overflow-hidden bg-[#141414] rounded-[40px] border border-[#2E2A1E] shadow-[0_15px_40px_rgba(0,0,94,0.04)]">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-100 bg-slate-50/50">
+                                <tr className="border-b border-[#1F1F1F] bg-[#111111]/50">
                                     <th className="px-8 py-6 w-16">
                                         <input 
                                             type="checkbox" 
-                                            className="w-5 h-5 rounded-md border-slate-300 text-[#0066CC] focus:ring-[#0066CC] cursor-pointer shadow-sm"
+                                            className="w-5 h-5 rounded-md border-[#3A3526] text-[#D4AF37] focus:ring-[#D4AF37] cursor-pointer shadow-sm"
                                             checked={selectedIds.size === filteredUsers.length && filteredUsers.length > 0}
                                             onChange={toggleSelectAll}
                                         />
                                     </th>
-                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-[0.2em] text-[#1B263B]">Student Identity</th>
-                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-[0.2em] text-[#1B263B]">Subscription</th>
-                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-[0.2em] text-[#1B263B]">Enrolled</th>
-                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-[0.2em] text-[#1B263B]">Registry Progress</th>
-                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-[0.2em] text-[#1B263B] text-right">Actions</th>
+                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-[0.2em] text-[#F3EBD3]">Student Identity</th>
+                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-[0.2em] text-[#F3EBD3]">Subscription</th>
+                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-[0.2em] text-[#F3EBD3]">Enrolled</th>
+                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-[0.2em] text-[#F3EBD3]">Registry Progress</th>
+                                    <th className="px-8 py-6 text-[11px] font-black uppercase tracking-[0.2em] text-[#F3EBD3] text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-[#1F1F1F]">
                                 {filteredUsers.map((user) => (
-                                    <tr key={user.id} className={`hover:bg-[#EAF1F7]/40 transition-all group ${selectedIds.has(user.id) ? 'bg-[#0066CC]/5' : ''}`}>
+                                    <tr key={user.id} className={`hover:bg-[#1A1810]/40 transition-all group ${selectedIds.has(user.id) ? 'bg-[#D4AF37]/5' : ''}`}>
                                         <td className="px-8 py-6">
                                             <input 
                                                 type="checkbox" 
-                                                className="w-5 h-5 rounded border-slate-300 text-[#0066CC] focus:ring-[#0066CC] cursor-pointer shadow-sm"
+                                                className="w-5 h-5 rounded border-[#3A3526] text-[#D4AF37] focus:ring-[#D4AF37] cursor-pointer shadow-sm"
                                                 checked={selectedIds.has(user.id)}
                                                 onChange={() => toggleSelectOne(user.id)}
                                             />
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#0066CC]/10 to-[#00CCFF]/10 border border-[#0066CC]/20 flex items-center justify-center text-[#0066CC] font-black shadow-sm text-lg">
+                                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#D4AF37]/10 to-[#F0D77A]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-black shadow-sm text-lg">
                                                     {user.name?.charAt(0) || 'U'}
                                                 </div>
                                                 <div>
-                                                    <div className="font-black text-[#1B263B] text-[15px] group-hover:text-[#0066CC] transition-colors uppercase tracking-tight">{user.name || 'Anonymous Student'}</div>
+                                                    <div className="font-black text-[#F3EBD3] text-[15px] group-hover:text-[#D4AF37] transition-colors uppercase tracking-tight">{user.name || 'Anonymous Student'}</div>
                                                     <div className="text-[10px] font-black font-mono text-slate-400 uppercase tracking-widest">{user.email}</div>
                                                 </div>
                                             </div>
@@ -265,11 +265,11 @@ export default function ManageUsersPage() {
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col gap-1">
                                                 <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest w-fit shadow-sm border ${
-                                                    user.subscriptionStatus === 'active' ? 'bg-[#0D9488]/10 text-[#0D9488] border-[#0D9488]/20' :
+                                                    user.subscriptionStatus === 'active' ? 'bg-[#8A6D1B]/10 text-[#8A6D1B] border-[#8A6D1B]/20' :
                                                     user.subscriptionStatus === 'expired' ? 'bg-amber-100 text-amber-700 border-amber-200' :
                                                     'bg-red-100 text-red-700 border-red-200'
                                                 }`}>
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${user.subscriptionStatus === 'active' ? 'bg-[#0D9488] animate-pulse' :
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${user.subscriptionStatus === 'active' ? 'bg-[#8A6D1B] animate-pulse' :
                                                             user.subscriptionStatus === 'expired' ? 'bg-amber-500' :
                                                                 'bg-red-500'
                                                         }`} />
@@ -286,19 +286,19 @@ export default function ManageUsersPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="text-xs font-black text-[#1B263B] uppercase tracking-widest opacity-80 font-mono">
+                                            <div className="text-xs font-black text-[#F3EBD3] uppercase tracking-widest opacity-80 font-mono">
                                                 {new Date(user.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col gap-2 w-48">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-[10px] font-black text-[#0066CC] uppercase tracking-widest">{user.progress?.percentage}% Mastery</span>
+                                                    <span className="text-[10px] font-black text-[#D4AF37] uppercase tracking-widest">{user.progress?.percentage}% Mastery</span>
                                                     <span className="text-[10px] font-black font-mono text-slate-400">{user.progress?.completed}/{user.progress?.total}</span>
                                                 </div>
-                                                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                                                <div className="h-2 w-full bg-[#171717] rounded-full overflow-hidden border border-[#2E2A1E]">
                                                     <div
-                                                        className="h-full bg-[#0066CC] transition-all duration-1000 shadow-[0_0_12px_rgba(0,102,204,0.4)]"
+                                                        className="h-full bg-[#D4AF37] transition-all duration-1000 shadow-[0_0_12px_rgba(212,175,55,0.4)]"
                                                         style={{ width: `${user.progress?.percentage}%` }}
                                                     />
                                                 </div>
@@ -307,7 +307,7 @@ export default function ManageUsersPage() {
                                         <td className="px-8 py-6 text-right">
                                             <button 
                                                 onClick={() => setSelectedUser(user)}
-                                                className="p-3 rounded-2xl bg-white hover:bg-[#0066CC] hover:text-white transition-all border border-slate-200 shadow-sm group/btn"
+                                                className="p-3 rounded-2xl bg-[#141414] hover:bg-[#D4AF37] hover:text-white transition-all border border-[#2E2A1E] shadow-sm group/btn"
                                             >
                                                 <ChevronRight size={18} className="group-hover/btn:translate-x-0.5 transition-transform" />
                                             </button>

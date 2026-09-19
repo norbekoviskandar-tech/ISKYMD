@@ -24,7 +24,7 @@ export default function QuestionList() {
       <h2 className="text-xl font-bold mb-4">All Questions</h2>
       <table className="w-full border">
         <thead>
-          <tr className="bg-gray-100">
+          <tr className="bg-[#171717]">
             <th className="border p-2">ID</th>
             <th className="border p-2">Stem</th>
             <th className="border p-2">Subject</th>

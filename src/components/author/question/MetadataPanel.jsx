@@ -12,19 +12,19 @@ export default function MetadataPanel({ editor }) {
   } = editor;
 
   return (
-    <div className="bg-[#FDFDFD] text-[#1B263B] p-3 rounded-xl border border-slate-200 shadow-[0_8px_30px_rgba(0,0,0,0.03)] space-y-3 h-fit sticky top-20">
+    <div className="bg-[#141414] text-[#F3EBD3] p-3 rounded-xl border border-[#2E2A1E] shadow-[0_8px_30px_rgba(0,0,0,0.03)] space-y-3 h-fit sticky top-20">
       <div>
-        <h2 className="text-xl font-heading font-black text-[#1B263B] uppercase tracking-tight flex items-center gap-2">
-          <span className="w-1.5 h-6 bg-[#0066CC] rounded-full" />
+        <h2 className="text-xl font-heading font-black text-[#F3EBD3] uppercase tracking-tight flex items-center gap-2">
+          <span className="w-1.5 h-6 bg-[#D4AF37] rounded-full" />
         </h2>
         <div className="flex items-center gap-2 mt-2">
           <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
             status === 'published' ? 'bg-emerald-100 text-emerald-700' : 
             status === 'draft' ? 'bg-amber-100 text-amber-700' : 
-            status === 'review' ? 'bg-blue-100 text-blue-700' :
-            status === 'approved' ? 'bg-indigo-100 text-indigo-700' :
+            status === 'review' ? 'bg-[#241F10] text-[#B8922A]' :
+            status === 'approved' ? 'bg-[#241F10] text-[#B8922A]' :
             status === 'deprecated' ? 'bg-red-100 text-red-700' :
-            'bg-slate-100 text-slate-600'
+            'bg-[#171717] text-[#B8B09A]'
           }`}>
             {status || 'Draft'} v{version || 1}
           </span>
@@ -43,7 +43,7 @@ export default function MetadataPanel({ editor }) {
             value={questionId}
             onChange={(e) => setQuestionId(e.target.value.toUpperCase())}
             placeholder="e.g. CV-HTN-001"
-            className={`bg-white border border-slate-200 px-4 py-3 rounded-2xl w-full text-[#1B263B] focus:ring-4 focus:ring-[#0066CC]/10 focus:border-[#0066CC] outline-none transition-all shadow-sm ${errors.questionId ? "border-red-500" : ""}`}
+            className={`bg-[#141414] border border-[#2E2A1E] px-4 py-3 rounded-2xl w-full text-[#F3EBD3] focus:ring-4 focus:ring-[#D4AF37]/10 focus:border-[#D4AF37] outline-none transition-all shadow-sm ${errors.questionId ? "border-red-500" : ""}`}
             disabled={isEditing}
           />
           {errors.questionId && <p className="text-red-600 text-[10px] font-bold mt-1.5 ml-1">{errors.questionId}</p>}
@@ -61,7 +61,7 @@ export default function MetadataPanel({ editor }) {
 
       <div className="space-y-2">
         <div>
-          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5 ml-1">System</label>
+          <label className="text-[10px] font-bold text-[#A39C86] uppercase block mb-0.5 ml-1">System</label>
           <select 
             value={system} 
             onChange={(e) => setSystem(e.target.value)} 
@@ -74,7 +74,7 @@ export default function MetadataPanel({ editor }) {
         </div>
 
         <div>
-          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5 ml-1">Subject</label>
+          <label className="text-[10px] font-bold text-[#A39C86] uppercase block mb-0.5 ml-1">Subject</label>
           <select 
             value={subject} 
             onChange={(e) => setSubject(e.target.value)} 
@@ -87,7 +87,7 @@ export default function MetadataPanel({ editor }) {
         </div>
 
         <div>
-          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5 ml-1">Topic</label>
+          <label className="text-[10px] font-bold text-[#A39C86] uppercase block mb-0.5 ml-1">Topic</label>
           <input 
             value={topic} 
             onChange={(e) => setTopic(e.target.value)} 
@@ -97,7 +97,7 @@ export default function MetadataPanel({ editor }) {
         </div>
 
         <div>
-          <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5 ml-1">Correct Answer</label>
+          <label className="text-[10px] font-bold text-[#A39C86] uppercase block mb-0.5 ml-1">Correct Answer</label>
           <select 
             value={correctIndex} 
             onChange={(e) => setCorrectIndex(parseInt(e.target.value))} 
@@ -111,12 +111,12 @@ export default function MetadataPanel({ editor }) {
       </div>
 
       <div className="mt-2">
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-0.5 ml-1">Tags</label>
+        <label className="text-[10px] font-bold text-[#A39C86] uppercase tracking-widest block mb-0.5 ml-1">Tags</label>
         <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="heart, surgery, pediatric" className="bg-background border border-border p-1.5 rounded-lg w-full focus:ring-2 focus:ring-primary/20 outline-none transition-all text-xs" />
       </div>
 
       <div className="mt-2">
-        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-0.5 ml-1">References</label>
+        <label className="text-[10px] font-bold text-[#A39C86] uppercase tracking-widest block mb-0.5 ml-1">References</label>
         <textarea value={references} onChange={(e) => setReferences(e.target.value)} placeholder="Guidelines, Citations..." className="bg-background border border-border p-1.5 rounded-lg w-full h-14 resize-none focus:ring-2 focus:ring-primary/20 outline-none transition-all text-[10px]" />
       </div>
 
@@ -124,16 +124,16 @@ export default function MetadataPanel({ editor }) {
                 <button 
           type="button"
           onClick={() => saveQuestion(true)}
-          className="w-full bg-[#0066CC] text-white p-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#0066CC]/20 hover:bg-[#0055AA] transition-all active:scale-95 flex items-center justify-center gap-2"
+          className="w-full bg-[#D4AF37] text-black p-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#D4AF37]/20 hover:bg-[#B8922A] transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
-          <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-[#141414] animate-pulse" />
           {status === 'published' ? 'Update Published' : 'Publish Live'}
                 </button>
                 
                 <button 
           type="button"
           onClick={() => saveQuestion(false)}
-          className="w-full bg-white text-[#1B263B] p-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-[#1B263B]/10 hover:border-[#1B263B]/30 hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
+          className="w-full bg-[#141414] text-[#F3EBD3] p-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-[#2E2A1E]/10 hover:border-[#2E2A1E]/30 hover:bg-[#111111] transition-all active:scale-95 shadow-sm"
                 >
           Save Draft
         </button>

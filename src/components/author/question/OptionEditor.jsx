@@ -46,7 +46,7 @@ export default function OptionEditor({ editor }) {
         </div>
         <button
           onClick={addMatrixColumn}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-primary text-white rounded-full p-1 opacity-0 group-hover/inner:opacity-100 transition-all shadow-lg z-20 hover:scale-110 active:scale-95"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-primary text-black rounded-full p-1 opacity-0 group-hover/inner:opacity-100 transition-all shadow-lg z-20 hover:scale-110 active:scale-95"
           title="Divide column"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
@@ -72,16 +72,16 @@ export default function OptionEditor({ editor }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700 scale-90">
+        <div className="flex items-center gap-1 bg-[#171717] dark:bg-zinc-800 p-1 rounded-lg border border-[#2E2A1E] dark:border-zinc-700 scale-90">
           <button
             onClick={() => setMatrixPlacement('before')}
-            className={`px-2 py-1 rounded-md text-[9px] font-black uppercase transition-all ${matrixPlacement === 'before' ? 'bg-white dark:bg-zinc-700 shadow-sm text-primary' : 'text-zinc-400 hover:text-zinc-600'}`}
+            className={`px-2 py-1 rounded-md text-[9px] font-black uppercase transition-all ${matrixPlacement === 'before' ? 'bg-[#141414] dark:bg-zinc-700 shadow-sm text-primary' : 'text-zinc-400 hover:text-[#B8B09A]'}`}
           >
             Matrix First
           </button>
           <button
             onClick={() => setMatrixPlacement('after')}
-            className={`px-2 py-1 rounded-md text-[9px] font-black uppercase transition-all ${matrixPlacement === 'after' ? 'bg-white dark:bg-zinc-700 shadow-sm text-primary' : 'text-zinc-400 hover:text-zinc-600'}`}
+            className={`px-2 py-1 rounded-md text-[9px] font-black uppercase transition-all ${matrixPlacement === 'after' ? 'bg-[#141414] dark:bg-zinc-700 shadow-sm text-primary' : 'text-zinc-400 hover:text-[#B8B09A]'}`}
           >
             Text First
           </button>
@@ -102,10 +102,10 @@ export default function OptionEditor({ editor }) {
                 >
                   <svg xmlns="http://www.w3.org/2001/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                 </button>
-                <div className="flex bg-zinc-50 dark:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 p-0.5 mb-1 scale-75 origin-bottom opacity-0 group-hover:opacity-100 transition-all">
+                <div className="flex bg-[#111111] dark:bg-zinc-800 rounded-md border border-[#2E2A1E] dark:border-zinc-700 p-0.5 mb-1 scale-75 origin-bottom opacity-0 group-hover:opacity-100 transition-all">
                   <button
                     onClick={() => updateMatrixColumn(idx, { vertical: !col.vertical })}
-                    className="text-[9px] font-black uppercase bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded hover:bg-zinc-200 transition-colors"
+                    className="text-[9px] font-black uppercase bg-[#171717] dark:bg-zinc-800 px-2 py-1 rounded hover:bg-[#1F1F1F] transition-colors"
                     title="Toggle between narrow and wide column"
                   >
                     {col.vertical ? 'Wide' : 'Narrow'}
@@ -119,13 +119,13 @@ export default function OptionEditor({ editor }) {
                     rows={1}
                     className={`
                       bg-transparent border-none
-                      rounded-lg px-2 py-2 text-[14px] font-black pointer-events-none text-center outline-none transition-all resize-x text-zinc-900 dark:text-zinc-200 leading-tight
+                      rounded-lg px-2 py-2 text-[14px] font-black pointer-events-none text-center outline-none transition-all resize-x text-[#F3EBD3] dark:text-zinc-200 leading-tight
                       ${col.vertical ? 'w-24 min-h-[80px]' : 'w-40 min-h-[38px]'}
                     `}
                   />
                   <button
                     onClick={addMatrixColumn}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-[#0072bc] text-white rounded-full p-1 opacity-0 group-hover/col:opacity-100 transition-all shadow-lg z-20 hover:scale-110 active:scale-95"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-[#D4AF37] text-black rounded-full p-1 opacity-0 group-hover/col:opacity-100 transition-all shadow-lg z-20 hover:scale-110 active:scale-95"
                     title="Add another piece"
                   >
                     <svg xmlns="http://www.w3.org/2001/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
@@ -139,7 +139,7 @@ export default function OptionEditor({ editor }) {
             {(matrixColumns.length === 0 || (matrixPlacement === 'after' && hideOptionText)) && (
               <button
                 onClick={addMatrixColumn}
-                className="self-center bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg h-[38px] px-3 transition-all border border-dashed border-slate-300 flex items-center gap-2 text-[9px] font-black uppercase"
+                className="self-center bg-[#171717] hover:bg-[#1F1F1F] text-[#A39C86] rounded-lg h-[38px] px-3 transition-all border border-dashed border-[#3A3526] flex items-center gap-2 text-[9px] font-black uppercase"
               >
                 <svg xmlns="http://www.w3.org/2001/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
                 Divide Question
@@ -169,10 +169,10 @@ export default function OptionEditor({ editor }) {
                     {matrixPlacement === 'after' && !hideOptionText && (
                       <div className="flex-1 min-h-[38px] flex flex-col justify-center">
                         {c.image.data && c.image.placement === 'top' && (
-                          <div className="mb-2 p-3 bg-white dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-3 font-sans">
+                          <div className="mb-2 p-3 bg-[#141414] dark:bg-zinc-900/50 rounded-xl border border-[#2E2A1E] dark:border-zinc-800 shadow-sm space-y-3 font-sans">
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex gap-1.5">
-                                <div className="flex bg-zinc-50 dark:bg-zinc-800 rounded-lg p-0.5 border border-zinc-200 dark:border-zinc-700">
+                                <div className="flex bg-[#111111] dark:bg-zinc-800 rounded-lg p-0.5 border border-[#2E2A1E] dark:border-zinc-700">
                                   {['small', 'medium', 'large', 'default'].map(s => (
                                     <button
                                       key={s}
@@ -181,13 +181,13 @@ export default function OptionEditor({ editor }) {
                                         next[i].image.size = s;
                                         setChoices(next);
                                       }}
-                                      className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md transition-all ${c.image.size === s ? 'bg-primary text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
+                                      className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md transition-all ${c.image.size === s ? 'bg-primary text-white' : 'text-zinc-400 hover:text-[#B8B09A]'}`}
                                     >
                                       {s === 'default' ? 'DEF' : s.substring(0, 1)}
                                     </button>
                                   ))}
                                 </div>
-                                <div className="flex bg-zinc-50 dark:bg-zinc-800 rounded-lg p-0.5 border border-zinc-200 dark:border-zinc-700">
+                                <div className="flex bg-[#111111] dark:bg-zinc-800 rounded-lg p-0.5 border border-[#2E2A1E] dark:border-zinc-700">
                                   {['top', 'bottom'].map(p => (
                                     <button
                                       key={p}
@@ -196,7 +196,7 @@ export default function OptionEditor({ editor }) {
                                         next[i].image.placement = p;
                                         setChoices(next);
                                       }}
-                                      className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md transition-all ${c.image.placement === p ? 'bg-[#0072bc] text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
+                                      className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md transition-all ${c.image.placement === p ? 'bg-[#D4AF37] text-black' : 'text-zinc-400 hover:text-[#B8B09A]'}`}
                                     >
                                       {p === 'bottom' ? 'BTM' : 'TOP'}
                                     </button>
@@ -211,7 +211,7 @@ export default function OptionEditor({ editor }) {
                                 DEL
                               </button>
                             </div>
-                            <div className="relative group inline-block border border-zinc-100 dark:border-zinc-800 rounded-lg overflow-hidden">
+                            <div className="relative group inline-block border border-[#1F1F1F] dark:border-zinc-800 rounded-lg overflow-hidden">
                               <img src={c.image.data} alt={`choice-${i}`} loading="lazy" className={`${imageSizeClass(c.image.size)}`} />
                               <button
                                 onClick={() => handleChoiceImageRemove(i)}
@@ -278,25 +278,25 @@ export default function OptionEditor({ editor }) {
                           </div>
                         </div>
                         {c.text.includes('|') && (
-                          <div className="px-2 py-1 bg-zinc-50 rounded border border-dashed border-zinc-200">
+                          <div className="px-2 py-1 bg-[#111111] rounded border border-dashed border-[#2E2A1E]">
                             <InteractiveText text={c.text} sectionImage={c.image.data} gallery={editor.gallery} className="text-xs" />
                           </div>
                         )}
                         {errors[`choice${i}`] && <p className="text-red-600 text-[9px] font-bold uppercase ml-1">{errors[`choice${i}`]}</p>}
 
                         {c.image.data && (c.image.placement === 'bottom' || !c.image.placement) && (
-                          <div className="mt-2 p-3 bg-white dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-3 font-sans">
+                          <div className="mt-2 p-3 bg-[#141414] dark:bg-zinc-900/50 rounded-xl border border-[#2E2A1E] dark:border-zinc-800 shadow-sm space-y-3 font-sans">
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex gap-1.5">
                                 {['small', 'medium', 'large', 'default'].map(s => (
                                   <button key={s} onClick={() => {
                                     const next = [...choices]; next[i].image.size = s; setChoices(next);
-                                  }} className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md transition-all ${c.image.size === s ? 'bg-primary text-white' : 'text-zinc-400 hover:text-zinc-600'}`}>{s === 'default' ? 'DEF' : s.substring(0, 1)}</button>
+                                  }} className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md transition-all ${c.image.size === s ? 'bg-primary text-white' : 'text-zinc-400 hover:text-[#B8B09A]'}`}>{s === 'default' ? 'DEF' : s.substring(0, 1)}</button>
                                 ))}
                               </div>
                               <button type="button" onClick={() => handleChoiceImageRemove(i)} className="p-1 px-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all text-[9px] font-bold uppercase">DEL</button>
                             </div>
-                            <div className="relative group inline-block border border-zinc-100 dark:border-zinc-800 rounded-lg overflow-hidden">
+                            <div className="relative group inline-block border border-[#1F1F1F] dark:border-zinc-800 rounded-lg overflow-hidden">
                               <img src={c.image.data} alt={`choice-${i}`} loading="lazy" className={`${imageSizeClass(c.image.size)}`} />
                               <button
                                 onClick={() => handleChoiceImageRemove(i)}
@@ -318,7 +318,7 @@ export default function OptionEditor({ editor }) {
                           className={`
                             bg-transparent border-none
                             rounded-lg px-2 py-1.5 text-xs text-center outline-none focus:border-primary focus:ring-4 focus:ring-primary/10
-                            transition-all h-full min-h-[38px] text-zinc-900 dark:text-zinc-200
+                            transition-all h-full min-h-[38px] text-[#F3EBD3] dark:text-zinc-200
                             ${col.vertical ? 'w-24' : 'w-40'}
                           `}
                           placeholder="Val"
@@ -329,10 +329,10 @@ export default function OptionEditor({ editor }) {
                     {matrixPlacement === 'before' && !hideOptionText && (
                       <div className="flex-1 min-h-[38px] flex flex-col justify-center">
                         {c.image.data && c.image.placement === 'top' && (
-                          <div className="mb-2 p-3 bg-white dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-3 font-sans">
+                          <div className="mb-2 p-3 bg-[#141414] dark:bg-zinc-900/50 rounded-xl border border-[#2E2A1E] dark:border-zinc-800 shadow-sm space-y-3 font-sans">
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex gap-1.5">
-                                <div className="flex bg-zinc-50 dark:bg-zinc-800 rounded-lg p-0.5 border border-zinc-200 dark:border-zinc-700">
+                                <div className="flex bg-[#111111] dark:bg-zinc-800 rounded-lg p-0.5 border border-[#2E2A1E] dark:border-zinc-700">
                                   {['small', 'medium', 'large', 'default'].map(s => (
                                     <button
                                       key={s}
@@ -341,13 +341,13 @@ export default function OptionEditor({ editor }) {
                                         next[i].image.size = s;
                                         setChoices(next);
                                       }}
-                                      className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md transition-all ${c.image.size === s ? 'bg-primary text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
+                                      className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md transition-all ${c.image.size === s ? 'bg-primary text-white' : 'text-zinc-400 hover:text-[#B8B09A]'}`}
                                     >
                                       {s === 'default' ? 'DEF' : s.substring(0, 1)}
                                     </button>
                                   ))}
                                 </div>
-                                <div className="flex bg-zinc-50 dark:bg-zinc-800 rounded-lg p-0.5 border border-zinc-200 dark:border-zinc-700">
+                                <div className="flex bg-[#111111] dark:bg-zinc-800 rounded-lg p-0.5 border border-[#2E2A1E] dark:border-zinc-700">
                                   {['top', 'bottom'].map(p => (
                                     <button
                                       key={p}
@@ -356,7 +356,7 @@ export default function OptionEditor({ editor }) {
                                         next[i].image.placement = p;
                                         setChoices(next);
                                       }}
-                                      className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md transition-all ${c.image.placement === p ? 'bg-[#0072bc] text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
+                                      className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md transition-all ${c.image.placement === p ? 'bg-[#D4AF37] text-black' : 'text-zinc-400 hover:text-[#B8B09A]'}`}
                                     >
                                       {p === 'bottom' ? 'BTM' : 'TOP'}
                                     </button>
@@ -371,7 +371,7 @@ export default function OptionEditor({ editor }) {
                                 DEL
                               </button>
                             </div>
-                            <div className="relative group inline-block border border-zinc-100 dark:border-zinc-800 rounded-lg overflow-hidden">
+                            <div className="relative group inline-block border border-[#1F1F1F] dark:border-zinc-800 rounded-lg overflow-hidden">
                               <img src={c.image.data} alt={`choice-${i}`} loading="lazy" className={`${imageSizeClass(c.image.size)}`} />
                               <button
                                 onClick={() => handleChoiceImageRemove(i)}
@@ -438,25 +438,25 @@ export default function OptionEditor({ editor }) {
                           </div>
                         </div>
                         {c.text.includes('|') && (
-                          <div className="px-2 py-1 bg-zinc-50 rounded border border-dashed border-zinc-200">
+                          <div className="px-2 py-1 bg-[#111111] rounded border border-dashed border-[#2E2A1E]">
                             <InteractiveText text={c.text} sectionImage={c.image.data} gallery={editor.gallery} className="text-xs" />
                           </div>
                         )}
                         {errors[`choice${i}`] && <p className="text-red-600 text-[9px] font-bold uppercase ml-1">{errors[`choice${i}`]}</p>}
 
                         {c.image.data && (c.image.placement === 'bottom' || !c.image.placement) && (
-                          <div className="mt-2 p-3 bg-white dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-3 font-sans">
+                          <div className="mt-2 p-3 bg-[#141414] dark:bg-zinc-900/50 rounded-xl border border-[#2E2A1E] dark:border-zinc-800 shadow-sm space-y-3 font-sans">
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex gap-1.5">
                                 {['small', 'medium', 'large', 'default'].map(s => (
                                   <button key={s} onClick={() => {
                                     const next = [...choices]; next[i].image.size = s; setChoices(next);
-                                  }} className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md transition-all ${c.image.size === s ? 'bg-primary text-white' : 'text-zinc-400 hover:text-zinc-600'}`}>{s === 'default' ? 'DEF' : s.substring(0, 1)}</button>
+                                  }} className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md transition-all ${c.image.size === s ? 'bg-primary text-white' : 'text-zinc-400 hover:text-[#B8B09A]'}`}>{s === 'default' ? 'DEF' : s.substring(0, 1)}</button>
                                 ))}
                               </div>
                               <button type="button" onClick={() => handleChoiceImageRemove(i)} className="p-1 px-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all text-[9px] font-bold uppercase">DEL</button>
                             </div>
-                            <div className="relative group inline-block border border-zinc-100 dark:border-zinc-800 rounded-lg overflow-hidden">
+                            <div className="relative group inline-block border border-[#1F1F1F] dark:border-zinc-800 rounded-lg overflow-hidden">
                               <img src={c.image.data} alt={`choice-${i}`} loading="lazy" className={`${imageSizeClass(c.image.size)}`} />
                               <button
                                 onClick={() => handleChoiceImageRemove(i)}
@@ -492,7 +492,7 @@ export default function OptionEditor({ editor }) {
       <button
         type="button"
         onClick={addChoice}
-        className="w-full py-2 bg-[#F8FAFC] border-2 border-dashed border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#0066CC] hover:bg-blue-50 hover:border-[#0066CC]/30 transition-all flex items-center justify-center gap-2"
+        className="w-full py-2 bg-[#111111] border-2 border-dashed border-[#2E2A1E] rounded-xl text-[10px] font-black uppercase tracking-widest text-[#D4AF37] hover:bg-[#1A1810] hover:border-[#D4AF37]/30 transition-all flex items-center justify-center gap-2"
       >
         <span className="text-sm">+</span> Add Extra Choice (Option {String.fromCharCode(65 + choices.length)})
       </button>

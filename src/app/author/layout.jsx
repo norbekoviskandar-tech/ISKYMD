@@ -131,7 +131,7 @@ export default function AuthorLayout({ children }) {
   if (loading && pathname === "/author") {
     return (
       <div className="min-h-screen cyber-theme flex items-center justify-center p-6 cyber-mesh">
-        <div className="text-[#8B5CF6] font-mono text-xl animate-pulse tracking-[0.5em] font-bold">
+        <div className="text-[#E5C158] font-mono text-xl animate-pulse tracking-[0.5em] font-bold">
           SECURITY_CHECK...
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function AuthorLayout({ children }) {
   }
 
   return (
-    <div className="flex min-h-screen cyber-theme cyber-mesh transition-all duration-500 overflow-auto">
+    <div className="flex min-h-screen cyber-theme author-theme cyber-mesh transition-all duration-500 overflow-auto">
       {/* Mobile Overlay */}
       <div 
         onClick={() => setSidebarCollapsed(true)}
@@ -148,15 +148,15 @@ export default function AuthorLayout({ children }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:sticky top-0 h-screen flex flex-col gap-10 bg-[#1B263B] border-r border-[#2D3A54] p-6 transition-all duration-700 ease-in-out z-50 
+        className={`fixed lg:sticky top-0 h-screen flex flex-col gap-10 bg-[#0B0B0B] border-r border-[#2E2A1E] p-6 transition-all duration-700 ease-in-out z-50 
           ${sidebarCollapsed 
             ? '-translate-x-full lg:translate-x-0 lg:w-24 px-4' 
           : 'translate-x-0 w-72 p-8 shadow-[10px_0_40px_rgba(0,0,0,0.15)]'
           }`}
       >
         <div className={`flex items-center gap-4 group cursor-pointer ${sidebarCollapsed ? 'justify-center' : ''}`}>
-          <div className="w-12 h-12 flex-shrink-0 rounded-2xl bg-gradient-to-tr from-[#005EB8] to-[#0D9488] p-[1.5px] shadow-[0_4px_20px_rgba(0,94,184,0.3)] group-hover:shadow-[0_4px_30px_rgba(0,94,184,0.5)] transition-all">
-            <div className="w-full h-full rounded-2xl bg-[#1B263B] flex items-center justify-center">
+          <div className="w-12 h-12 flex-shrink-0 rounded-2xl bg-gradient-to-tr from-[#C9A227] to-[#8A6D1B] p-[1.5px] shadow-[0_4px_20px_rgba(201,162,39,0.3)] group-hover:shadow-[0_4px_30px_rgba(201,162,39,0.5)] transition-all">
+            <div className="w-full h-full rounded-2xl bg-[#0B0B0B] flex items-center justify-center">
               <Shield className="text-white w-6 h-6" />
             </div>
           </div>
@@ -168,10 +168,10 @@ export default function AuthorLayout({ children }) {
                 exit={{ opacity: 0, x: -10 }}
                 className="overflow-hidden whitespace-nowrap"
               >
-                <h2 className="font-heading font-black text-xl text-white tracking-widest uppercase italic">Author<span className="text-[#00CCFF]">Portal</span></h2>
+                <h2 className="font-heading font-black text-xl text-white tracking-widest uppercase italic">Author<span className="text-[#F0D77A]">Portal</span></h2>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                  <span className="text-[10px] font-mono text-gray-500 uppercase tracking-tighter">System_Secure</span>
+                  <span className="text-[10px] font-mono text-[#A39C86] uppercase tracking-tighter">System_Secure</span>
                 </div>
               </motion.div>
             )}
@@ -185,7 +185,7 @@ export default function AuthorLayout({ children }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="text-[10px] font-bold text-[#00CCFF] uppercase tracking-[0.2em] mb-4 ml-4 whitespace-nowrap opacity-80"
+                  className="text-[10px] font-bold text-[#F0D77A] uppercase tracking-[0.2em] mb-4 ml-4 whitespace-nowrap opacity-80"
                 >
                   Dashboard Stream
                 </motion.div>
@@ -200,7 +200,7 @@ export default function AuthorLayout({ children }) {
 
             const NavContent = (
               <>
-                <item.icon size={20} className={isActive ? "text-white" : "group-hover:text-[#00CCFF] transition-colors flex-shrink-0"} />
+                <item.icon size={20} className={isActive ? "text-black" : "group-hover:text-[#F0D77A] transition-colors flex-shrink-0"} />
                 <AnimatePresence>
                   {!sidebarCollapsed && (
                     <motion.span
@@ -219,15 +219,15 @@ export default function AuthorLayout({ children }) {
                   </div>
                 )}
                 {!sidebarCollapsed && !hasChildren && isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_#ffffff]" />
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#141414] shadow-[0_0_8px_#F0D77A]" />
                 )}
                 {sidebarCollapsed && isActive && (
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#005EB8] rounded-l-full shadow-[0_0_15px_#005EB8]" />
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#C9A227] rounded-l-full shadow-[0_0_15px_#C9A227]" />
                 )}
               </>
             );
 
-            const commonClasses = `flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 relative group overflow-hidden cursor-pointer ${sidebarCollapsed ? 'justify-center px-0 w-full' : ''} ${isActive ? "bg-gradient-to-r from-[#0066CC] to-[#004C99] text-white shadow-[0_4px_15px_rgba(0,102,204,0.3)]" : "text-slate-400 hover:text-white hover:bg-white/5"}`;
+            const commonClasses = `flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 relative group overflow-hidden cursor-pointer ${sidebarCollapsed ? 'justify-center px-0 w-full' : ''} ${isActive ? "bg-gradient-to-r from-[#D4AF37] to-[#A67F1E] text-black shadow-[0_4px_15px_rgba(212,175,55,0.3)]" : "text-slate-400 hover:text-white hover:bg-white/5"}`;
 
             return (
               <div key={idx} className="flex flex-col gap-1">
@@ -262,11 +262,11 @@ export default function AuthorLayout({ children }) {
                             key={cIdx}
                             href={child.href}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isChildActive
-                              ? "text-white font-bold bg-white/10"
+                              ? "text-[#F0D77A] font-bold bg-white/10"
                               : "text-slate-400 hover:text-white hover:bg-white/5"
                               }`}
                           >
-                            <div className={`w-1.5 h-1.5 rounded-full ${isChildActive ? 'bg-[#0D9488] shadow-[0_0_10px_#0D9488]' : 'bg-slate-600'}`} />
+                            <div className={`w-1.5 h-1.5 rounded-full ${isChildActive ? 'bg-[#8A6D1B] shadow-[0_0_10px_#8A6D1B]' : 'bg-slate-600'}`} />
                             <span className="text-xs">{child.label}</span>
                           </Link>
                         );

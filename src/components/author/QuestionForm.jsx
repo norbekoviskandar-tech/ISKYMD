@@ -52,7 +52,7 @@ export default function QuestionForm() {
   }
 
   return (
-    <div className="max-w-xl mx-auto p-4 bg-white border rounded">
+    <div className="max-w-xl mx-auto p-4 bg-[#141414] border rounded">
       <h2 className="text-xl font-bold mb-4">Create Question</h2>
 
       <textarea placeholder="Question stem" className="w-full border p-2 mb-2" value={stem} onChange={e => setStem(e.target.value)} />
