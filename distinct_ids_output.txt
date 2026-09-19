@@ -1,8 +1,0 @@
-Distinct productIds: [ { productId: 'full-qbank' }, { productId: '19' } ]
-Distinct packageIds: [
-  { packageId: 6 },
-  { packageId: 16 },
-  { packageId: 17 },
-  { packageId: 19 },
-  { packageId: 20 }
-]

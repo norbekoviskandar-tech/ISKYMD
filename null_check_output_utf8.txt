@@ -1,8 +1,0 @@
-Checking database at: F:\MedBank3 - Copy\medbank.db
-Columns in questions table: id, stem, choices, correct, explanation, subject, system, difficulty, published, createdAt, updatedAt, stemImage, explanationCorrect, explanationCorrectImage, explanationWrong, explanationWrongImage, summary, summaryImage, topic, cognitiveLevel, type, references, tags, version, stemImageMode, explanationImageMode, productId, hierarchyId, packageId, conceptId, status, versionNumber, isLatest, globalAttempts, globalCorrect, choiceDistribution, totalTimeSpent, totalVolatility, totalStrikes, totalMarks
-Null counts for product/package related columns:
-{
-  "productId": 0,
-  "packageId": 0
-}
-Total questions: 13
