@@ -12,3 +12,14 @@ medbank.db*
 main.db
 questions-backup-*.json
 migration-errors-*.json
+
+# local databases, dumps, and one-off debug output
+*.sqlite
+*.sqlite3
+data.sql
+repomix-output.xml
+*_output.txt
+*_output_utf8.txt
+user_list*.txt
+users_list*.txt
+tmpclaude-*
