@@ -122,7 +122,7 @@ export async function DELETE(request) {
     } else if (testId) {
       // Verify the test belongs to the user
       const { getTestById } = await import('@/lib/db/tests.repo');
-      const test = await getTestById(testId, 'all');
+      const test = await getTestById(testId, auth.role);
       if (test && test.userId !== auth.userId) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }

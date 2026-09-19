@@ -9,7 +9,7 @@ import { requireSubscription } from '@/lib/auth';
 export async function POST(request) {
   try {
     const { userId, packageId, filters } = await request.json();
-    
+
     if (!userId || !packageId) {
       return NextResponse.json({ error: 'userId and packageId required' }, { status: 400 });
     }
@@ -17,8 +17,11 @@ export async function POST(request) {
     const auth = await requireSubscription(packageId);
     if (auth instanceof NextResponse) return auth;
 
+    // Use session userId (non-authors), or allow authors to pass userId
+    const targetUserId = (auth.role === 'author' && userId) ? userId : auth.userId;
+
     const universeSize = getUniverseSize(packageId);
-    const pool = getEligiblePool(userId, packageId, filters);
+    const pool = getEligiblePool(targetUserId, packageId, filters);
     
     return NextResponse.json({
       universeSize,

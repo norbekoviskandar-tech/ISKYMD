@@ -3,14 +3,16 @@ import { queryOne, query, execute, transaction } from "../pg";
 export async function getUserQuestions(userId, productId) {
   const sql = `
     SELECT
-      q.*,
+      q.id, q."productId", q."packageId", q.subject, q.system, q.topic, q.status,
+      q."cognitiveLevel", q.type, q.published, q."isLatest", q."versionNumber",
+      q."createdAt", q."updatedAt",
       uq.status as userStatus,
       uq.isMarked,
       uq.userAnswer,
       uq.totalAttempts
     FROM "questions" q
-    LEFT JOIN "user_questions" uq ON q.id = uq."questionId"
-      AND uq."userId" = $1
+    LEFT JOIN "user_questions" uq ON CAST(q.id AS TEXT) = CAST(uq."questionId" AS TEXT)
+      AND CAST(uq."userId" AS TEXT) = CAST($1 AS TEXT)
       AND (CAST(uq."productId" AS TEXT) = CAST($2 AS TEXT) OR CAST(uq."packageId" AS TEXT) = CAST($3 AS TEXT))
     WHERE (CAST(q."productId" AS TEXT) = CAST($4 AS TEXT) OR CAST(q."packageId" AS TEXT) = CAST($5 AS TEXT))
     AND (q.status = 'published' OR q.published = 1)
@@ -21,17 +23,6 @@ export async function getUserQuestions(userId, productId) {
 
     return questions.map((q) => ({
       ...q,
-      choices: JSON.parse(q.choices || "[]"),
-      stemImage: JSON.parse(q.stemImage || "{}"),
-      explanationCorrectImage: JSON.parse(q.explanationCorrectImage || "{}"),
-      explanationWrongImage: JSON.parse(q.explanationWrongImage || "{}"),
-      summaryImage: JSON.parse(q.summaryImage || "{}"),
-      choiceDistribution: JSON.parse(q.choiceDistribution || "{}"),
-      gallery: JSON.parse(q.gallery || "{}"),
-      tags: JSON.parse(q.tags || "[]"),
-      matrixColumns: JSON.parse(q.matrixColumns || "[]"),
-      matrixPlacement: q.matrixPlacement || "after",
-      hideOptionText: !!q.hideOptionText,
       published: !!q.published,
       status: q.userStatus || "unused",
       isMarked: !!q.isMarked,
@@ -80,7 +71,7 @@ export async function updateUserQuestion({ userId, questionId, productId, select
   console.log(`[Content Engine] Updating progress for user ${uidStr}, question ${qidStr}, product ${pidStr}`);
 
   const existing = await queryOne(
-    `SELECT status, "isMarked" FROM "user_questions" WHERE "userId" = $1 AND "questionId" = $2 AND ("productId" = $3 OR "packageId" = $4)`,
+    `SELECT status, "isMarked" FROM "user_questions" WHERE "userId" = $1 AND "questionId" = $2 AND (CAST("productId" AS TEXT) = CAST($3 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($4 AS TEXT))`,
     [uidStr, qidStr, pidStr, pidStr]
   );
 
@@ -114,7 +105,7 @@ export async function updateUserQuestion({ userId, questionId, productId, select
       "lastSeenAt" = $7,
       "updatedAt" = $8,
       "lastUpdated" = $9
-    WHERE "userId" = $10 AND "questionId" = $11 AND ("productId" = $12 OR "packageId" = $13)
+    WHERE "userId" = $10 AND "questionId" = $11 AND (CAST("productId" AS TEXT) = CAST($12 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($13 AS TEXT))
   `, [finalStatus, finalMarked, selectedAnswer, selectedAnswer, newStatus ? 1 : 0, timeSpentDelta, now, now, now, uidStr, qidStr, pidStr, pidStr]);
 
   return true;
@@ -138,14 +129,14 @@ export async function getEligiblePool(userId, packageId, filters = {}, limit = n
           ta."finishedAt" as "finishedAt",
           ROW_NUMBER() OVER (PARTITION BY a."questionId" ORDER BY ta."finishedAt" DESC) as rn
         FROM "test_attempts" ta
-        JOIN "test_answers" a ON a."testAttemptId" = ta.id
-        WHERE ta."userId" = $1 AND CAST(ta."productId" AS TEXT) = CAST($2 AS TEXT) AND ta."finishedAt" IS NOT NULL
+        JOIN "test_answers" a ON CAST(a."testAttemptId" AS TEXT) = CAST(ta.id AS TEXT)
+        WHERE CAST(ta."userId" AS TEXT) = CAST($1 AS TEXT) AND CAST(ta."productId" AS TEXT) = CAST($2 AS TEXT) AND ta."finishedAt" IS NOT NULL
       )
       WHERE rn = 1
     )
     SELECT q.id
     FROM "questions" q
-    LEFT JOIN latest l ON l."questionId" = q.id
+    LEFT JOIN latest l ON CAST(l."questionId" AS TEXT) = CAST(q.id AS TEXT)
     WHERE (CAST(q."packageId" AS TEXT) = CAST($3 AS TEXT) OR CAST(q."productId" AS TEXT) = CAST($4 AS TEXT))
       AND (q.status = 'published' OR q.published = 1)
   `;
@@ -204,10 +195,10 @@ export async function resetUserQuestions(userId) {
       INSERT INTO "user_questions_archive"
       ("userId", "questionId", status, "isMarked", "userAnswer", "userHistory", "archivedAt")
       SELECT "userId", "questionId", status, "isMarked", "userAnswer", "userHistory", $1
-      FROM "user_questions" WHERE "userId" = $2
+      FROM "user_questions" WHERE CAST("userId" AS TEXT) = CAST($2 AS TEXT)
     `, [now, userId]);
 
-    await client.query(`DELETE FROM "user_questions" WHERE "userId" = $1`, [userId]);
+    await client.query(`DELETE FROM "user_questions" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [userId]);
 
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     await client.query(`DELETE FROM "user_questions_archive" WHERE "archivedAt" < $1`, [thirtyDaysAgo]);
@@ -218,9 +209,11 @@ export async function resetUserQuestions(userId) {
 
 export async function getAllQuestions(productId = null, includeUnpublished = false) {
   let sql = `
-    SELECT q.*, p.name as "productName"
+    SELECT q.id, q."productId", q."packageId", q.subject, q.system, q.topic, q.status,
+           q."cognitiveLevel", q.type, q.published, q."isLatest", q."versionNumber",
+           q."createdAt", q."updatedAt", p.name as "productName"
     FROM "questions" q
-    LEFT JOIN "products" p ON q."productId" = p.id
+    LEFT JOIN "products" p ON CAST(q."productId" AS TEXT) = CAST(p.id AS TEXT)
   `;
   const params = [];
 
@@ -238,24 +231,13 @@ export async function getAllQuestions(productId = null, includeUnpublished = fal
   const questions = await query(sql, params);
   return questions.map((q) => ({
     ...q,
-    choices: JSON.parse(q.choices || "[]"),
-    stemImage: JSON.parse(q.stemImage || "{}"),
-    explanationCorrectImage: JSON.parse(q.explanationCorrectImage || "{}"),
-    explanationWrongImage: JSON.parse(q.explanationWrongImage || "{}"),
-    summaryImage: JSON.parse(q.summaryImage || "{}"),
-    tags: JSON.parse(q.tags || "[]"),
-    choiceDistribution: JSON.parse(q.choiceDistribution || "{}"),
-    gallery: JSON.parse(q.gallery || "{}"),
-    matrixColumns: JSON.parse(q.matrixColumns || "[]"),
-    matrixPlacement: q.matrixPlacement || "after",
-    hideOptionText: !!q.hideOptionText,
     published: !!q.published,
     isLatest: !!q.isLatest,
   }));
 }
 
 export async function getQuestionById(id) {
-  const q = await queryOne(`SELECT * FROM "questions" WHERE id = $1`, [id]);
+  const q = await queryOne(`SELECT * FROM "questions" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [id]);
   if (!q) return null;
 
   return {
@@ -359,12 +341,12 @@ export async function updateQuestion(id, updates) {
   params.push(new Date().toISOString());
   params.push(id);
 
-  await execute(`UPDATE "questions" SET ${fields.join(", ")} WHERE "id" = $${fields.length}`, params);
+  await execute(`UPDATE "questions" SET ${fields.join(", ")} WHERE CAST("id" AS TEXT) = CAST($${fields.length} AS TEXT)`, params);
   return getQuestionById(id);
 }
 
 export async function deleteQuestion(id) {
-  await execute(`DELETE FROM "questions" WHERE id = $1`, [id]);
+  await execute(`DELETE FROM "questions" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [id]);
   return true;
 }
 
@@ -379,7 +361,7 @@ export async function updateQuestionStats(questionId, stats) {
       "totalMarks" = COALESCE("totalMarks", 0) + $6,
       "choiceDistribution" = $7,
       "updatedAt" = $8
-    WHERE id = $9
+    WHERE CAST(id AS TEXT) = CAST($9 AS TEXT)
   `, [
     stats.globalAttempts || 0,
     stats.globalCorrect || 0,
@@ -407,7 +389,7 @@ export async function logGovernanceAction(entry) {
   let conceptId = entry.conceptId;
 
   if (!conceptId && entry.questionId) {
-    const q = await queryOne(`SELECT "conceptId" FROM "questions" WHERE id = $1`, [entry.questionId]);
+    const q = await queryOne(`SELECT "conceptId" FROM "questions" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [entry.questionId]);
     if (q) conceptId = q.conceptId;
   }
 
@@ -479,10 +461,10 @@ export async function getGovernanceHistory(versionId, conceptId) {
   const params = [];
 
   if (versionId) {
-    sql += ` WHERE "versionId" = $1`;
+    sql += ` WHERE CAST("versionId" AS TEXT) = CAST($1 AS TEXT)`;
     params.push(versionId);
   } else if (conceptId) {
-    sql += ` WHERE "conceptId" = $1`;
+    sql += ` WHERE CAST("conceptId" AS TEXT) = CAST($1 AS TEXT)`;
     params.push(conceptId);
   } else {
     return [];

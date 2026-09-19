@@ -121,12 +121,12 @@ export async function requireSubscription(productId = null) {
   
   let query = `
     SELECT * FROM "subscriptions"
-    WHERE "userId" = $1 AND status = 'active' AND "expiresAt" > $2
+    WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT) AND status = 'active' AND "expiresAt" > $2
   `;
   const params = [session.userId, now];
-  
+
   if (productId) {
-    query += ` AND ("packageId" = $3 OR "productId" = $3)`;
+    query += ` AND (CAST("packageId" AS TEXT) = CAST($3 AS TEXT) OR CAST("productId" AS TEXT) = CAST($3 AS TEXT))`;
     params.push(String(productId));
   }
   

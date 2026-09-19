@@ -324,3 +324,21 @@ export async function updateQuestionStats(versionId, stats) {
     throw error;
   }
 }
+
+export async function submitAnswer(questionId, choice, testId = null) {
+  try {
+    const res = await fetch(`${API_BASE}/${questionId}/answer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ choice, testId })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to submit answer');
+    }
+    return await res.json();
+  } catch (error) {
+    console.error('submitAnswer error:', error);
+    throw error;
+  }
+}

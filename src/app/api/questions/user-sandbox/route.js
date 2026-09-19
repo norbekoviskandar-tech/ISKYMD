@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUserQuestions, resetUserQuestions } from '@/lib/db/questions.repo';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdmin, requireRole } from '@/lib/auth';
 
 // GET /api/questions/user-sandbox?userId=xxx&packageId=xxx - Sandbox progress retrieval (admin only)
 export async function GET(request) {
@@ -26,6 +26,9 @@ export async function GET(request) {
 
 // PUT /api/questions/user-sandbox - Sandbox progress update
 export async function PUT(request) {
+  const auth = await requireRole('author');
+  if (auth instanceof NextResponse) return auth;
+
   try {
     // STRICT ARCHITECTURE: sandbox endpoint is kept for compatibility but does not persist.
     const body = await request.json().catch(() => ({}));

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { getAllQuestions, updateQuestion, createQuestion, deleteQuestion, getQuestionById } from '@/lib/db/questions.repo';
 import { execute } from '@/lib/pg';
-import { requireSubscription } from '@/lib/auth';
+import { requireSubscription, requireRole } from '@/lib/auth';
 
 // GET /api/questions?packageId=xxx - Get questions
 export async function GET(request) {
@@ -15,14 +15,8 @@ export async function GET(request) {
     if (auth instanceof NextResponse) return auth;
 
     const questions = await getAllQuestions(productId, includeUnpublished);
-    
-    // Remove correct answers from questions before sending to client
-    const sanitizedQuestions = questions.map(q => {
-      const { correctAnswer, ...sanitized } = q;
-      return sanitized;
-    });
-    
-    return NextResponse.json(sanitizedQuestions);
+
+    return NextResponse.json(questions);
   } catch (error) {
     console.error('Question GET error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -31,6 +25,9 @@ export async function GET(request) {
 
 // POST /api/questions - Create a new question
 export async function POST(req) {
+  const auth = await requireRole('author');
+  if (auth instanceof NextResponse) return auth;
+
   let body;
 
   try {
@@ -155,6 +152,9 @@ export async function POST(req) {
 
 // PUT /api/questions - Update a question
 export async function PUT(request) {
+  const auth = await requireRole('author');
+  if (auth instanceof NextResponse) return auth;
+
   let body;
 
   try {
@@ -188,6 +188,9 @@ export async function PUT(request) {
 
 // DELETE /api/questions - Delete a question
 export async function DELETE(request) {
+  const auth = await requireRole('author');
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id } = await request.json();
 

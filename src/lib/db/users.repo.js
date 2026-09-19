@@ -36,7 +36,7 @@ export async function getUserByEmail(email) {
 }
 
 export async function getUserById(id) {
-  const user = await queryOne(`SELECT * FROM "users" WHERE id = $1`, [id]);
+  const user = await queryOne(`SELECT * FROM "users" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [id]);
   if (user) {
     user.stats = JSON.parse(user.stats || "{}");
     user.purchased = !!user.purchased;
@@ -84,7 +84,7 @@ export async function updateUser(user) {
       "hasPendingPurchase" = $8, "trialUsed" = $9, "activatedAt" = $10,
       "expiresAt" = $11, "lastRenewedAt" = $12, "updatedAt" = $13, "isBanned" = $14, stats = $15,
       "pendingDuration" = $16, "subscriptionDuration" = $17, "productName" = $18
-    WHERE id = $19
+    WHERE CAST(id AS TEXT) = CAST($19 AS TEXT)
   `, [
     user.name || "",
     user.email || "",
@@ -117,39 +117,39 @@ export async function updateUser(user) {
 
 export async function deleteUser(id) {
   try {
-    const user = await queryOne(`SELECT * FROM "users" WHERE id = $1`, [id]);
+    const user = await queryOne(`SELECT * FROM "users" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [id]);
     if (!user) {
       throw new Error("User not found");
     }
 
     await transaction(async (client) => {
-      await client.query(`DELETE FROM "subscriptions" WHERE "userId" = $1`, [id]);
-      await client.query(`DELETE FROM "user_questions" WHERE "userId" = $1`, [id]);
-      await client.query(`DELETE FROM "user_feedback" WHERE "userId" = $1`, [id]);
-      await client.query(`DELETE FROM "notifications" WHERE "userId" = $1`, [id]);
-      await client.query(`DELETE FROM "student_cognition_profiles" WHERE "userId" = $1`, [id]);
-      await client.query(`DELETE FROM "planner" WHERE "userId" = $1`, [id]);
-      await client.query(`DELETE FROM "user_questions_archive" WHERE "userId" = $1`, [id]);
-      await client.query(`DELETE FROM "tests_archive" WHERE "userId" = $1`, [id]);
+      await client.query(`DELETE FROM "subscriptions" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [id]);
+      await client.query(`DELETE FROM "user_questions" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [id]);
+      await client.query(`DELETE FROM "user_feedback" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [id]);
+      await client.query(`DELETE FROM "notifications" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [id]);
+      await client.query(`DELETE FROM "student_cognition_profiles" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [id]);
+      await client.query(`DELETE FROM "planner" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [id]);
+      await client.query(`DELETE FROM "user_questions_archive" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [id]);
+      await client.query(`DELETE FROM "tests_archive" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [id]);
 
-      const testIds = (await client.query(`SELECT "testId" FROM "tests" WHERE "userId" = $1`, [id])).rows.map((t) => t.testId);
+      const testIds = (await client.query(`SELECT "testId" FROM "tests" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [id])).rows.map((t) => t.testId);
       if (testIds.length > 0) {
         const placeholders = testIds.map((_, i) => `$${i + 2}`).join(",");
-        await client.query(`DELETE FROM "student_answers" WHERE "testId" IN (${placeholders})`, [id, ...testIds]);
-        await client.query(`DELETE FROM "tests" WHERE "userId" = $1`, [id]);
+        await client.query(`DELETE FROM "student_answers" WHERE CAST("testId" AS TEXT) IN (${placeholders})`, [id, ...testIds]);
+        await client.query(`DELETE FROM "tests" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [id]);
       }
 
-      const attemptIds = (await client.query(`SELECT id FROM "test_attempts" WHERE "userId" = $1`, [id])).rows.map((a) => a.id);
+      const attemptIds = (await client.query(`SELECT id FROM "test_attempts" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [id])).rows.map((a) => a.id);
       if (attemptIds.length > 0) {
         const placeholders = attemptIds.map((_, i) => `$${i + 2}`).join(",");
-        await client.query(`DELETE FROM "test_answers" WHERE "testAttemptId" IN (${placeholders})`, [id, ...attemptIds]);
+        await client.query(`DELETE FROM "test_answers" WHERE CAST("testAttemptId" AS TEXT) IN (${placeholders})`, [id, ...attemptIds]);
         try {
-          await client.query(`DELETE FROM "test_attempt_answers" WHERE "attempt_id" IN (${placeholders})`, [id, ...attemptIds]);
+          await client.query(`DELETE FROM "test_attempt_answers" WHERE CAST("attempt_id" AS TEXT) IN (${placeholders})`, [id, ...attemptIds]);
         } catch (e) {}
-        await client.query(`DELETE FROM "test_attempts" WHERE "userId" = $1`, [id]);
+        await client.query(`DELETE FROM "test_attempts" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [id]);
       }
 
-      await client.query(`DELETE FROM "users" WHERE id = $1`, [id]);
+      await client.query(`DELETE FROM "users" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [id]);
     });
 
     console.log(`User ${id} ("${user.name}") PERMANENTLY purged from registry`);
@@ -166,19 +166,19 @@ export async function createUserSubscription({ userId, packageId, productId, dur
 
   console.log(`[Subscription Registry] Processing sub for user ${uidStr}, product ${pidStr}`);
 
-  const product = await queryOne(`SELECT "isDeleted" FROM "products" WHERE id = $1`, [pidStr]);
+  const product = await queryOne(`SELECT "isDeleted" FROM "products" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [pidStr]);
   if (product && product.isDeleted) {
     throw new Error("Cannot create subscription for deleted product");
   }
 
   const existing = await queryOne(`
         SELECT * FROM "subscriptions"
-        WHERE "userId" = $1 AND "packageId" = $2 AND status = 'active'
+        WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT) AND CAST("packageId" AS TEXT) = CAST($2 AS TEXT) AND status = 'active'
         ORDER BY "expiresAt" DESC LIMIT 1
     `, [uidStr, pidStr]);
 
   if (existing) {
-    const existingProduct = await queryOne(`SELECT "isDeleted" FROM "products" WHERE id = $1`, [pidStr]);
+    const existingProduct = await queryOne(`SELECT "isDeleted" FROM "products" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [pidStr]);
     if (existingProduct && existingProduct.isDeleted) {
       throw new Error("Cannot renew subscription for deleted product");
     }
@@ -187,7 +187,7 @@ export async function createUserSubscription({ userId, packageId, productId, dur
     const currentExpiry = new Date(existing.expiresAt);
     const newExpiry = new Date(currentExpiry.getTime() + Number(durationDays) * 24 * 60 * 60 * 1000);
 
-    await execute(`UPDATE "subscriptions" SET "expiresAt" = $1, "durationDays" = "durationDays" + $2, amount = amount + $3 WHERE id = $4`, [newExpiry.toISOString(), Number(durationDays), Number(amount), existing.id]);
+    await execute(`UPDATE "subscriptions" SET "expiresAt" = $1, "durationDays" = "durationDays" + $2, amount = amount + $3 WHERE CAST(id AS TEXT) = CAST($4 AS TEXT)`, [newExpiry.toISOString(), Number(durationDays), Number(amount), existing.id]);
 
     return { ...existing, expiresAt: newExpiry.toISOString(), extended: true };
   }
@@ -216,12 +216,12 @@ export async function getUserSubscriptions(userId) {
   return await query(`
         SELECT s.*, pr.name as "productName", pr."isDeleted" as "productDeleted"
         FROM "subscriptions" s
-        LEFT JOIN "products" pr ON s."packageId" = CAST(pr.id AS TEXT) OR s."productId" = CAST(pr.id AS TEXT)
-        WHERE s."userId" = $1
+        LEFT JOIN "products" pr ON CAST(s."packageId" AS TEXT) = CAST(pr.id AS TEXT) OR CAST(s."productId" AS TEXT) = CAST(pr.id AS TEXT)
+        WHERE CAST(s."userId" AS TEXT) = CAST($1 AS TEXT)
         AND s.id IN (
             SELECT MAX(id)
             FROM "subscriptions"
-            WHERE "userId" = $2
+            WHERE CAST("userId" AS TEXT) = CAST($2 AS TEXT)
             GROUP BY "packageId"
         )
         ORDER BY s."purchaseDate" DESC
@@ -233,8 +233,8 @@ export async function getActiveSubscriptionByUserAndProduct(userId, packageId) {
   const uidStr = String(userId);
   return await queryOne(`
         SELECT * FROM "subscriptions"
-        WHERE "userId" = $1
-        AND ("packageId" = $2 OR "productId" = $3)
+        WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)
+        AND (CAST("packageId" AS TEXT) = CAST($2 AS TEXT) OR CAST("productId" AS TEXT) = CAST($3 AS TEXT))
         AND status = 'active'
         ORDER BY "expiresAt" DESC
         LIMIT 1
@@ -242,7 +242,7 @@ export async function getActiveSubscriptionByUserAndProduct(userId, packageId) {
 }
 
 export async function activateSubscription(subscriptionId) {
-  const sub = await queryOne(`SELECT * FROM "subscriptions" WHERE id = $1`, [subscriptionId]);
+  const sub = await queryOne(`SELECT * FROM "subscriptions" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [subscriptionId]);
   if (!sub) throw new Error("Subscription not found");
 
   const now = new Date();
@@ -253,13 +253,13 @@ export async function activateSubscription(subscriptionId) {
         UPDATE "subscriptions" SET
             status = 'active',
             "expiresAt" = $1
-        WHERE id = $2
+        WHERE CAST(id AS TEXT) = CAST($2 AS TEXT)
     `, [expiresAt, subscriptionId]);
 
   const uidStr = String(sub.userId);
   const pidStr = String(sub.packageId);
 
-  const user = await queryOne(`SELECT "purchasedProducts" FROM "users" WHERE id = $1`, [uidStr]);
+  const user = await queryOne(`SELECT "purchasedProducts" FROM "users" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [uidStr]);
   let ids = [];
   try {
     ids = JSON.parse(user?.purchasedProducts || "[]");
@@ -270,14 +270,14 @@ export async function activateSubscription(subscriptionId) {
 
   if (!ids.includes(pidStr)) {
     ids.push(pidStr);
-    await execute(`UPDATE "users" SET "purchasedProducts" = $1, purchased = 1, "activatedByPurchase" = 1 WHERE id = $2`, [JSON.stringify(ids), uidStr]);
+    await execute(`UPDATE "users" SET "purchasedProducts" = $1, purchased = 1, "activatedByPurchase" = 1 WHERE CAST(id AS TEXT) = CAST($2 AS TEXT)`, [JSON.stringify(ids), uidStr]);
   }
 
   return { ...sub, status: "active", startDate, expiresAt };
 }
 
 export async function extendSubscription(subscriptionId, additionalDays) {
-  const sub = await queryOne(`SELECT * FROM "subscriptions" WHERE id = $1`, [subscriptionId]);
+  const sub = await queryOne(`SELECT * FROM "subscriptions" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [subscriptionId]);
   if (!sub) throw new Error("Subscription not found");
 
   const now = new Date();
@@ -293,7 +293,7 @@ export async function extendSubscription(subscriptionId, additionalDays) {
         UPDATE "subscriptions" SET
             status = 'active',
             "expiresAt" = $1
-        WHERE id = $2
+        WHERE CAST(id AS TEXT) = CAST($2 AS TEXT)
     `, [newExpiresAt.toISOString(), subscriptionId]);
 
   return { ...sub, status: "active", expiresAt: newExpiresAt.toISOString() };
@@ -320,7 +320,7 @@ export async function getNotifications(userId = null, limit = 50, onlyUnread = f
       sql += ` WHERE "isRead" = 0`;
     }
     if (userId) {
-      sql += onlyUnread ? ` AND "userId" = $${params.length + 1}` : ` WHERE "userId" = $${params.length + 1}`;
+      sql += onlyUnread ? ` AND CAST("userId" AS TEXT) = CAST($${params.length + 1} AS TEXT)` : ` WHERE CAST("userId" AS TEXT) = CAST($${params.length + 1} AS TEXT)`;
       params.push(userId);
     }
     sql += ` ORDER BY "createdAt" DESC LIMIT $${params.length + 1}`;
@@ -340,7 +340,7 @@ export async function getNotifications(userId = null, limit = 50, onlyUnread = f
 
 export async function markNotificationRead(id) {
   try {
-    await execute(`UPDATE "notifications" SET "isRead" = 1 WHERE id = $1`, [id]);
+    await execute(`UPDATE "notifications" SET "isRead" = 1 WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [id]);
     return true;
   } catch (err) {
     console.error("DB: Failed to mark notification as read:", err.message);
@@ -350,7 +350,7 @@ export async function markNotificationRead(id) {
 
 export async function getNotificationById(id) {
   try {
-    const row = await queryOne(`SELECT * FROM "notifications" WHERE id = $1`, [id]);
+    const row = await queryOne(`SELECT * FROM "notifications" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [id]);
     if (!row) return null;
     return {
       ...row,
@@ -388,7 +388,7 @@ export async function getUserFeedback(userId, limit = 100) {
   const rows = await query(`
     SELECT id, "userId", message, source, "questionId", "testId", page, "createdAt"
     FROM "user_feedback"
-    WHERE "userId" = $1
+    WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)
     ORDER BY "createdAt" DESC
     LIMIT $2
   `, [String(userId), Number(limit) || 100]);
@@ -401,7 +401,7 @@ export async function getFeedback(limit = 200) {
     SELECT f.id, f."userId", f.message, f.source, f."questionId", f."testId", f.page, f."createdAt",
            u.name as "userName", u.email as "userEmail"
     FROM "user_feedback" f
-    LEFT JOIN "users" u ON u.id = f."userId"
+    LEFT JOIN "users" u ON CAST(u.id AS TEXT) = CAST(f."userId" AS TEXT)
     ORDER BY f."createdAt" DESC
     LIMIT $1
   `, [Number(limit) || 200]);
@@ -415,7 +415,7 @@ export async function getUserUsageSummary(userId) {
       COUNT(DISTINCT "questionId") as "usedQuestions",
       SUM(CASE WHEN status = 'correct' OR status = 'incorrect' THEN 1 ELSE 0 END) as "doneQuestions"
     FROM "user_questions"
-    WHERE "userId" = $1
+    WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)
   `, [String(userId)]);
 
   return {
@@ -449,7 +449,7 @@ export async function getUserProductStats(userId, packageId) {
     WHERE "userId" = $1 AND (CAST("productId" AS TEXT) = CAST($2 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($3 AS TEXT))
   `, [userId, pidStr, pidStr]);
 
-  const completedTests = (await queryOne(`SELECT COUNT(*) as count FROM "tests" WHERE "userId" = $1 AND ("productId" = $2 OR "packageId" = $3) AND "isSuspended" = 0`, [userId, pidStr, pidStr])).count;
+  const completedTests = (await queryOne(`SELECT COUNT(*) as count FROM "tests" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT) AND (CAST("productId" AS TEXT) = CAST($2 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($3 AS TEXT)) AND "isSuspended" = 0`, [userId, pidStr, pidStr])).count;
 
   const attempted = (userProgress.correct || 0) + (userProgress.incorrect || 0);
   const totalAnswered = attempted + (userProgress.omitted || 0);

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { updateQuestionStats } from '@/lib/db/questions.repo';
 import { query } from '@/lib/pg';
-import { requireSubscription } from '@/lib/auth';
+import { requireSubscription, requireUser, requireRole } from '@/lib/auth';
 
 // GET /api/questions/stats?packageId=xxx&ids=... - Return product-scoped per-question stats
 export async function GET(request) {
@@ -18,15 +18,15 @@ export async function GET(request) {
 
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
     const rows = await query(`
-      SELECT 
+      SELECT
         q.id,
         COUNT(uq.id) as attempts,
         SUM(CASE WHEN uq.status = 'correct' THEN 1 ELSE 0 END) as correct
       FROM "questions" q
-      LEFT JOIN "user_questions" uq ON q.id = uq."questionId" 
-        AND uq."packageId" = $${ids.length + 1} 
+      LEFT JOIN "user_questions" uq ON CAST(q.id AS TEXT) = CAST(uq."questionId" AS TEXT)
+        AND CAST(uq."packageId" AS TEXT) = CAST($${ids.length + 1} AS TEXT)
         AND uq."totalAttempts" > 0
-      WHERE q.id IN (${placeholders}) AND q."packageId" = $${ids.length + 2}
+      WHERE CAST(q.id AS TEXT) IN (${placeholders}) AND CAST(q."packageId" AS TEXT) = CAST($${ids.length + 2} AS TEXT)
       GROUP BY q.id
     `, [...ids, packageId.toString(), packageId.toString()]);
 
@@ -50,6 +50,9 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const auth = await requireRole('author');
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { versionId, stats } = await request.json();
     if (!versionId) return NextResponse.json({ error: 'versionId required' }, { status: 400 });

@@ -3,8 +3,8 @@ import { queryOne, query, execute } from "../pg";
 export async function getProductUniverseAnalytics(packageId) {
   const pidStr = packageId.toString();
 
-  const totalQuestions = (await queryOne(`SELECT COUNT(*) as count FROM "questions" WHERE "productId" = $1 OR "packageId" = $2`, [pidStr, pidStr])).count;
-  const publishedQuestions = (await queryOne(`SELECT COUNT(*) as count FROM "questions" WHERE ("productId" = $1 OR "packageId" = $2) AND status = 'published' AND "isLatest" = 1`, [pidStr, pidStr])).count;
+  const totalQuestions = (await queryOne(`SELECT COUNT(*) as count FROM "questions" WHERE CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT)`, [pidStr, pidStr])).count;
+  const publishedQuestions = (await queryOne(`SELECT COUNT(*) as count FROM "questions" WHERE (CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT)) AND status = 'published' AND "isLatest" = 1`, [pidStr, pidStr])).count;
 
   const exposure = await queryOne(`
         SELECT
@@ -12,7 +12,7 @@ export async function getProductUniverseAnalytics(packageId) {
             SUM("totalAttempts") as "totalProductEngagements",
             AVG("totalAttempts") as "avgExposurePerQuestion"
         FROM "user_questions"
-        WHERE ("productId" = $1 OR "packageId" = $2)
+        WHERE (CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT))
     `, [pidStr, pidStr]);
 
   const forensics = await queryOne(`
@@ -22,13 +22,13 @@ export async function getProductUniverseAnalytics(packageId) {
             AVG("totalStrikes" / CAST(NULLIF("globalAttempts", 0) AS NUMERIC)) as "avgStrikes",
             SUM("globalCorrect") * 100.0 / SUM("globalAttempts") as "aggregateCorrectRate"
         FROM "questions"
-        WHERE ("productId" = $1 OR "packageId" = $2) AND status = 'published' AND "isLatest" = 1
+        WHERE (CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT)) AND status = 'published' AND "isLatest" = 1
     `, [pidStr, pidStr]);
 
   const systems = await query(`
         SELECT system, COUNT(*) as count
         FROM "questions"
-        WHERE ("productId" = $1 OR "packageId" = $2) AND status = 'published' AND "isLatest" = 1
+        WHERE (CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT)) AND status = 'published' AND "isLatest" = 1
         GROUP BY system
     `, [pidStr, pidStr]);
 
@@ -55,9 +55,9 @@ export async function getGlobalStats(packageId) {
   let timeQuery = `SELECT SUM("elapsedTime") as total FROM "tests"`;
 
   if (pidStr) {
-    questionsCountQuery += ` WHERE "productId" = $1 OR "packageId" = $2`;
-    testsCountQuery += ` WHERE "productId" = $1 OR "packageId" = $2`;
-    timeQuery += ` WHERE "productId" = $1 OR "packageId" = $2`;
+    questionsCountQuery += ` WHERE CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT)`;
+    testsCountQuery += ` WHERE CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT)`;
+    timeQuery += ` WHERE CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT)`;
   }
 
   const totalQuestions = pidStr ? (await queryOne(questionsCountQuery, [pidStr, pidStr])).count : (await queryOne(questionsCountQuery)).count;
@@ -90,7 +90,7 @@ export async function getGlobalStats(packageId) {
   const recentQuestionsQuery = `
     SELECT id, published, "updatedAt", "createdAt"
     FROM "questions"
-    ${pidStr ? `WHERE ("productId" = $1 OR "packageId" = $2)` : ""}
+    ${pidStr ? `WHERE (CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT))` : ""}
     ORDER BY COALESCE("updatedAt", "createdAt") DESC
     LIMIT 5
   `;
@@ -111,7 +111,7 @@ export async function getGlobalStats(packageId) {
         AVG("totalVolatility" / CAST(NULLIF("globalAttempts", 0) AS NUMERIC)) as avgVolatility,
         SUM("globalCorrect") * 100.0 / CAST(NULLIF(SUM("globalAttempts"), 0) AS NUMERIC) as avgCorrectRate
     FROM "questions"
-    ${pidStr ? `WHERE "productId" = $1 OR "packageId" = $2` : ""}
+    ${pidStr ? `WHERE CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT)` : ""}
   `;
   const behavioral = pidStr ? await queryOne(behavioralQuery, [pidStr, pidStr]) : await queryOne(behavioralQuery);
 
@@ -137,7 +137,7 @@ export async function getEngagementData(packageId) {
   }
   const pidStr = packageId ? packageId.toString() : null;
   
-  const tests = pidStr ? await query(`SELECT "createdAt" FROM "tests" WHERE "productId" = $1`, [pidStr]) : await query(`SELECT "createdAt" FROM "tests"`);
+  const tests = pidStr ? await query(`SELECT "createdAt" FROM "tests" WHERE CAST("productId" AS TEXT) = CAST($1 AS TEXT)`, [pidStr]) : await query(`SELECT "createdAt" FROM "tests"`);
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const currentMonth = new Date().getMonth();
@@ -180,7 +180,7 @@ export async function getPublishedProducts() {
 
 export async function getProductById(id) {
   try {
-    const p = await queryOne(`SELECT * FROM "products" WHERE id = $1 AND "isDeleted" = 0`, [id]);
+    const p = await queryOne(`SELECT * FROM "products" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT) AND "isDeleted" = 0`, [id]);
     return mapProductRow(p);
   } catch (err) {
     console.error(`DB: Failed to get product ${id}:`, err.message);
@@ -190,7 +190,7 @@ export async function getProductById(id) {
 
 export async function getProductByIdIncludeDeleted(id) {
   try {
-    const p = await queryOne(`SELECT * FROM "products" WHERE id = $1`, [id]);
+    const p = await queryOne(`SELECT * FROM "products" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [id]);
     return mapProductRow(p);
   } catch (err) {
     console.error(`DB: Failed to get product ${id}:`, err.message);
@@ -219,7 +219,7 @@ export async function updateProduct(product) {
   await execute(`
     UPDATE "products" SET
       name = $1, "duration_days" = $2, price = $3, description = $4, "isActive" = $5, "templateType" = $6, systems = $7, subjects = $8, plans = $9, "updatedAt" = $10
-    WHERE id = $11
+    WHERE CAST(id AS TEXT) = CAST($11 AS TEXT)
   `, [
     product.name,
     product.duration_days || 0,
@@ -238,12 +238,12 @@ export async function updateProduct(product) {
 
 export async function deleteProduct(id) {
   try {
-    const product = await queryOne(`SELECT * FROM "products" WHERE id = $1`, [id]);
+    const product = await queryOne(`SELECT * FROM "products" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [id]);
     if (!product) {
       throw new Error("Product not found");
     }
 
-    const result = await execute(`DELETE FROM "products" WHERE id = $1`, [id]);
+    const result = await execute(`DELETE FROM "products" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [id]);
 
     if (result.rowCount === 0) {
       throw new Error("Failed to delete product from database");
@@ -259,7 +259,7 @@ export async function deleteProduct(id) {
 
 export async function getSubscriptionPackageById(id) {
   try {
-    const pkg = await queryOne(`SELECT * FROM "subscription_packages" WHERE id = $1`, [id]);
+    const pkg = await queryOne(`SELECT * FROM "subscription_packages" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [id]);
     if (!pkg) return null;
     
     return {

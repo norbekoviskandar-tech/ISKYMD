@@ -23,7 +23,7 @@ export async function saveTest(test) {
 
   console.log(`[Exam Runtime] Saving test ${tidStr} for user ${uidStr} in product ${pidStr}`);
 
-  const existing = await queryOne(`SELECT * FROM "tests" WHERE "testId" = $1 AND "userId" = $2`, [tidStr, uidStr]);
+  const existing = await queryOne(`SELECT * FROM "tests" WHERE CAST("testId" AS TEXT) = CAST($1 AS TEXT) AND CAST("userId" AS TEXT) = CAST($2 AS TEXT)`, [tidStr, uidStr]);
 
   if (existing) {
     await execute(`
@@ -33,7 +33,7 @@ export async function saveTest(test) {
         "packageId" = $9, "packageName" = $10, "productId" = $11,
         "universeSize" = $12, "eligiblePoolSize" = $13, "poolLogic" = $14,
         "sessionState" = $15
-      WHERE "testId" = $16 AND "userId" = $17
+      WHERE CAST("testId" AS TEXT) = CAST($16 AS TEXT) AND CAST("userId" AS TEXT) = CAST($17 AS TEXT)
     `, [
       JSON.stringify(test.questions),
       JSON.stringify(test.answers || {}),
@@ -89,7 +89,7 @@ export async function saveTest(test) {
   const isSuspendedFlag = test.isSuspended === true || test.isSuspended === 1 || test.isSuspended === "1";
   if (!isSuspendedFlag && !test.testAttemptId) {
     const existingUnfinished = await queryOne(
-      `SELECT id FROM "test_attempts" WHERE "testId" = $1 AND "finishedAt" IS NULL ORDER BY "startedAt" DESC LIMIT 1`,
+      `SELECT id FROM "test_attempts" WHERE CAST("testId" AS TEXT) = CAST($1 AS TEXT) AND "finishedAt" IS NULL ORDER BY "startedAt" DESC LIMIT 1`,
       [tidStr]
     );
 
@@ -113,7 +113,7 @@ export async function saveTest(test) {
         let correctOption = typeof qItem === "object" ? qItem.correct : null;
 
         if (!correctOption) {
-          const row = await queryOne(`SELECT correct FROM "questions" WHERE id = $1`, [String(qId)]);
+          const row = await queryOne(`SELECT correct FROM "questions" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [String(qId)]);
           correctOption = row?.correct || null;
         }
 
@@ -135,17 +135,17 @@ export async function saveTest(test) {
           if (fromPayload && typeof fromPayload === "object") {
             qSnap.push(fromPayload);
           } else {
-            const row = await queryOne(`SELECT * FROM "questions" WHERE id = $1`, [String(qid)]);
+            const row = await queryOne(`SELECT id, stem, choices, correct, subject, system, topic, "cognitiveLevel", type, published, "isLatest", "versionNumber", "createdAt", "updatedAt" FROM "questions" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [String(qid)]);
             if (row) {
               qSnap.push({
                 ...row,
                 id: String(row.id),
                 choices: parseJson(row.choices, []),
-                tags: parseJson(row.tags, []),
-                stemImage: parseJson(row.stemImage, {}),
-                explanationCorrectImage: parseJson(row.explanationCorrectImage, {}),
-                explanationWrongImage: parseJson(row.explanationWrongImage, {}),
-                summaryImage: parseJson(row.summaryImage, {}),
+                tags: [],
+                stemImage: {},
+                explanationCorrectImage: {},
+                explanationWrongImage: {},
+                summaryImage: {},
               });
             } else {
               qSnap.push({ id: qid });
@@ -157,7 +157,7 @@ export async function saveTest(test) {
           UPDATE "test_attempts" SET
             "questionIds" = $1,
             "questionSnapshots" = $2
-          WHERE id = $3
+          WHERE CAST(id AS TEXT) = CAST($3 AS TEXT)
         `, [JSON.stringify(qIds), JSON.stringify(qSnap), attemptId]);
       } catch (e) {
         console.error("[Exam Runtime] Failed to store baseline attempt snapshot:", e);
@@ -199,13 +199,13 @@ export async function saveTest(test) {
 
 export async function updateAttemptAnswer(attemptId, questionId, selectedOption) {
   const selected = selectedOption === undefined || selectedOption === "" ? null : selectedOption;
-  const correct = await queryOne(`SELECT "correctOption" FROM "test_answers" WHERE "testAttemptId" = $1 AND "questionId" = $2`, [attemptId, String(questionId)]);
+  const correct = await queryOne(`SELECT "correctOption" FROM "test_answers" WHERE CAST("testAttemptId" AS TEXT) = CAST($1 AS TEXT) AND CAST("questionId" AS TEXT) = CAST($2 AS TEXT)`, [attemptId, String(questionId)]);
   const correctOption = correct?.correctOption || null;
   const isCorrectVal = selected === null || !correctOption ? null : selected === correctOption ? 1 : 0;
   return await execute(`
     UPDATE "test_answers"
     SET "selectedOption" = $1, "isCorrect" = $2
-    WHERE "testAttemptId" = $3 AND "questionId" = $4
+    WHERE CAST("testAttemptId" AS TEXT) = CAST($3 AS TEXT) AND CAST("questionId" AS TEXT) = CAST($4 AS TEXT)
   `, [selected, isCorrectVal, attemptId, questionId]);
 }
 
@@ -213,7 +213,7 @@ export async function updateAttemptFlag(attemptId, questionId, isFlagged) {
   return await execute(`
     UPDATE "test_answers"
     SET "isFlagged" = $1
-    WHERE "testAttemptId" = $2 AND "questionId" = $3
+    WHERE CAST("testAttemptId" AS TEXT) = CAST($2 AS TEXT) AND CAST("questionId" AS TEXT) = CAST($3 AS TEXT)
   `, [isFlagged ? 1 : 0, attemptId, questionId]);
 }
 
@@ -222,7 +222,7 @@ export function updateAttemptReviewMetadata() {
 }
 
 export async function snapshotAttempt(attemptId, snapshot) {
-  const attempt = await queryOne(`SELECT id, "finishedAt" FROM "test_attempts" WHERE id = $1`, [attemptId]);
+  const attempt = await queryOne(`SELECT id, "finishedAt" FROM "test_attempts" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [attemptId]);
   if (!attempt) throw new Error("Attempt not found");
   if (attempt.finishedAt) throw new Error("Attempt already finished");
 
@@ -241,7 +241,7 @@ export async function snapshotAttempt(attemptId, snapshot) {
         "timeSpent" = $3,
         "elapsedTime" = $4,
         "questionSnapshots" = $5
-      WHERE id = $6
+      WHERE CAST(id AS TEXT) = CAST($6 AS TEXT)
     `, [
       JSON.stringify(questionIds),
       JSON.stringify(markedIds),
@@ -257,7 +257,7 @@ export async function snapshotAttempt(attemptId, snapshot) {
       const flagged = markedSet.has(qId) ? 1 : 0;
       const ts = Number(timeSpent[qId] || 0);
 
-      const correctRow = await client.query(`SELECT "correctOption" FROM "test_answers" WHERE "testAttemptId" = $1 AND "questionId" = $2`, [attemptId, qId]);
+      const correctRow = await client.query(`SELECT "correctOption" FROM "test_answers" WHERE CAST("testAttemptId" AS TEXT) = CAST($1 AS TEXT) AND CAST("questionId" AS TEXT) = CAST($2 AS TEXT)`, [attemptId, qId]);
       const correctOption = correctRow.rows[0]?.correctOption || null;
       const isCorrectVal = selected === null || !correctOption ? null : selected === correctOption ? 1 : 0;
 
@@ -267,7 +267,7 @@ export async function snapshotAttempt(attemptId, snapshot) {
           "isCorrect" = $2,
           "isFlagged" = $3,
           "timeSpentSec" = $4
-        WHERE "testAttemptId" = $5 AND "questionId" = $6
+        WHERE CAST("testAttemptId" AS TEXT) = CAST($5 AS TEXT) AND CAST("questionId" AS TEXT) = CAST($6 AS TEXT)
       `, [selected, isCorrectVal, flagged, ts, attemptId, qId]);
     }
   });
@@ -276,32 +276,32 @@ export async function snapshotAttempt(attemptId, snapshot) {
 }
 
 export async function finishAttempt(attemptId) {
-  const existing = await queryOne(`SELECT id, "finishedAt" FROM "test_attempts" WHERE id = $1`, [attemptId]);
+  const existing = await queryOne(`SELECT id, "finishedAt" FROM "test_attempts" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [attemptId]);
   if (!existing) throw new Error("Attempt not found");
   if (existing.finishedAt) return { success: true, alreadyFinished: true };
 
   await execute(`
     UPDATE "test_attempts"
     SET "finishedAt" = $1
-    WHERE id = $2
+    WHERE CAST(id AS TEXT) = CAST($2 AS TEXT)
   `, [new Date().toISOString(), attemptId]);
 
   const attempt = await queryOne(`
     SELECT ta.*, t."userId", t."packageId", t."productId"
     FROM "test_attempts" ta
-    JOIN "tests" t ON ta."testId" = t."testId"
-    WHERE ta.id = $1
+    JOIN "tests" t ON CAST(ta."testId" AS TEXT) = CAST(t."testId" AS TEXT)
+    WHERE CAST(ta.id AS TEXT) = CAST($1 AS TEXT)
   `, [attemptId]);
 
   if (attempt) {
-    const answers = await query(`SELECT * FROM "test_answers" WHERE "testAttemptId" = $1`, [attemptId]);
+    const answers = await query(`SELECT * FROM "test_answers" WHERE CAST("testAttemptId" AS TEXT) = CAST($1 AS TEXT)`, [attemptId]);
 
     for (const answer of answers) {
       const userId = attempt.userId;
       const productId = attempt.productId || attempt.packageId;
 
       const currentStatus = (await queryOne(
-        `SELECT status FROM "user_questions" WHERE "userId" = $1 AND "questionId" = $2 AND ("productId" = $3 OR "packageId" = $4)`,
+        `SELECT status FROM "user_questions" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT) AND CAST("questionId" AS TEXT) = CAST($2 AS TEXT) AND (CAST("productId" AS TEXT) = CAST($3 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($4 AS TEXT))`,
         [String(userId), String(answer.questionId), String(productId), String(productId)]
       ))?.status || "unused";
 
@@ -344,12 +344,12 @@ export async function finishAttempt(attemptId) {
   return { success: true, alreadyFinished: false };
 }
 
-export async function getTestAttempt(attemptId) {
-  const attempt = await queryOne(`SELECT * FROM "test_attempts" WHERE id = $1`, [attemptId]);
+export async function getTestAttempt(attemptId, role = 'student') {
+  const attempt = await queryOne(`SELECT * FROM "test_attempts" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [attemptId]);
   if (!attempt) return null;
 
-  const test = await queryOne(`SELECT * FROM "tests" WHERE "testId" = $1`, [attempt.testId]);
-  const answers = await query(`SELECT * FROM "test_answers" WHERE "testAttemptId" = $1`, [attemptId]);
+  const test = await queryOne(`SELECT * FROM "tests" WHERE CAST("testId" AS TEXT) = CAST($1 AS TEXT)`, [attempt.testId]);
+  const answers = await query(`SELECT * FROM "test_answers" WHERE CAST("testAttemptId" AS TEXT) = CAST($1 AS TEXT)`, [attemptId]);
 
   const answersMap = {};
   const markedIds = [];
@@ -359,11 +359,22 @@ export async function getTestAttempt(attemptId) {
   });
 
   const pidStr = attempt.productId.toString();
-  const universe = await queryOne(`SELECT COUNT(*) as count FROM "questions" WHERE ("productId" = $1 OR "packageId" = $2) AND status = "published" AND "isLatest" = 1`, [pidStr, pidStr]);
+  const universe = await queryOne(`SELECT COUNT(*) as count FROM "questions" WHERE (CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT)) AND status = "published" AND "isLatest" = 1`, [pidStr, pidStr]);
 
   const questionIds = parseJson(attempt.questionIds, null);
   const questionSnapshots = parseJson(attempt.questionSnapshots, null);
-  const questionsInTest = questionSnapshots || questionIds || parseJson(test?.questions, []);
+  let questionsInTest = questionSnapshots || questionIds || parseJson(test?.questions, []);
+
+  // Sanitize question fields for non-authors
+  if (role !== 'author' && Array.isArray(questionsInTest)) {
+    questionsInTest = questionsInTest.map(q => {
+      if (typeof q === 'object' && q !== null) {
+        const { correct, explanationCorrect, explanationWrong, summary, references, ...sanitized } = q;
+        return sanitized;
+      }
+      return q;
+    });
+  }
 
   const totalQuestions = Array.isArray(questionIds)
     ? questionIds.length
@@ -373,7 +384,7 @@ export async function getTestAttempt(attemptId) {
 
   const attemptAnswers = [];
   for (const a of answers) {
-    const question = await queryOne(`SELECT subject, system, topic, "globalAttempts", "globalCorrect" FROM "questions" WHERE id = $1`, [a.questionId]);
+    const question = await queryOne(`SELECT subject, system, topic, "globalAttempts", "globalCorrect", correct FROM "questions" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [a.questionId]);
 
     let percentCorrectOthers = "--";
     if (question && question.globalAttempts > 0) {
@@ -385,7 +396,7 @@ export async function getTestAttempt(attemptId) {
       selectedOption: a.selectedOption,
       isCorrect: a.isCorrect,
       isFlagged: a.isFlagged,
-      correctOption: a.correctOption ?? null,
+      correctOption: role === 'author' ? a.correctOption ?? null : null,
       timeSpentSec: a.timeSpentSec ?? 0,
       subject: question?.subject || null,
       system: question?.system || null,
@@ -415,8 +426,8 @@ export async function getTestAttempt(attemptId) {
 }
 
 export async function getTestAttemptStats(attemptId) {
-  const attempt = await queryOne(`SELECT "finishedAt" FROM "test_attempts" WHERE id = $1`, [attemptId]);
-  const rows = await query(`SELECT "selectedOption", "isCorrect", "isFlagged" FROM "test_answers" WHERE "testAttemptId" = $1`, [attemptId]);
+  const attempt = await queryOne(`SELECT "finishedAt" FROM "test_attempts" WHERE CAST(id AS TEXT) = CAST($1 AS TEXT)`, [attemptId]);
+  const rows = await query(`SELECT "selectedOption", "isCorrect", "isFlagged" FROM "test_answers" WHERE CAST("testAttemptId" AS TEXT) = CAST($1 AS TEXT)`, [attemptId]);
 
   let correct = 0;
   let incorrect = 0;
@@ -462,7 +473,7 @@ export async function getUserTests(userId, packageId) {
     FROM "tests" t
     LEFT JOIN "test_attempts" la ON la.id = (
       SELECT id FROM "test_attempts"
-      WHERE "testId" = t."testId" AND "finishedAt" IS NOT NULL
+      WHERE CAST("testId" AS TEXT) = CAST(t."testId" AS TEXT) AND "finishedAt" IS NOT NULL
       ORDER BY "finishedAt" DESC
       LIMIT 1
     )
@@ -477,7 +488,7 @@ export async function getUserTests(userId, packageId) {
       FROM "test_answers"
       GROUP BY "testAttemptId"
     ) s ON s."testAttemptId" = la.id
-    WHERE t."userId" = $1 AND (t."productId" = $2 OR t."packageId" = $3)
+    WHERE CAST(t."userId" AS TEXT) = CAST($1 AS TEXT) AND (CAST(t."productId" AS TEXT) = CAST($2 AS TEXT) OR CAST(t."packageId" AS TEXT) = CAST($3 AS TEXT))
     ORDER BY t."createdAt" DESC
   `, [userId, pidStr, pidStr]);
 
@@ -491,7 +502,7 @@ export async function getUserTests(userId, packageId) {
         const firstFewIds = parsedQuestions.slice(0, 50).map(q => String(typeof q === 'object' ? q.id : q));
         if (firstFewIds.length > 0) {
           const placeholders = firstFewIds.map((_, i) => `$${i + 1}`).join(",");
-          const metadata = await query(`SELECT subject, system FROM "questions" WHERE id IN (${placeholders})`, firstFewIds);
+          const metadata = await query(`SELECT subject, system FROM "questions" WHERE CAST(id AS TEXT) IN (${placeholders})`, firstFewIds);
 
           if (!poolLogic.subjects || poolLogic.subjects.length === 0) {
             poolLogic.subjects = [...new Set(metadata.map(m => m.subject))].filter(Boolean);
@@ -530,12 +541,12 @@ export async function getUserTests(userId, packageId) {
   return result;
 }
 
-export async function getTestById(testId) {
+export async function getTestById(testId, role = 'student') {
   const tidStr = String(testId);
 
   console.log(`[Exam Runtime] Fetching details for test ${tidStr}`);
 
-  const t = await queryOne(`SELECT * FROM "tests" WHERE "testId" = $1`, [tidStr]);
+  const t = await queryOne(`SELECT * FROM "tests" WHERE CAST("testId" AS TEXT) = CAST($1 AS TEXT)`, [tidStr]);
   if (t) {
     try {
       t.questions = parseJson(t.questions, []);
@@ -546,6 +557,17 @@ export async function getTestById(testId) {
       t.poolLogic = parseJson(t.poolLogic, {});
       t.sessionState = parseJson(t.sessionState, {});
       t.isSuspended = !!t.isSuspended;
+
+      // Sanitize question fields for non-authors
+      if (role !== 'author' && Array.isArray(t.questions)) {
+        t.questions = t.questions.map(q => {
+          if (typeof q === 'object' && q !== null) {
+            const { correct, explanationCorrect, explanationWrong, summary, references, ...sanitized } = q;
+            return sanitized;
+          }
+          return q;
+        });
+      }
     } catch (e) {
       console.error(`[Exam Runtime] Error parsing test ${t.testId}:`, e);
       t.questions = [];
@@ -560,7 +582,7 @@ export async function getTestById(testId) {
 }
 
 export async function deleteTest(testId) {
-  await execute(`DELETE FROM "tests" WHERE "testId" = $1`, [testId]);
+  await execute(`DELETE FROM "tests" WHERE CAST("testId" AS TEXT) = CAST($1 AS TEXT)`, [testId]);
   return true;
 }
 
@@ -573,10 +595,10 @@ export async function clearUserTests(userId) {
         INSERT INTO "tests_archive"
         ("testId", "testNumber", "userId", mode, pool, questions, answers, "firstAnswers", "markedIds", "currentIndex", "elapsedTime", "isSuspended", "packageId", "packageName", "createdAt", date, "archivedAt")
         SELECT "testId", "testNumber", "userId", mode, pool, questions, answers, "firstAnswers", "markedIds", "currentIndex", "elapsedTime", "isSuspended", "packageId", "packageName", "createdAt", date, $1
-        FROM "tests" WHERE "userId" = $2
+        FROM "tests" WHERE CAST("userId" AS TEXT) = CAST($2 AS TEXT)
       `, [now, userId]);
 
-      await client.query(`DELETE FROM "tests" WHERE "userId" = $1`, [userId]);
+      await client.query(`DELETE FROM "tests" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [userId]);
 
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
       await client.query(`DELETE FROM "tests_archive" WHERE "archivedAt" < $1`, [thirtyDaysAgo]);
@@ -591,7 +613,7 @@ export async function clearUserTests(userId) {
 
 export async function restoreUserTests(userId) {
   try {
-    const latest = await queryOne(`SELECT MAX("archivedAt") as "lastArchived" FROM "tests_archive" WHERE "userId" = $1`, [userId]);
+    const latest = await queryOne(`SELECT MAX("archivedAt") as "lastArchived" FROM "tests_archive" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT)`, [userId]);
 
     if (!latest || !latest.lastArchived) return false;
 
@@ -600,7 +622,7 @@ export async function restoreUserTests(userId) {
         INSERT INTO "tests"
         ("testId", "testNumber", "userId", mode, pool, questions, answers, "firstAnswers", "markedIds", "currentIndex", "elapsedTime", "isSuspended", "packageId", "packageName", "createdAt", date)
         SELECT "testId", "testNumber", "userId", mode, pool, questions, answers, "firstAnswers", "markedIds", "currentIndex", "elapsedTime", "isSuspended", "packageId", "packageName", "createdAt", date
-        FROM "tests_archive" WHERE "userId" = $1 AND "archivedAt" = $2
+        FROM "tests_archive" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT) AND "archivedAt" = $2
       `, [userId, latest.lastArchived]);
     });
 

@@ -32,7 +32,7 @@ export async function GET(request) {
     
     if (!userId || !packageId) return NextResponse.json({ error: 'Missing userId or packageId' }, { status: 400 });
     
-    const profile = await queryOne('SELECT * FROM "student_cognition_profiles" WHERE "userId" = $1 AND "packageId" = $2',
+    const profile = await queryOne('SELECT * FROM "student_cognition_profiles" WHERE CAST("userId" AS TEXT) = CAST($1 AS TEXT) AND CAST("packageId" AS TEXT) = CAST($2 AS TEXT)',
       [userId, packageId.toString()]);
     
     return NextResponse.json(profile || { readinessScore: 0, overthinkingIndex: 0, impulsivityIndex: 0, fatigueFactor: 0 });
