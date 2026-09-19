@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createNotification, createUserFeedback, getFeedback, getUserById, getUserFeedback, getUserUsageSummary } from '@/lib/db/users.repo';
-import { requireUser, requireAdmin } from '@/lib/auth';
+import { requireUser, requireRole } from '@/lib/auth';
 
 export async function GET(request) {
-  const auth = await requireAdmin();
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -12,9 +12,19 @@ export async function GET(request) {
     const limit = Number(searchParams.get('limit') || (userId ? 100 : 200));
 
     if (userId) {
+      // Allow access if userId matches session userId or if caller is author
+      if (auth.role !== 'author' && userId !== auth.userId) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      
       const feedback = await getUserFeedback(userId, limit);
       const usage = await getUserUsageSummary(userId);
       return NextResponse.json({ feedback, usage });
+    }
+
+    // List all feedback - authors only
+    if (auth.role !== 'author') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const feedback = await getFeedback(limit);

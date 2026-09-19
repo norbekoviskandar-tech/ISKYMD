@@ -104,7 +104,7 @@ export async function requireAdmin(request) {
   return requireRole('author');
 }
 
-export async function requireSubscription() {
+export async function requireSubscription(productId = null) {
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -115,16 +115,24 @@ export async function requireSubscription() {
     return session;
   }
   
-  // Check if user has active subscription
-  const user = await getUserById(session.userId);
-  if (!user) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  // Query subscriptions table for active subscription
+  const { queryOne } = await import('./pg');
+  const now = new Date().toISOString();
+  
+  let query = `
+    SELECT * FROM "subscriptions"
+    WHERE "userId" = $1 AND status = 'active' AND "expiresAt" > $2
+  `;
+  const params = [session.userId, now];
+  
+  if (productId) {
+    query += ` AND ("packageId" = $3 OR "productId" = $3)`;
+    params.push(String(productId));
   }
   
-  const hasActiveSubscription = user.subscriptionStatus === 'active' && 
-    (!user.subscriptionExpiry || new Date(user.subscriptionExpiry) > new Date());
+  const subscription = await queryOne(query, params);
   
-  if (!hasActiveSubscription) {
+  if (!subscription) {
     return NextResponse.json({ error: 'Active subscription required' }, { status: 403 });
   }
   

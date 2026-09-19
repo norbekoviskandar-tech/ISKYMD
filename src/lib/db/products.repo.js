@@ -257,6 +257,25 @@ export async function deleteProduct(id) {
   }
 }
 
+export async function getSubscriptionPackageById(id) {
+  try {
+    const pkg = await queryOne(`SELECT * FROM "subscription_packages" WHERE id = $1`, [id]);
+    if (!pkg) return null;
+    
+    return {
+      id: pkg.id,
+      name: pkg.name,
+      duration_days: pkg.duration_days,
+      price: pkg.price,
+      description: pkg.description,
+      is_published: !!pkg.is_published,
+    };
+  } catch (err) {
+    console.error(`DB: Failed to get subscription package ${id}:`, err.message);
+    return null;
+  }
+}
+
 function mapProductRow(p) {
   if (!p) return null;
 

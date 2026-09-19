@@ -6,13 +6,13 @@ import { requireSubscription } from '@/lib/auth';
 
 // GET /api/questions?packageId=xxx - Get questions
 export async function GET(request) {
-  const auth = await requireSubscription();
-  if (auth instanceof NextResponse) return auth;
-
   try {
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get('productId') || searchParams.get('packageId');
     const includeUnpublished = searchParams.get('includeUnpublished') !== 'false';
+
+    const auth = await requireSubscription(productId);
+    if (auth instanceof NextResponse) return auth;
 
     const questions = await getAllQuestions(productId, includeUnpublished);
     

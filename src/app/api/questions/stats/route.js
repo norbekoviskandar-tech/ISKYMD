@@ -5,9 +5,6 @@ import { requireSubscription } from '@/lib/auth';
 
 // GET /api/questions/stats?packageId=xxx&ids=... - Return product-scoped per-question stats
 export async function GET(request) {
-  const auth = await requireSubscription();
-  if (auth instanceof NextResponse) return auth;
-
   try {
     const { searchParams } = new URL(request.url);
     const packageId = searchParams.get('packageId');
@@ -15,6 +12,9 @@ export async function GET(request) {
     if (!packageId || !ids || ids.length === 0) {
       return NextResponse.json({ error: 'packageId and ids required' }, { status: 400 });
     }
+
+    const auth = await requireSubscription(packageId);
+    if (auth instanceof NextResponse) return auth;
 
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
     const rows = await query(`

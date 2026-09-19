@@ -7,15 +7,15 @@ import { requireSubscription } from '@/lib/auth';
  * Real-time calculation of eligible question pool before test creation.
  */
 export async function POST(request) {
-  const auth = await requireSubscription();
-  if (auth instanceof NextResponse) return auth;
-
   try {
     const { userId, packageId, filters } = await request.json();
     
     if (!userId || !packageId) {
       return NextResponse.json({ error: 'userId and packageId required' }, { status: 400 });
     }
+
+    const auth = await requireSubscription(packageId);
+    if (auth instanceof NextResponse) return auth;
 
     const universeSize = getUniverseSize(packageId);
     const pool = getEligiblePool(userId, packageId, filters);

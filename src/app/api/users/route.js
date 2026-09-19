@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getAllUsers, getUserById, updateUser, deleteUser, createNotification } from '@/lib/db/users.repo';
-import { requireAdmin, requireUser } from '@/lib/auth';
+import { requireRole, requireUser } from '@/lib/auth';
 
-// GET /api/users - Get all users or single user by id (admin only)
+// GET /api/users - Get all users or single user by id
 export async function GET(request) {
-  const auth = await requireAdmin();
+  const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -12,12 +12,22 @@ export async function GET(request) {
     const id = searchParams.get('id');
     
     if (id) {
+      // Allow access if id matches session userId or if caller is author
+      if (auth.role !== 'author' && id !== auth.userId) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      
       const user = await getUserById(id);
       if (!user) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
       }
       const { passwordHash: _, ...safeUser } = user;
       return NextResponse.json(safeUser);
+    }
+    
+    // List all users - authors only
+    if (auth.role !== 'author') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
     const users = (await getAllUsers()).map(({ passwordHash: _, ...user }) => user);
@@ -39,7 +49,7 @@ export async function PUT(request) {
   const auth = await requireUser();
   if (auth instanceof NextResponse) return auth;
   
-  // Non-admins can only update their own profile
+  // Non-authors can only update their own profile
   if (auth.role !== 'author' && auth.userId !== updates.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
@@ -50,7 +60,7 @@ export async function PUT(request) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  // Non-admins can only change specific fields
+  // Non-authors can only change specific fields
   if (auth.role !== 'author') {
     const allowedFields = ['name', 'profile'];
     const restrictedFields = ['role', 'isBanned', 'passwordHash', 'subscriptionStatus', 'subscriptionExpiry', 'activatedByPurchase', 'stats'];
@@ -70,7 +80,7 @@ export async function PUT(request) {
     stats: updates.stats || existingUser.stats
   };
 
-  // Detect purchase activation (admin only)
+  // Detect purchase activation (author only)
   if (auth.role === 'author' && updates.activatedByPurchase && !existingUser.activatedByPurchase) {
       await createNotification(
           'purchase',
@@ -90,9 +100,9 @@ export async function PUT(request) {
   }
 }
 
-// DELETE /api/users - Delete a user (admin only)
+// DELETE /api/users - Delete a user (author only)
 export async function DELETE(request) {
-  const auth = await requireAdmin();
+  const auth = await requireRole('author');
   if (auth instanceof NextResponse) return auth;
 
   try {
