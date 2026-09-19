@@ -6,10 +6,10 @@ export async function getUserQuestions(userId, productId) {
       q.id, q."productId", q."packageId", q.subject, q.system, q.topic, q.status,
       q."cognitiveLevel", q.type, q.published, q."isLatest", q."versionNumber",
       q."createdAt", q."updatedAt",
-      uq.status as userStatus,
-      uq.isMarked,
-      uq.userAnswer,
-      uq.totalAttempts
+      uq.status as "userStatus",
+      uq."isMarked",
+      uq."userAnswer",
+      uq."totalAttempts"
     FROM "questions" q
     LEFT JOIN "user_questions" uq ON CAST(q.id AS TEXT) = CAST(uq."questionId" AS TEXT)
       AND CAST(uq."userId" AS TEXT) = CAST($1 AS TEXT)

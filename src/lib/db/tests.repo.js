@@ -359,7 +359,7 @@ export async function getTestAttempt(attemptId, role = 'student') {
   });
 
   const pidStr = attempt.productId.toString();
-  const universe = await queryOne(`SELECT COUNT(*) as count FROM "questions" WHERE (CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT)) AND status = "published" AND "isLatest" = 1`, [pidStr, pidStr]);
+  const universe = await queryOne(`SELECT COUNT(*) as count FROM "questions" WHERE (CAST("productId" AS TEXT) = CAST($1 AS TEXT) OR CAST("packageId" AS TEXT) = CAST($2 AS TEXT)) AND status = 'published' AND "isLatest" = 1`, [pidStr, pidStr]);
 
   const questionIds = parseJson(attempt.questionIds, null);
   const questionSnapshots = parseJson(attempt.questionSnapshots, null);
