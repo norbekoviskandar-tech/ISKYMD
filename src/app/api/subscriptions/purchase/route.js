@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createUserSubscription, activateSubscription, getActiveSubscriptionByUserAndProduct, extendSubscription } from '@/lib/db/users.repo';
 import { getProductById, getSubscriptionPackageById } from '@/lib/db/products.repo';
-import { requireUser } from '@/lib/auth';
+import { requireUser, requireRole } from '@/lib/auth';
 
 // POST /api/subscriptions/purchase
 // Body: { userId: 'xxx', cart: [{ id: packageId, title: 'Name', duration: 90, ... }] }
 export async function POST(request) {
-  const auth = await requireUser();
+  // No payment is verified here, so outside sandbox mode only authors may call it.
+  const isSandbox = process.env.PAYMENTS_SANDBOX === 'true';
+  const auth = isSandbox ? await requireUser() : await requireRole('author');
   if (auth instanceof NextResponse) return auth;
 
   try {

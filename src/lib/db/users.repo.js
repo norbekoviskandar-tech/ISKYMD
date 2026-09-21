@@ -21,6 +21,13 @@ export async function createUser(user) {
   return user;
 }
 
+export async function updateUserPasswordHash(id, passwordHash) {
+  await execute(
+    `UPDATE "users" SET "passwordHash" = $1, "updatedAt" = $2 WHERE CAST(id AS TEXT) = CAST($3 AS TEXT)`,
+    [passwordHash, new Date().toISOString(), id]
+  );
+}
+
 export async function getUserByEmail(email) {
   const trimmedEmail = (email || "").trim();
   const user = await queryOne(`SELECT * FROM "users" WHERE LOWER("email") = LOWER($1)`, [trimmedEmail]);

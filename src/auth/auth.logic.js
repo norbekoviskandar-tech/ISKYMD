@@ -49,30 +49,17 @@ export async function loginUser(email, password) {
 
 export async function changeUserPassword(userId, oldPassword, newPassword) {
   try {
-  // First verify old password by trying to get user and check
-    const { getUserById, updateUser } = await import("@/services/user.service");
-    const user = await getUserById(userId);
-    if (!user) throw new Error("User not found");
-
-    // Hash passwords for comparison (done server-side ideally)
-    const crypto = await import('crypto');
-    const hashPassword = (pwd) => crypto.createHash('sha256').update(pwd).digest('hex');
-
-    // We need a server endpoint for this - for now, use a workaround
-    // This should be a proper API endpoint in production
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch('/api/auth/change-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: user.email, password: oldPassword })
+      body: JSON.stringify({ currentPassword: oldPassword, newPassword })
     });
 
     if (!res.ok) {
-      throw new Error("Current password incorrect");
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || 'Failed to change password');
     }
 
-    // Update password via user update
-    const newHash = hashPassword(newPassword);
-    await updateUser({ ...user, passwordHash: newHash });
     return true;
   } catch (error) {
     console.error('changeUserPassword error:', error);

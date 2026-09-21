@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getUserByEmail } from '@/lib/db/users.repo';
+import { getUserByEmail, updateUserPasswordHash } from '@/lib/db/users.repo';
+import { hashPassword, verifyPassword } from '@/lib/password';
 import { createSession } from '@/lib/auth';
 import { cookies } from 'next/headers';
-import crypto from 'crypto';
 import { checkLoginRateLimit, recordFailedLogin, resetLoginAttempts } from '@/lib/rate-limiter';
-
-function hashPassword(password) {
-  return crypto.createHash('sha256').update(password).digest('hex');
-}
 
 export async function POST(request) {
   try {
@@ -36,10 +32,19 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
 
-    const hash = hashPassword(password);
-    if (hash !== user.passwordHash) {
+    const { valid, needsUpgrade } = await verifyPassword(password, user.passwordHash);
+    if (!valid) {
       recordFailedLogin(email, ip);
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    }
+
+    // Upgrade old unsalted SHA-256 hashes to scrypt on successful login
+    if (needsUpgrade) {
+      try {
+        await updateUserPasswordHash(user.id, await hashPassword(password));
+      } catch (upgradeError) {
+        console.error('Password hash upgrade failed:', upgradeError);
+      }
     }
 
     if (user.isBanned) {

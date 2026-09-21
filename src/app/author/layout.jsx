@@ -99,7 +99,7 @@ export default function AuthorLayout({ children }) {
         const effectiveRole = String(user?.role || '').toLowerCase().trim();
         const userEmail = user?.email || "No Email";
 
-        if (effectiveRole !== 'admin' && effectiveRole !== 'author' && user.email !== 'norbekoviskandar@gmail.com') {
+        if (effectiveRole !== 'author') {
           console.warn(`[Author Security] ACCESS DENIED for ${userEmail} (Role: ${effectiveRole}). Redirecting to student portal.`);
           router.push("/student/portal");
           return;

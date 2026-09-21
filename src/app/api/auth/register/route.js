@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getUserByEmail, createUser, createNotification } from '@/lib/db/users.repo';
 import crypto from 'crypto';
+import { hashPassword } from '@/lib/password';
 import { checkRegisterRateLimit, recordRegisterAttempt } from '@/lib/rate-limiter';
-
-// Simple hash function (same as client-side for compatibility)
-function hashPassword(password) {
-  return crypto.createHash('sha256').update(password).digest('hex');
-}
 
 export async function POST(request) {
   try {
@@ -44,7 +40,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'User already exists' }, { status: 409 });
     }
 
-    const passwordHash = hashPassword(password);
+    const passwordHash = await hashPassword(password);
     const user = await createUser({
       id: crypto.randomUUID(),
       name,

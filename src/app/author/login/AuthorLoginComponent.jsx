@@ -40,8 +40,8 @@ export default function AuthorLoginComponent() {
       const userRole = (user.role || '').toLowerCase().trim();
       console.log('Author login - received user:', { id: user.id, role: userRole, email: user.email });
 
-      // Only allow admin/author users or specific email
-      if (userRole !== 'admin' && userRole !== 'author' && user.email !== 'norbekoviskandar@gmail.com') {
+      // Only author accounts may enter (the server enforces the same rule)
+      if (userRole !== 'author') {
         setLoginError("Access Denied: Author privileges required");
         setLoginLoading(false);
         // Clear the logged in session
