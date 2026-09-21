@@ -170,7 +170,7 @@ export async function getAllProducts() {
 
 export async function getPublishedProducts() {
   try {
-    const rows = await query(`SELECT * FROM "products" WHERE "isActive" = 1 AND "isDeleted" = 0 ORDER BY name ASC`);
+    const rows = await query(`SELECT * FROM "products" WHERE "isActive" = 1 AND COALESCE("is_published", 1) = 1 AND "isDeleted" = 0 ORDER BY name ASC`);
     return rows.map(mapProductRow);
   } catch (err) {
     console.error("DB: Failed to get published products:", err.message);
@@ -216,16 +216,22 @@ export async function createProduct(product) {
 }
 
 export async function updateProduct(product) {
+  // Visibility: the UI sends `is_published`; older callers send `isActive`.
+  // Prefer is_published when present. If neither is provided, keep the stored value.
+  const visibleInput = product.is_published !== undefined ? product.is_published : product.isActive;
+  const visible = visibleInput === undefined || visibleInput === null ? null : (visibleInput ? 1 : 0);
   await execute(`
     UPDATE "products" SET
-      name = $1, "duration_days" = $2, price = $3, description = $4, "isActive" = $5, "templateType" = $6, systems = $7, subjects = $8, plans = $9, "updatedAt" = $10
+      name = $1, "duration_days" = $2, price = $3, description = $4,
+      "isActive" = COALESCE($5::int, "isActive"), "is_published" = COALESCE($5::int, "is_published"),
+      "templateType" = $6, systems = $7, subjects = $8, plans = $9, "updatedAt" = $10
     WHERE CAST(id AS TEXT) = CAST($11 AS TEXT)
   `, [
     product.name,
     product.duration_days || 0,
     product.price || 0,
     product.description,
-    product.isActive ? 1 : 0,
+    visible,
     product.templateType || "DEFAULT",
     JSON.stringify(product.systems || []),
     JSON.stringify(product.subjects || []),
@@ -304,7 +310,7 @@ function mapProductRow(p) {
   return {
     ...p,
     isActive: !!p.isActive,
-    is_published: !!(p.isActive || p.is_published),
+    is_published: !!p.isActive,
     templateType: p.templateType || "DEFAULT",
     systems: safeParse(p.systems, []),
     subjects: safeParse(p.subjects, []),

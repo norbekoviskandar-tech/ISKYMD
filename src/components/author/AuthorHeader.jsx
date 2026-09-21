@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Search, Bell, User, Sun, Moon, Menu, RefreshCw, DollarSign, Package, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppContext } from '@/context/AppContext';
-import { getPublishedProducts } from '@/services/product.service';
+import { getAllProducts } from '@/services/product.service';
 import Link from 'next/link';
 
 const AuthorHeader = () => {
@@ -28,7 +28,7 @@ const AuthorHeader = () => {
 
     // Load products for context switcher and enforce context selection
     useEffect(() => {
-        getPublishedProducts().then(data => {
+        getAllProducts().then(data => {
             setProducts(data || []);
             if (!selectedAuthorProduct && data && data.length > 0) {
                 setGlobalAuthorProduct(data[0]);
@@ -129,7 +129,7 @@ const AuthorHeader = () => {
                                                     className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 mb-1 ${selectedAuthorProduct?.id === p.id ? 'bg-[#D4AF37]/10 text-[#D4AF37]' : 'hover:bg-[#111111] text-[#B8B09A]'}`}
                                                 >
                                                     <div className={`w-1.5 h-1.5 rounded-full ${selectedAuthorProduct?.id === p.id ? 'bg-[#D4AF37]' : 'bg-[#2A2A2A]'}`} />
-                                                    {p.name}
+                                                    {p.name}{p.is_published === false ? <span className="ml-auto text-[9px] uppercase tracking-widest text-amber-500">hidden</span> : null}
                                                 </button>
                                             ))}
                                         </div>

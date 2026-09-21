@@ -4,7 +4,7 @@ import { useEffect, useState, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { getAllProducts, addProduct, updateProduct } from "@/services/product.service";
 import { useDeleteItem } from "@/hooks/useDeleteItem";
-import { Package, Plus, Trash2, ShieldCheck, ShieldAlert, Edit2, Check, X, Tag, Clock, DollarSign, Database } from "lucide-react";
+import { Package, Plus, Trash2, ShieldCheck, ShieldAlert, Edit2, Check, X, Tag, Clock, DollarSign, Database, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppContext } from "@/context/AppContext";
 
@@ -238,6 +238,15 @@ export default function ManageProductsPage() {
       setSelectedIds(new Set());
     } else {
       setSelectedIds(new Set(products.map(p => p.id)));
+    }
+  };
+
+  const handleToggleVisibility = async (product) => {
+    try {
+      await updateProduct({ ...product, is_published: !product.is_published });
+      loadProducts();
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -662,11 +671,18 @@ export default function ManageProductsPage() {
                     <td className="px-8 py-6">
                       <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${product.is_published ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'}`}>
                         <div className={`w-1.5 h-1.5 rounded-full ${product.is_published ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                        {product.is_published ? 'LIVE' : 'DRAFT'}
+                        {product.is_published ? 'LIVE' : 'HIDDEN'}
                       </span>
                     </td>
                     <td className="px-8 py-6 text-right">
                        <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleToggleVisibility(product)}
+                          className={`p-2.5 rounded-xl transition-all border flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${product.is_published ? 'bg-panel border-border hover:bg-amber-500 hover:text-black' : 'bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-emerald-500 hover:text-black'}`}
+                          title={product.is_published ? 'Hide this product from students' : 'Show this product to students'}
+                        >
+                          {product.is_published ? <EyeOff size={14} /> : <Eye size={14} />} {product.is_published ? 'Hide' : 'Show'}
+                        </button>
                         <button 
                           onClick={() => router.push(`/author/manage-questions?packageId=${product.id}`)}
                           className="p-2.5 rounded-xl bg-[#C9A227]/10 text-[#C9A227] hover:bg-[#C9A227] hover:text-white transition-all border border-[#C9A227]/20 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-4"
