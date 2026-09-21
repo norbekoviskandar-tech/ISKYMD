@@ -120,7 +120,6 @@ export default function Home() {
                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Support</span>
                    <a href="#" className="text-sm font-bold text-slate-700 hover:text-[#1d46af] transition-colors">Contact</a>
                    <a href="#" className="text-sm font-bold text-slate-700 hover:text-[#1d46af] transition-colors">Knowledge Base</a>
-                   <a href="#" className="text-sm font-bold text-slate-700 hover:text-[#1d46af] transition-colors">Offline Guide</a>
                 </div>
              </div>
           </div>
