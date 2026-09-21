@@ -44,7 +44,7 @@ export default function ProductsPage() {
     // Otherwise, generate dynamic description based on duration_days
     const days = product.duration_days;
     if (days <= 90) {
-      return `Master the art of ECG interpretation with ${days}-day access to 2,000+ high-fidelity rhythm strips and real-time wave analysis.`;
+      return `Master the art of ECG interpretation with ${days}-day access to high-fidelity rhythm strips and real-time wave analysis.`;
     } else if (days <= 180) {
       return `Extended ${days}-day access for deep clinical mastery. Includes all premium modules, case studies, and advanced metrics.`;
     } else {
@@ -197,7 +197,7 @@ export default function ProductsPage() {
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-50 text-rose-500">
                       <Zap size={12} strokeWidth={3} />
                     </div>
-                    2,000+ High-Fidelity Questions
+                    High-Fidelity Practice Questions
                   </div>
                 </div>
 

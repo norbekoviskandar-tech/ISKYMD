@@ -472,7 +472,7 @@ export default function AuthComponent() {
                 </svg>
               </div>
               <h3 className="text-lg font-black mb-2">ECG Qbank</h3>
-              <p className="text-sm text-slate-300 font-medium">Master ECG interpretation with 2,000+ rhythm strips</p>
+              <p className="text-sm text-slate-300 font-medium">Master ECG interpretation with high-fidelity rhythm strips</p>
             </Link>
 
             {/* Coming Soon Products */}
