@@ -11,9 +11,9 @@ import { saveTest, getTestById, updateAttemptAnswer, updateAttemptFlag, snapshot
 import { submitFeedback } from "@/services/user.service";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Menu, Flag, ChevronLeft, ChevronRight, Maximize2, 
-  HelpCircle, FlaskConical, StickyNote, Calculator, 
-  Contrast, ZoomIn, Settings, Layers, 
+  Menu, Flag, ChevronLeft, ChevronRight, 
+  FlaskConical, StickyNote, Calculator, 
+  Contrast, Layers, 
   MessageSquare, PauseCircle, LogOut, AlertTriangle,
   Power, Pause, Check, X, BarChart2, Clock
  } from "lucide-react";
@@ -1242,19 +1242,7 @@ export default function TakeTestPage() {
         </div>
 
         <div className="flex items-center gap-5">
-          <div className="flex items-center gap-4 mr-4">
-            {[
-              { Icon: ZoomIn, label: 'Zoom' },
-              { Icon: Settings, label: 'Settings' },
-              { Icon: HelpCircle, label: 'Help' },
-              { Icon: Maximize2, label: 'Full' }
-            ].map((tool, i) => (
-              <tool.Icon key={i} size={18} className="cursor-pointer hover:text-blue-300 transition-colors opacity-70" />
-            ))}
-          </div>
-
-
-          {/* VISUAL TIMER LOGIC */}
+{/* VISUAL TIMER LOGIC */}
           {!isReviewMode && (mode !== 'tutor' || !isSubmitted) ? (
             <div className={`flex items-center gap-2 font-mono text-[16px] font-bold tracking-tight px-3 py-1 rounded border border-white/5 ${mode === 'timed' ? 'text-amber-400 bg-amber-400/10' : 'text-zinc-400 bg-black/20'}`}>
               {(() => {

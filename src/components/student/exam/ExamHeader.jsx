@@ -2,7 +2,7 @@
 
 import React from "react";
 import { 
-  Menu, Flag, Maximize2, HelpCircle, ZoomIn, Settings, BarChart2 
+  Menu, Flag, BarChart2 
 } from "lucide-react";
 import { useExam } from "@/context/ExamContext";
 import { useTimer } from "@/hooks/exam/useTimer";
@@ -59,18 +59,7 @@ export default function ExamHeader() {
       </div>
 
       <div className="flex items-center gap-5">
-        <div className="flex items-center gap-4 mr-4">
-          {[
-            { Icon: ZoomIn, label: 'Zoom' },
-            { Icon: Settings, label: 'Settings' },
-            { Icon: HelpCircle, label: 'Help' },
-            { Icon: Maximize2, label: 'Full' }
-          ].map((tool, i) => (
-            <tool.Icon key={i} size={18} className="cursor-pointer hover:text-blue-300 transition-colors opacity-70" />
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2 font-mono text-[16px] font-bold tracking-tight bg-black/20 px-3 py-1 rounded border border-white/5">
+<div className="flex items-center gap-2 font-mono text-[16px] font-bold tracking-tight bg-black/20 px-3 py-1 rounded border border-white/5">
           {mode === "timed"
             ? formatTime(Math.max(0, (totalQuestions * 90) - elapsedTime))
             : formatTime(elapsedTime)
