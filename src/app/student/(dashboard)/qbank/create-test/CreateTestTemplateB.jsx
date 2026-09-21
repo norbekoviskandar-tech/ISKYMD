@@ -28,13 +28,24 @@ export default function CreateTestTemplateB({ questions, userId, productConfig }
 
   console.log("[TemplateB] Rendering with questions:", questions.length);
 
+  // Options come from the product config, plus any subject/system that the
+  // product's questions actually use. Without the extras, a question whose
+  // subject is missing from the config could never be selected (count stays 0).
   const subjectOptions = useMemo(() => {
-    return Array.isArray(productConfig?.subjects) ? productConfig.subjects : [];
-  }, [productConfig]);
+    const configured = Array.isArray(productConfig?.subjects) ? productConfig.subjects : [];
+    const extras = [...new Set(questions.map(q => q.subject).filter(Boolean))]
+      .filter(s => !configured.includes(s))
+      .sort();
+    return [...configured, ...extras];
+  }, [productConfig, questions]);
 
   const systemOptions = useMemo(() => {
-    return Array.isArray(productConfig?.systems) ? productConfig.systems : [];
-  }, [productConfig]);
+    const configured = Array.isArray(productConfig?.systems) ? productConfig.systems : [];
+    const extras = [...new Set(questions.map(q => q.system).filter(Boolean))]
+      .filter(s => !configured.includes(s))
+      .sort();
+    return [...configured, ...extras];
+  }, [productConfig, questions]);
 
   // Enforce system auto-selection if none selected
   useEffect(() => {
