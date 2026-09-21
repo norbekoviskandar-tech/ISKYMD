@@ -84,8 +84,8 @@ export default function CartDropdown() {
                             {item.duration || 90}-Day Access {(item.quantity || 1) > 1 && `(x${item.quantity})`}
                           </p>
                           <div className="mt-1">
-                            <span className="text-[#1d46af] font-black text-sm">${(item.price * (item.quantity || 1)).toFixed(2)}</span>
-                            {(item.quantity || 1) > 1 && <span className="text-slate-400 text-[10px] font-medium ml-2">${item.price}/each</span>}
+                            <span className="text-[#1d46af] font-black text-sm">${(item.price * (item.quantity || 1)).toFixed(2)} USD</span>
+                            {(item.quantity || 1) > 1 && <span className="text-slate-400 text-[10px] font-medium ml-2">${item.price} USD/each</span>}
                           </div>
                         </div>
                         <button 
@@ -103,7 +103,7 @@ export default function CartDropdown() {
                     <div className="flex justify-between items-center mb-6">
                       <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Subtotal</span>
                       <span className="text-2xl font-black text-slate-900 leading-none">
-                        ${cart.reduce((total, item) => total + (item.price * (item.quantity || 1)), 0).toFixed(2)}
+                        ${cart.reduce((total, item) => total + (item.price * (item.quantity || 1)), 0).toFixed(2)} USD
                       </span>
                     </div>
                     <button 

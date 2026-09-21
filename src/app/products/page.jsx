@@ -204,7 +204,7 @@ export default function ProductsPage() {
                 <div className="mt-auto">
                   <div className="mb-6">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-black text-slate-900">From ${p.price}</span>
+                      <span className="text-3xl font-black text-slate-900">From ${p.price} USD</span>
                       <span className="text-xs font-bold text-slate-400">/ one-time</span>
                     </div>
                   </div>

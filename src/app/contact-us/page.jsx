@@ -16,12 +16,19 @@ export default function ContactUsPage() {
             For billing, legal, privacy, or payment-gateway verification inquiries, please contact our support team.
           </p>
           <div>
-            <p><span className="font-bold text-slate-800">Support Email:</span> support@iskymd.com</p>
-            <p><span className="font-bold text-slate-800">Compliance Email:</span> compliance@iskymd.com</p>
-            <p><span className="font-bold text-slate-800">Business Address:</span> IskyMD Universal Systems</p>
+            <p><span className="font-bold text-slate-800">Support Email (billing, refunds, access):</span> support@iskymd.com</p>
+            <p><span className="font-bold text-slate-800">Compliance Email:</span> admin@iskymd.com</p>
+            <p><span className="font-bold text-slate-800">Business Name:</span> IskyMD Universal Systems</p>
+            {/* TODO: add the registered business address and a contact phone number here (payment providers ask for them). */}
           </div>
           <p>
             Response time is typically within 1-2 business days.
+          </p>
+          <p>
+            See also our{" "}
+            <Link href="/refund-policy" className="font-bold text-[#1d46af] hover:underline">Refund &amp; Cancellation Policy</Link>,{" "}
+            <Link href="/privacy-policy" className="font-bold text-[#1d46af] hover:underline">Privacy Policy</Link> and{" "}
+            <Link href="/terms-of-use" className="font-bold text-[#1d46af] hover:underline">Terms of Use</Link>.
           </p>
         </div>
       </main>

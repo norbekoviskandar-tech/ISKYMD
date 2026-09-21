@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useContext, use } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AppContext } from "@/context/AppContext";
 import { getProductById } from "@/services/product.service";
 import CartDropdown from "@/components/student/layout/CartDropdown";
@@ -231,7 +232,7 @@ export default function ProductDetailPage({ params }) {
                                                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Access Protocol</div>
                                                     </div>
                                                 </div>
-                                                <div className="text-2xl font-black text-slate-900">${plan.price}</div>
+                                                <div className="text-2xl font-black text-slate-900">${plan.price} USD</div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-3">
@@ -276,6 +277,12 @@ export default function ProductDetailPage({ params }) {
                 <div className="mx-auto max-w-7xl text-center">
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-4">Institutional Protocol Active</p>
                     <p className="text-slate-400 text-sm font-medium">© 2026 IskyMD Universal Systems. Clinical Precision Guaranteed.</p>
+                    <p className="mt-4 text-slate-400 text-xs font-medium">
+                        Digital access delivered to your account. 14-day refund guarantee. Prices in USD.{" "}
+                        <Link href="/refund-policy" className="font-bold text-[#1d46af] hover:underline">Refund Policy</Link>{" · "}
+                        <Link href="/terms-of-use" className="font-bold text-[#1d46af] hover:underline">Terms</Link>{" · "}
+                        <Link href="/privacy-policy" className="font-bold text-[#1d46af] hover:underline">Privacy</Link>
+                    </p>
                 </div>
             </footer>
         </div>

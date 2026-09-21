@@ -131,6 +131,7 @@ export default function Home() {
              <div className="flex gap-8">
                 <Link href="/privacy-policy" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Privacy</Link>
                 <Link href="/terms-of-use" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Terms</Link>
+                <Link href="/refund-policy" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Refunds</Link>
                 <Link href="/contact-us" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Contact</Link>
              </div>
           </div>

@@ -22,6 +22,7 @@ export default function SolutionsPage() {
             <Link href="/solutions" className="text-sm font-bold text-[#1d46af]">Solutions</Link>
             <Link href="/privacy-policy" className="text-sm font-bold text-slate-500 hover:text-[#1d46af] transition-colors">Privacy Policy</Link>
             <Link href="/terms-of-use" className="text-sm font-bold text-slate-500 hover:text-[#1d46af] transition-colors">Terms of Use</Link>
+            <Link href="/refund-policy" className="text-sm font-bold text-slate-500 hover:text-[#1d46af] transition-colors">Refund Policy</Link>
             <Link href="/contact-us" className="text-sm font-bold text-slate-500 hover:text-[#1d46af] transition-colors">Contact Us</Link>
           </nav>
         </div>
@@ -38,7 +39,7 @@ export default function SolutionsPage() {
           </p>
         </section>
 
-        <section className="grid gap-6 md:grid-cols-3">
+        <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Link href="/privacy-policy" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:border-[#1d46af] transition-colors">
             <h2 className="text-lg font-black text-slate-900">Privacy Policy</h2>
             <p className="mt-2 text-sm text-slate-600">How user data is collected, used, secured, and retained.</p>
@@ -47,6 +48,11 @@ export default function SolutionsPage() {
           <Link href="/terms-of-use" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:border-[#1d46af] transition-colors">
             <h2 className="text-lg font-black text-slate-900">Terms of Use</h2>
             <p className="mt-2 text-sm text-slate-600">Rules, account responsibilities, subscription usage, and limitations.</p>
+          </Link>
+
+          <Link href="/refund-policy" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:border-[#1d46af] transition-colors">
+            <h2 className="text-lg font-black text-slate-900">Refund &amp; Cancellation</h2>
+            <p className="mt-2 text-sm text-slate-600">14-day refund guarantee, how to request a refund, and how access periods work.</p>
           </Link>
 
           <Link href="/contact-us" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:border-[#1d46af] transition-colors">

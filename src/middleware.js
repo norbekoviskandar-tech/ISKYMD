@@ -20,7 +20,7 @@ export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
   // Allow public routes
-  const publicRoutes = ['/', '/auth', '/products', '/solutions', '/contact-us', '/privacy-policy', '/terms-of-use'];
+  const publicRoutes = ['/', '/auth', '/products', '/solutions', '/contact-us', '/privacy-policy', '/terms-of-use', '/refund-policy'];
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'));
 
   // Allow auth API routes

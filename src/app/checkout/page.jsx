@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AppContext } from "@/context/AppContext";
 import { 
   CreditCard, 
@@ -146,7 +147,7 @@ export default function CheckoutPage() {
                       </p>
                     </div>
                     <div className="text-xl font-black text-slate-900 absolute right-8 sm:static">
-                      ${((item.price || 0) * (item.quantity || 1)).toFixed(0)}
+                      ${((item.price || 0) * (item.quantity || 1)).toFixed(0)} USD
                     </div>
                   </div>
                 ))}
@@ -155,7 +156,7 @@ export default function CheckoutPage() {
               <div className="space-y-4 border-t border-slate-50 pt-6">
                 <div className="flex justify-between text-sm font-bold">
                   <span className="text-slate-400">Subtotal</span>
-                  <span className="text-slate-900">${subtotal.toFixed(2)}</span>
+                  <span className="text-slate-900">${subtotal.toFixed(2)} USD</span>
                 </div>
                 <div className="flex justify-between text-sm font-bold">
                   <span className="text-slate-400">Tax</span>
@@ -163,7 +164,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-2xl font-black pt-4 border-t border-slate-50">
                   <span className="text-slate-900">Total</span>
-                  <span className="text-[#1d46af]">${subtotal.toFixed(2)}</span>
+                  <span className="text-[#1d46af]">${subtotal.toFixed(2)} USD</span>
                 </div>
               </div>
             </div>
@@ -264,6 +265,14 @@ export default function CheckoutPage() {
                       </>
                     )}
                   </button>
+
+                  <p className="text-center text-[11px] font-medium leading-relaxed text-slate-400">
+                    By completing your purchase you agree to our{" "}
+                    <Link href="/terms-of-use" className="font-bold text-[#1d46af] hover:underline">Terms of Use</Link>,{" "}
+                    <Link href="/privacy-policy" className="font-bold text-[#1d46af] hover:underline">Privacy Policy</Link> and{" "}
+                    <Link href="/refund-policy" className="font-bold text-[#1d46af] hover:underline">Refund &amp; Cancellation Policy</Link>.
+                    Digital access is delivered to your account; 14-day refund guarantee. Prices in USD.
+                  </p>
                 </div>
               </div>
             )}
